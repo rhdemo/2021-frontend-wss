@@ -118,7 +118,6 @@ function populateGridWithShipData (s: ShipSize, piece: ShipData, grid: number[][
     throw new Error('failed to parse ship size to a number')
   }
 
-  // Generate a 2D array to represent the game grid
   for (let i = 0; i < size; i++) {
     if (piece.orientation === ShipOrientation.Horizontal) {
       const row = rootY
