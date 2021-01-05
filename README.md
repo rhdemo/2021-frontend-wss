@@ -24,4 +24,11 @@ npm run dev
 
 ### Run in Production Mode
 
-TODO
+```
+git clone https://github.com/rhdemo/2021-frontend-wss
+cd 2021-frontend-wss
+
+npm install
+npm build
+npm start
+```
