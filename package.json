@@ -6,7 +6,7 @@
   "scripts": {
     "build": "tsc",
     "dev": "nodemon -e ts -x ts-node index.ts | pino-pretty -t",
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "ts-node node_modules/tape/bin/tape test/*.test.ts",
     "start": "node build/index.js"
   },
   "repository": {
@@ -27,15 +27,18 @@
   "dependencies": {
     "env-var": "~7.0.0",
     "fastify": "~3.9.2",
-    "fastify-websocket": "~2.0.11"
+    "fastify-websocket": "~2.0.11",
+    "joi": "^17.3.0"
   },
   "devDependencies": {
+    "@types/tape": "^4.13.0",
     "@types/ws": "~7.4.0",
     "husky": "^4.3.6",
     "nodemon": "~2.0.6",
     "pino-pretty": "~4.3.0",
     "prettier": "^2.2.1",
     "pretty-quick": "^3.1.0",
+    "tape": "^5.1.0",
     "ts-node": "~9.1.1",
     "typescript": "~4.1.3"
   }

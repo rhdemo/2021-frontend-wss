@@ -1,7 +1,4 @@
-'use strict ';
-
 import fastify, { FastifyInstance } from 'fastify';
-import { Server } from 'http';
 import { ServerOptions } from 'ws';
 import { WebsocketPluginOptions } from 'fastify-websocket';
 import { WS_MAX_PAYLOAD, HTTP_PORT } from './config';
