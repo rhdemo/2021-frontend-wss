@@ -23,6 +23,10 @@
       "pre-commit": "pretty-quick --staged --trailing-comma=none --pattern **/*.ts *.ts"
     }
   },
+  "prettier": {
+    "trailingComma": "none",
+    "singleQuote": true
+  },
   "homepage": "https://github.com/rhdemo/2021-frontend-wss#readme",
   "dependencies": {
     "env-var": "~7.0.0",
