@@ -1,0 +1,14 @@
+{
+  "Submarine": {
+    "position": [0, 0],
+    "orientation": "horizontal"
+  },
+  "Destroyer": {
+    "position": [2, 1],
+    "orientation": "horizontal"
+  },
+  "Battleship": {
+    "position": [0, 1],
+    "orientation": "vertical"
+  }
+}

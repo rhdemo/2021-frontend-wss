@@ -1,17 +1,16 @@
 import * as Joi from 'joi'
+import { GAME_GRID_SIZE } from './config'
 
-const enum ShipOrientation {
+export enum ShipOrientation {
   Vertical = 'vertical',
   Horizontal = 'horizontal'
 }
 
-const enum ShipSize {
-  S = 2,
-  M = 3,
-  L = 4
+export enum ShipType {
+  Battleship = 'Battleship',
+  Destroyer = 'Destroyer',
+  Submarine = 'Submarine'
 }
-
-const EXPECT_OCCUPIED_SQUARES = ShipSize.S + ShipSize.M + ShipSize.L
 
 type ShipData = {
   position: [number, number],
@@ -19,18 +18,31 @@ type ShipData = {
 }
 
 type ShipsLockedData = {
-  [key in ShipSize]: ShipData
+  [key in ShipType]: ShipData
 }
 
+type Grid = number[][]
+
+const ShipSize = {
+  [ShipType.Battleship]: 4,
+  [ShipType.Destroyer]: 3,
+  [ShipType.Submarine]: 2
+}
+
+const EXPECTED_OCCUPIED_SQUARES = Object.values(ShipSize)
+  .reduce((total, v) => {
+    return total + v
+  }, 0)
+
 const ShipSchema = Joi.object({
-  position: Joi.array().min(2).max(2).items(Joi.number().min(0).max(4)).required(),
+  position: Joi.array().min(2).max(2).items(Joi.number().min(0).max(GAME_GRID_SIZE - 1)).required(),
   orientation: Joi.string().allow(ShipOrientation.Vertical, ShipOrientation.Horizontal).required()
 })
 
 const ShipsLockedSchema = Joi.object({
-  [ShipSize.S]: ShipSchema.required(),
-  [ShipSize.M]: ShipSchema.required(),
-  [ShipSize.L]: ShipSchema.required()
+  [ShipType.Battleship]: ShipSchema.required(),
+  [ShipType.Destroyer]: ShipSchema.required(),
+  [ShipType.Submarine]: ShipSchema.required()
 })
 
 /**
@@ -40,7 +52,7 @@ const ShipsLockedSchema = Joi.object({
  * Steps:
  *
  * 1. JSON payload validation using a schema
- * 2. Generate a 5x5 grid array[][]
+ * 2. Generate a NxN grid array[][]
  * 3. Verify ships are within bounds
  *
  * @param placementData
@@ -58,25 +70,29 @@ export function validateShipPlacement(placementData: unknown): ShipsLockedData {
     throw errors
   }
 
-  // Populate a grid and use it to verify that pieces do not overlap
+  // Cast the data to the correct type now that Joi validated it, then use it
+  // to populate a grid using the keys (ship types) from the validated payload
+  const validatedPlacementData = placementData as ShipsLockedData
   const grid = generateEmptyGridArray()
 
-  populateGridWithShipData(ShipSize.S, (placementData as ShipsLockedData)[ShipSize.S], grid)
-  populateGridWithShipData(ShipSize.M, (placementData as ShipsLockedData)[ShipSize.M], grid)
-  populateGridWithShipData(ShipSize.L, (placementData as ShipsLockedData)[ShipSize.L], grid)
+  Object.keys(validatedPlacementData).forEach((ship) => {
+    const shipType = ship as ShipType
 
-  // Prints the 5x5 grid for debugging purposes. It may be wider than 5 cells
+    populateGridWithShipData(ShipSize[shipType], validatedPlacementData[shipType], grid)
+  })
+
+  // Prints the NxN grid for debugging purposes. It may be wider than N cells
   // if a player is sending invalid inputs, or being nefarious
   // populatedGrid.forEach(r => console.log(r))
 
   // Validate that:
   // 1. ships do not overlap (squares can only contain 0 or 1 values)
-  // 2. ships do no stick out over the edges (array must have length 5)
+  // 2. ships do no stick out over the edges (array must have length N)
   let occupiedSquares = 0
   for (let i = 0; i < grid.length; i++) {
     const row = grid[i]
 
-    if (row.length !== 5) {
+    if (row.length !== GAME_GRID_SIZE) {
       throw new Error('a ship is over the edge of the board')
     }
 
@@ -93,8 +109,8 @@ export function validateShipPlacement(placementData: unknown): ShipsLockedData {
     }
   }
 
-  if (occupiedSquares !== EXPECT_OCCUPIED_SQUARES) {
-    throw new Error(`${occupiedSquares} grid positions were occupied, but ${EXPECT_OCCUPIED_SQUARES} was the expected value`)
+  if (occupiedSquares !== EXPECTED_OCCUPIED_SQUARES) {
+    throw new Error(`${occupiedSquares} grid positions were occupied, but ${EXPECTED_OCCUPIED_SQUARES} was the expected value`)
   }
 
   return placementData as ShipsLockedData
@@ -102,24 +118,22 @@ export function validateShipPlacement(placementData: unknown): ShipsLockedData {
 
 
 /**
- * Increments the value of squares that a ship occupies in the given 5x5 grid.
+ * Increments the value of squares that a ship occupies in the given NxN grid.
  * This grid can be used to find ships that are out of bounds or overlapping.
- *
- * @param s
- * @param piece
+ * @param size
+ * @param ship
  * @param grid
  */
-function populateGridWithShipData (s: ShipSize, piece: ShipData, grid: number[][]) {
-  const rootX = piece.position[0]
-  const rootY = piece.position[1]
-  const size = parseInt(s.toString())
+function populateGridWithShipData (size: number, ship: ShipData, grid: Grid) {
+  const rootX = ship.position[0]
+  const rootY = ship.position[1]
 
   if (isNaN(size)) {
     throw new Error('failed to parse ship size to a number')
   }
 
   for (let i = 0; i < size; i++) {
-    if (piece.orientation === ShipOrientation.Horizontal) {
+    if (ship.orientation === ShipOrientation.Horizontal) {
       const row = rootY
       const col = rootX + i
 
@@ -133,12 +147,19 @@ function populateGridWithShipData (s: ShipSize, piece: ShipData, grid: number[][
   }
 }
 
-function generateEmptyGridArray() {
-  return [
-    [0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0]
-  ]
+/**
+ * Generates an empty (filled with zeroes) 2D grid that's NxN in size
+ */
+function generateEmptyGridArray(): Grid {
+  const grid: Grid = []
+
+  for (let i = 0; i < GAME_GRID_SIZE; i++) {
+    grid[i] = []
+
+    for (let j = 0; j < GAME_GRID_SIZE; j++) {
+      grid[i][j] = 0
+    }
+  }
+
+  return grid
 }
