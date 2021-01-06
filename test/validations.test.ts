@@ -2,23 +2,23 @@ import test from 'tape';
 import {
   ShipOrientation,
   ShipType,
-  validateShipPlacement,
+  validateShipPlacement
 } from '../validations';
 
 function getValidShipPlacement(): any {
   return {
     [ShipType.Submarine]: {
       position: [0, 0],
-      orientation: ShipOrientation.Horizontal,
+      orientation: ShipOrientation.Horizontal
     },
     [ShipType.Destroyer]: {
       position: [2, 1],
-      orientation: ShipOrientation.Horizontal,
+      orientation: ShipOrientation.Horizontal
     },
     [ShipType.Battleship]: {
       position: [0, 1],
-      orientation: ShipOrientation.Vertical,
-    },
+      orientation: ShipOrientation.Vertical
+    }
   };
 }
 
@@ -49,7 +49,7 @@ test('throws an error for invalid payload data with an extra/unknown piece/key',
 
   placement['5'] = {
     position: [1, 1],
-    orientation: ShipOrientation.Horizontal,
+    orientation: ShipOrientation.Horizontal
   };
 
   try {
@@ -117,17 +117,17 @@ test('throws an error if a ship is hanging over the board edge', (t) => {
   const placement = {
     [ShipType.Submarine]: {
       position: [0, 0],
-      orientation: ShipOrientation.Horizontal,
+      orientation: ShipOrientation.Horizontal
     },
     [ShipType.Destroyer]: {
       position: [2, 1],
-      orientation: ShipOrientation.Horizontal,
+      orientation: ShipOrientation.Horizontal
     },
     [ShipType.Battleship]: {
       // x=3, so a ship of width 4 will be over the edge
       position: [3, 1],
-      orientation: ShipOrientation.Horizontal,
-    },
+      orientation: ShipOrientation.Horizontal
+    }
   };
 
   try {
@@ -143,17 +143,17 @@ test('throws an error if ships overlap', (t) => {
   const placement = {
     [ShipType.Submarine]: {
       position: [0, 0],
-      orientation: ShipOrientation.Horizontal,
+      orientation: ShipOrientation.Horizontal
     },
     [ShipType.Destroyer]: {
       position: [2, 1],
-      orientation: ShipOrientation.Horizontal,
+      orientation: ShipOrientation.Horizontal
     },
     [ShipType.Battleship]: {
       // This ship will intersect with the one above
       position: [3, 1],
-      orientation: ShipOrientation.Vertical,
-    },
+      orientation: ShipOrientation.Vertical
+    }
   };
 
   try {

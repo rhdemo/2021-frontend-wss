@@ -20,8 +20,8 @@ app.register(require('fastify-websocket'), {
         info.req.headers['x-forwarded-for'] || info.req.socket.remoteAddress;
       app.log.info(`accepted connection from ${addr}`);
       next(true);
-    },
-  } as ServerOptions,
+    }
+  } as ServerOptions
 } as WebsocketPluginOptions);
 
 // This is the WS endpoint, i.e ws://localhost:3000/game
