@@ -1,5 +1,6 @@
 # Ignore generated JS and TypeScript files
 *.d.ts
+!infinispan.d.ts
 build/
 
 # Logs

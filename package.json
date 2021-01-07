@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "build": "tsc",
-    "dev": "nodemon -e ts -x ts-node index.ts | pino-pretty -t",
+    "dev": "LOG_LEVEL=trace nodemon -e ts -x ts-node src/index.ts | pino-pretty -t",
     "test": "ts-node node_modules/tape/bin/tape test/*.test.ts",
     "start": "node build/index.js"
   },
@@ -31,10 +31,18 @@
   "dependencies": {
     "env-var": "~7.0.0",
     "fastify": "~3.9.2",
+    "fastify-plugin": "~3.0.0",
     "fastify-websocket": "~2.0.11",
-    "joi": "~17.3.0"
+    "humanize-duration": "~3.25.0",
+    "infinispan": "~0.7.0",
+    "joi": "~17.3.0",
+    "make-promises-safe": "~5.1.0",
+    "pino": "~6.9.0"
   },
   "devDependencies": {
+    "@types/humanize-duration": "~3.18.1",
+    "@types/node": "~14.14.20",
+    "@types/pino": "~6.3.4",
     "@types/tape": "~4.13.0",
     "@types/ws": "~7.4.0",
     "husky": "~4.3.6",

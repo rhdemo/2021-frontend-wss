@@ -17,7 +17,7 @@ type ShipData = {
   orientation: ShipOrientation;
 };
 
-type ShipsLockedData = {
+export type ShipsLockedData = {
   [key in ShipType]: ShipData;
 };
 

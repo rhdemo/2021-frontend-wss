@@ -3,7 +3,7 @@ import {
   ShipOrientation,
   ShipType,
   validateShipPlacement
-} from '../validations';
+} from '../src/validations';
 
 function getValidShipPlacement(): any {
   return {

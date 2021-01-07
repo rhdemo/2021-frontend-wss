@@ -1,14 +1,18 @@
-import fastify, { FastifyInstance } from 'fastify';
+import fastify from 'fastify';
 import { ServerOptions } from 'ws';
 import { WebsocketPluginOptions } from 'fastify-websocket';
 import { WS_MAX_PAYLOAD, HTTP_PORT } from './config';
 import { getWsAddressFromServer } from './utils';
 
+const { version } = require('../package.json')
 const app = fastify({ logger: true });
 
-app.get('/', async (request, reply) => {
-  return { hello: 'world' };
-});
+// Provides a health endpoint to check
+app.register(require('./plugins/health'), {
+  options: {
+    version
+  }
+})
 
 // Register the WS plugin, apply a max payload limit, and optional authorisation
 app.register(require('fastify-websocket'), {
@@ -24,33 +28,20 @@ app.register(require('fastify-websocket'), {
   } as ServerOptions
 } as WebsocketPluginOptions);
 
-// This is the WS endpoint, i.e ws://localhost:3000/game
-app.get('/game', { websocket: true }, (conn, req) => {
-  conn.on('error', (err: any) => {
-    app.log.error(
-      `error generated. client will be disconnected due to: ${err}`
-    );
-  });
-  conn.on('close', () => {
-    app.log.error(`client connection closed`);
-  });
-  conn.socket.on('message', (message) => {
-    app.log.info(`received message ${message}`);
-    // echo the incoming message back
-    conn.socket.send(message);
-  });
-});
+// Expose the game WS endpoint
+app.register(require('./plugins/game'))
 
-const start = async () => {
+export default async function startServer () {
   try {
-    await app.listen(HTTP_PORT);
+    await app.listen(HTTP_PORT, '0.0.0.0');
+
     app.log.info(
-      `Connect vai WebSocket to ws://${getWsAddressFromServer(app.server)}/game`
+      `connect via WebSocket to ws://${getWsAddressFromServer(app.server)}/game`
     );
+
+    return app
   } catch (err) {
     app.log.error(err);
     process.exit(1);
   }
-};
-
-start();
+}
