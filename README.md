@@ -22,7 +22,7 @@ git clone https://github.com/rhdemo/2021-frontend-wss
 cd 2021-frontend-wss
 
 # Setup the inifispan server
-./scripts/node/node.start.sh
+./scripts/infinispan/infinispan.start.sh
 
 # Start the node server with live reload
 ./scripts/node/node.start.sh
