@@ -4,7 +4,7 @@ import { WebsocketPluginOptions } from 'fastify-websocket';
 import { WS_MAX_PAYLOAD, HTTP_PORT } from './config';
 import { getWsAddressFromServer } from './utils';
 
-const { version } = require('../package.json')
+const { version } = require('../package.json');
 const app = fastify({ logger: true });
 
 // Provides a health endpoint to check
@@ -12,7 +12,7 @@ app.register(require('./plugins/health'), {
   options: {
     version
   }
-})
+});
 
 // Register the WS plugin, apply a max payload limit, and optional authorisation
 app.register(require('fastify-websocket'), {
@@ -29,9 +29,9 @@ app.register(require('fastify-websocket'), {
 } as WebsocketPluginOptions);
 
 // Expose the game WS endpoint
-app.register(require('./plugins/game'))
+app.register(require('./plugins/game'));
 
-export default async function startServer () {
+export default async function startServer() {
   try {
     await app.listen(HTTP_PORT, '0.0.0.0');
 
@@ -39,7 +39,7 @@ export default async function startServer () {
       `connect via WebSocket to ws://${getWsAddressFromServer(app.server)}/game`
     );
 
-    return app
+    return app;
   } catch (err) {
     app.log.error(err);
     process.exit(1);

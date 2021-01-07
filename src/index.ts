@@ -1,13 +1,13 @@
-import * as players from './players'
-import startServer from './server'
-import log from './log'
+import * as players from './players';
+import startServer from './server';
+import log from './log';
 
-require('make-promises-safe')
+require('make-promises-safe');
 
-async function main () {
-  log.info('bootstrapping game server')
-  await players.initialise()
-  await startServer()
+async function main() {
+  log.info('bootstrapping game server');
+  await players.initialise();
+  await startServer();
 }
 
-main()
+main();
