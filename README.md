@@ -38,3 +38,13 @@ npm install
 npm build
 npm start
 ```
+
+## Endpoints
+
+### HTTP
+
+* `GET /health` - Returns a 200 response with application health information
+
+### WebSocket
+
+* `/game` - Endpoint that game clients connect to.
