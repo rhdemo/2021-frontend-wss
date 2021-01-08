@@ -4,7 +4,7 @@ import GameConfiguration, { GameState } from '../models/game.configuration';
 import { createNewPlayer } from '../players';
 import { ShipsLockedData } from '../validations';
 
-const positions = require('../../payloads/pieces.locked.valid.json')
+const positions = require('../../payloads/pieces.locked.valid.json');
 
 export type ConnectionRequestPayload = {
   username?: string;

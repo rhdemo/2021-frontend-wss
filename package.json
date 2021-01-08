@@ -20,7 +20,7 @@
   },
   "husky": {
     "hooks": {
-      "pre-commit": "pretty-quick --staged --bail --pattern **/*.ts"
+      "pre-commit": "pretty-quick --staged --bail --pattern \"**/*.ts\""
     }
   },
   "prettier": {

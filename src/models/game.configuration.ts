@@ -13,7 +13,7 @@ export type GameConfigurationData = {
   gameState: GameState;
   gameId: string;
   player: PlayerData;
-  initialPositions: ShipsLockedData
+  initialPositions: ShipsLockedData;
 };
 
 export default class GameConfiguration {
