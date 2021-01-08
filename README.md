@@ -39,6 +39,10 @@ npm build
 npm start
 ```
 
+## Simulating a Player/Client
+
+Refer to the *[client-sim/](client-sim/)* folder.
+
 ## Endpoints
 
 ### HTTP
