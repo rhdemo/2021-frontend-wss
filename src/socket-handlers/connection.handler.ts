@@ -2,9 +2,12 @@ import * as WebSocket from 'ws';
 import log from '../log';
 import GameConfiguration, { GameState } from '../models/game.configuration';
 import { createNewPlayer } from '../players';
+import { ShipsLockedData } from '../validations';
+
+const positions = require('../../payloads/pieces.locked.valid.json')
 
 export type ConnectionRequestPayload = {
-  playerId?: string;
+  username?: string;
   gameId?: string;
 };
 
@@ -12,7 +15,7 @@ export default async function connectionHandler(
   ws: WebSocket,
   data: ConnectionRequestPayload
 ) {
-  if (data.gameId && data.playerId) {
+  if (data.gameId && data.username) {
     // player/client is reconnecting
   } else {
     // first time player/client is connecting
@@ -21,7 +24,8 @@ export default async function connectionHandler(
     return new GameConfiguration(
       GameState.LOBBY,
       'a-not-so-unique-game-id',
-      player
+      player,
+      positions as ShipsLockedData
     ).toJSON();
   }
 }
