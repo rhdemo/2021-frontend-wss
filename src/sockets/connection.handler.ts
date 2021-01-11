@@ -1,5 +1,4 @@
-import * as WebSocket from 'ws';
-import log from '../log';
+import WebSocket from 'ws';
 import GameConfiguration, { GameState } from '../models/game.configuration';
 import { createNewPlayer } from '../players';
 import { ShipsLockedData } from '../validations';

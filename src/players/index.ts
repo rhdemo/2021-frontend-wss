@@ -5,7 +5,6 @@ import Player from '../models/player';
 import playerDataGridEventHandler from './datagrid.player.event';
 import log from '../log';
 import generateUserName from './username.generator';
-import P from 'pino';
 
 let dg: Client;
 

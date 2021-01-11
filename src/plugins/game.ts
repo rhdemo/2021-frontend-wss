@@ -1,6 +1,6 @@
 import { FastifyPluginCallback } from 'fastify';
 import fp from 'fastify-plugin';
-import processSocketMessage from '../socket-handlers';
+import processSocketMessage from '../sockets';
 
 export interface GameRoutePluginOptions {}
 

@@ -1,5 +1,6 @@
 import { Client, ClientEvent } from 'infinispan';
 import { DATAGRID_GAME_DATA_KEY } from '../config';
+import log from '../log';
 
 export default function gameDataGridEventHandler(
   client: Client,
@@ -7,12 +8,8 @@ export default function gameDataGridEventHandler(
   key: string
 ) {
   if (key === DATAGRID_GAME_DATA_KEY) {
-    console.log(
+    log.info(
       `${new Date()} "${event}" event detected for "${DATAGRID_GAME_DATA_KEY}"`
-    );
-  } else {
-    console.log(
-      `${new Date()} "${event}" event detected for unknown key: "${DATAGRID_GAME_DATA_KEY}"`
     );
   }
 }

@@ -1,17 +1,19 @@
+import { FastifyInstance } from 'fastify';
 import Joi from 'joi';
-import * as WebSocket from 'ws';
+import WebSocket from 'ws';
 import log from '../log';
 import connectionHandler, {
   ConnectionRequestPayload
 } from './connection.handler';
+import { heartbeat, send } from './utils';
 
-enum IncomingMsgType {
+export enum IncomingMsgType {
   Connection = 'connection',
   Ping = 'ping',
   ShipPositions = 'ship-positions'
 }
 
-enum OutgoingMsgType {
+export enum OutgoingMsgType {
   BadPayload = 'invalid-payload',
   Heartbeat = 'heartbeat',
   Configuration = 'configuration'
@@ -30,6 +32,10 @@ const WsDataSchema = Joi.object({
   ),
   data: Joi.object()
 });
+
+export function configureHeartbeat(app: FastifyInstance) {
+  heartbeat(app);
+}
 
 export default async function processSocketMessage(
   ws: WebSocket,
@@ -65,22 +71,5 @@ export default async function processSocketMessage(
         });
         break;
     }
-  }
-}
-
-function send(ws: WebSocket, type: OutgoingMsgType, data: unknown) {
-  try {
-    if (ws.readyState === WebSocket.OPEN) {
-      ws.send(
-        JSON.stringify({
-          type,
-          data
-        })
-      );
-    } else {
-      log.warn('Attempted to send message on closed socket');
-    }
-  } catch (error) {
-    log.error('Failed to send ws message. Error: ', error.message);
   }
 }
