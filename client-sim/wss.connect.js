@@ -3,7 +3,7 @@
 const WebSocket = require('ws')
 const payload = require('../payloads/client.connect.json')
 
-console.log('connecting to wss')
+console.log('connecting to wss, use "ctrl+c" to quit the program')
 const sock = new WebSocket('ws://localhost:3000/game')
 
 sock.on('open', () => {
@@ -12,7 +12,6 @@ sock.on('open', () => {
 })
 
 sock.on('message', (message) => {
-  console.log('received response from wss:')
+  console.log('received payload from wss:')
   console.log(JSON.stringify(JSON.parse(message), null, 2))
-  sock.close()
 })

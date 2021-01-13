@@ -2,9 +2,8 @@ import { FastifyInstance } from 'fastify';
 import Joi from 'joi';
 import WebSocket from 'ws';
 import log from '../log';
-import connectionHandler, {
-  ConnectionRequestPayload
-} from './connection.handler';
+import connectionHandler from './connection.handler';
+import { ConnectionRequestPayload } from './payloads';
 import { heartbeat, send } from './utils';
 
 export enum IncomingMsgType {
@@ -33,10 +32,19 @@ const WsDataSchema = Joi.object({
   data: Joi.object()
 });
 
+/**
+ * Configures a heartbeat for the WSS attached to the given fastify instance.
+ * @param app {FastifyInstance}
+ */
 export function configureHeartbeat(app: FastifyInstance) {
   heartbeat(app);
 }
 
+/**
+ * Processes an incoming WS payload
+ * @param ws {WebSocket}
+ * @param data {WebSocket.Data}
+ */
 export default async function processSocketMessage(
   ws: WebSocket,
   data: WebSocket.Data
@@ -57,11 +65,13 @@ export default async function processSocketMessage(
       info: 'Your payload was a bit iffy. K thx bye.'
     });
   } else {
-    switch (parsed.type) {
+    const trustedData = valid.value as ParsedWsData;
+
+    switch (trustedData.type) {
       case IncomingMsgType.Connection:
         const resp = await connectionHandler(
           ws,
-          data as ConnectionRequestPayload
+          trustedData.data as ConnectionRequestPayload
         );
         send(ws, OutgoingMsgType.Configuration, resp);
         break;

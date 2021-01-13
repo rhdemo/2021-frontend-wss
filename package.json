@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "build": "tsc",
-    "dev": "LOG_LEVEL=trace nodemon -e ts -x ts-node src/index.ts | pino-pretty -t",
+    "dev": "NODE_ENV=dev LOG_LEVEL=trace nodemon -e ts -x ts-node src/index.ts | pino-pretty -t",
     "test": "ts-node node_modules/tape/bin/tape test/*.test.ts",
     "start": "node build/index.js"
   },
@@ -29,6 +29,7 @@
   },
   "homepage": "https://github.com/rhdemo/2021-frontend-wss#readme",
   "dependencies": {
+    "delay": "~4.4.0",
     "env-var": "~7.0.0",
     "fastify": "~3.9.2",
     "fastify-plugin": "~3.0.0",
@@ -37,6 +38,8 @@
     "infinispan": "~0.7.0",
     "joi": "~17.3.0",
     "make-promises-safe": "~5.1.0",
+    "nanoid": "~3.1.20",
+    "p-limit": "~3.1.0",
     "pino": "~6.9.0"
   },
   "devDependencies": {

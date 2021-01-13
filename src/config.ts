@@ -15,10 +15,13 @@ const config = {
   // This is the grid size for the game, e.g "5" would produce a 5x5 grid
   GAME_GRID_SIZE: get('GAME_GRID_SIZE').default(5).asIntPositive(),
 
-  DATAGRID_GAME_DATA_KEY: get('DATAGRID_GAME_DATA_KEY')
+  DATAGRID_GAME_DATA_STORE: get('DATAGRID_GAME_DATA_STORE')
     .default('game')
     .asString(),
-  DATAGRID_PLAYER_DATA_KEY: get('DATAGRID_PLAYER_DATA_KEY')
+  DATAGRID_GAME_DATA_KEY: get('DATAGRID_GAME_DATA_KEY')
+    .default('current-game')
+    .asString(),
+  DATAGRID_PLAYER_DATA_STORE: get('DATAGRID_PLAYER_DATA_STORE')
     .default('players')
     .asString(),
   DATAGRID_HOST: get('DATAGRID_HOST').default('infinispan').asString(),

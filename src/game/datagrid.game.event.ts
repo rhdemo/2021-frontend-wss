@@ -1,9 +1,9 @@
-import { Client, ClientEvent } from 'infinispan';
+import { InfinispanClient, ClientEvent } from 'infinispan';
 import { DATAGRID_GAME_DATA_KEY } from '../config';
 import log from '../log';
 
 export default function gameDataGridEventHandler(
-  client: Client,
+  client: InfinispanClient,
   event: ClientEvent,
   key: string
 ) {

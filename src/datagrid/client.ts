@@ -1,10 +1,10 @@
-import { Client, ClientEvent, InfinispanNode } from 'infinispan';
+import { InfinispanClient, ClientEvent, InfinispanNode } from 'infinispan';
 import { DATAGRID_HOST, DATAGRID_HOTROD_PORT } from '../config';
 import infinispan from 'infinispan';
 import log from '../log';
 
 type DataGridEventHandle = (
-  client: Client,
+  client: InfinispanClient,
   event: ClientEvent,
   key: string
 ) => void;
@@ -12,7 +12,7 @@ type DataGridEventHandle = (
 async function getClient(
   nodes: InfinispanNode[],
   cacheName: string
-): Promise<Client> {
+): Promise<InfinispanClient> {
   const client = await infinispan.client(nodes, {
     cacheName
   });
@@ -27,7 +27,7 @@ async function getClient(
 export default async function getDataGridClientForCacheNamed(
   cacheName: string,
   eventHandler: DataGridEventHandle
-): Promise<Client> {
+): Promise<InfinispanClient> {
   log.info(`creating infinispan client for cache named "${cacheName}"`);
 
   const nodes = [

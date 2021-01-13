@@ -1,35 +1,39 @@
-import { ShipsLockedData } from '../validations';
-import Player, { PlayerData } from './player';
-
-export enum GameState {
-  LOBBY = 'lobby',
-  STOPPED = 'stopped',
-  PAUSED = 'paused',
-  LOADING = 'loading',
-  ACTIVE = 'active'
-}
+import { InfinispanClient } from 'infinispan';
+import { DATAGRID_GAME_DATA_KEY } from '../config';
+import Model from './model';
 
 export type GameConfigurationData = {
-  gameState: GameState;
-  gameId: string;
-  player: PlayerData;
-  initialPositions: ShipsLockedData;
+  uuid: string;
+  date: string;
+  state: GameState;
 };
 
-export default class GameConfiguration {
-  constructor(
-    private gameState: GameState,
-    private gameId: string,
-    private player: Player,
-    private initialPositions: ShipsLockedData
-  ) {}
+export enum GameState {
+  Lobby = 'lobby',
+  Stopped = 'stopped',
+  Paued = 'paused',
+  Loading = 'loading',
+  Active = 'active'
+}
+
+export default class GameConfiguration extends Model<GameConfigurationData> {
+  constructor(id: string, private date: string, private state: GameState) {
+    super(id);
+  }
+
+  static from(data: GameConfigurationData) {
+    return new GameConfiguration(data.uuid, data.date, data.state);
+  }
+
+  getModelKey() {
+    return DATAGRID_GAME_DATA_KEY;
+  }
 
   toJSON(): GameConfigurationData {
     return {
-      gameId: this.gameId,
-      gameState: this.gameState,
-      player: this.player.toJSON(),
-      initialPositions: this.initialPositions
+      uuid: this.getUUID(),
+      date: this.date,
+      state: this.state
     };
   }
 }
