@@ -16,10 +16,7 @@ const getClient = getDataGridClientForCacheNamed(
   DATAGRID_PLAYER_DATA_STORE,
   playerDataGridEventHandler
 );
-const playerSockets = new Map<
-  string,
-  { player: Player; ws: WebSocket; sequence: number }
->();
+const playerSockets = new Map<string, { player: Player; ws: WebSocket }>();
 
 /**
  * Initialises a Player entity based on an incoming "connection" event
@@ -64,8 +61,7 @@ export async function initialisePlayer(
   log.info(`adding player ${player.getUUID()} to sockets pool`);
   playerSockets.set(player.getUUID(), {
     ws,
-    player,
-    sequence: 0
+    player
   });
 
   const uuid = player.getUUID();
