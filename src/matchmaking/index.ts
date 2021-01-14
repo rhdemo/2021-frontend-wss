@@ -76,7 +76,7 @@ export async function matchMakeForPlayer(
       entryPromise: Promise<InfinispanIteratorEntry>
     ): Promise<MatchInstance | undefined> {
       const entry = await entryPromise;
-      console.log(entry.done, entry.value);
+
       if (entry.done) {
         return;
       } else {
