@@ -30,9 +30,14 @@ export async function initialisePlayer(
   let player: Player | undefined;
   const game = await getGameConfiguration();
 
-  if (data.uuid && game.getUUID() === data.gameId) {
+  log.debug('client connected with connection payload: %j', data);
+
+  if (data.playerId && game.getUUID() === data.gameId) {
     // client is reconnecting
-    player = await getPlayerWithUUID(data.uuid);
+    log.debug(
+      `player "${data.playerId}" is trying to reconnect for game "${data.gameId}"`
+    );
+    player = await getPlayerWithUUID(data.playerId);
   }
 
   if (!player || player.getUsername() !== data.username) {

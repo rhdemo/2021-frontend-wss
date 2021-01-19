@@ -61,6 +61,7 @@ export default async function processSocketMessage(
   const valid = WsDataSchema.validate(parsed);
 
   if (valid.error || valid.errors) {
+    log.warn('client sent an invalid message payload: %j', parsed);
     send(ws, OutgoingMsgType.BadPayload, {
       info: 'Your payload was a bit iffy. K thx bye.'
     });

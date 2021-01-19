@@ -1,5 +1,6 @@
 import { FastifyPluginCallback } from 'fastify';
 import fp from 'fastify-plugin';
+import log from '../log';
 import processSocketMessage from '../sockets';
 
 export interface GameRoutePluginOptions {}
@@ -19,9 +20,10 @@ const gameRoutePlugin: FastifyPluginCallback<GameRoutePluginOptions> = (
     conn.on('close', () => {
       server.log.error(`client connection closed`);
     });
-    conn.socket.on('message', (message) =>
-      processSocketMessage(conn.socket, message)
-    );
+    conn.socket.on('message', (message) => {
+      log.trace('incoming socket payload: %j', message);
+      processSocketMessage(conn.socket, message);
+    });
   });
 
   done();
