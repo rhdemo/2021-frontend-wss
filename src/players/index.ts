@@ -84,11 +84,26 @@ export function getPlayerAssociatedWithSocket(ws: WebSocket) {
 }
 
 /**
+ * Finds the WebSocket for a given Player.
+ * @param player
+ */
+export function getSocketForPlayer(player: Player): WebSocket | undefined {
+  const targetUUID = player.getUUID();
+  for (const entry of playerSockets) {
+    if (entry[1].getUUID() === targetUUID) {
+      return entry[0];
+    }
+  }
+}
+
+/**
  * Returns an instance of a Player from the cache, or undefined if the player
  * was not found in the cache
  * @param uuid
  */
-async function getPlayerWithUUID(uuid: string): Promise<Player | undefined> {
+export async function getPlayerWithUUID(
+  uuid: string
+): Promise<Player | undefined> {
   const client = await getClient;
   const data = await client.get(uuid);
 

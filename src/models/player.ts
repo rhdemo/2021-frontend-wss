@@ -40,11 +40,15 @@ export default class Player extends Model<PlayerData> {
     );
   }
 
-  setValidShipPositionData(positions: ShipPositionData) {
+  setShipPositionData(positions: ShipPositionData, valid: boolean) {
     this.board = {
-      valid: true,
+      valid,
       positions
     };
+  }
+
+  hasLockedShipPositions() {
+    return this.board?.valid;
   }
 
   setMatchInstanceUUID(uuid: string) {

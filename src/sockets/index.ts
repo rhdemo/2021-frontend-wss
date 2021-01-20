@@ -14,9 +14,11 @@ export enum IncomingMsgType {
 }
 
 export enum OutgoingMsgType {
+  BadMessageType = 'BadMessageType',
   BadPayload = 'invalid-payload',
   Heartbeat = 'heartbeat',
-  Configuration = 'configuration'
+  Configuration = 'configuration',
+  BoardState = 'board-state'
 }
 
 type ParsedWsData = {
@@ -63,6 +65,10 @@ export default async function processSocketMessage(
 
   if (valid.error || valid.errors) {
     log.warn('client sent an invalid message payload: %j', parsed);
+    log.warn(
+      'validation failed with the error: %j',
+      valid.errors || valid.error
+    );
     send(ws, OutgoingMsgType.BadPayload, {
       info: 'Your payload was a bit iffy. K thx bye.'
     });
@@ -82,10 +88,11 @@ export default async function processSocketMessage(
           ws,
           trustedData.data as ShipPositionDataPayload
         );
-        send(ws, OutgoingMsgType.Configuration, res);
+        send(ws, OutgoingMsgType.BoardState, res);
+        break;
       default:
-        send(ws, OutgoingMsgType.BadPayload, {
-          info: 'unrecognised message type'
+        send(ws, OutgoingMsgType.BadMessageType, {
+          info: `"${trustedData.type}" is an unrecognised message type`
         });
         break;
     }

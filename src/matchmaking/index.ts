@@ -4,8 +4,12 @@ import getDataGridClientForCacheNamed from '../datagrid/client';
 import log from '../log';
 import MatchInstance, { MatchInstanceData } from '../models/match.instance';
 import Player from '../models/player';
+import matchInstanceDatagridEventHandler from './datagrid.event-handler';
 
-const getClient = getDataGridClientForCacheNamed('match-instances', () => {});
+const getClient = getDataGridClientForCacheNamed(
+  'match-instances',
+  matchInstanceDatagridEventHandler
+);
 const limit = pLimit(1);
 const BATCH_SIZE = 50;
 
@@ -21,6 +25,44 @@ async function createMatchInstanceForPlayer(
   await upsertMatchInCache(match);
 
   return match;
+}
+
+/**
+ * Return a match instance
+ * @param uuid
+ */
+export async function getMatchByUUID(
+  uuid: string
+): Promise<MatchInstance | undefined> {
+  const client = await getClient;
+  const data = await client.get(uuid);
+
+  if (data) {
+    return MatchInstance.from(JSON.parse(data));
+  } else {
+    return undefined;
+  }
+}
+
+/**
+ * Given a Player, find the match instance that they're associated with.
+ * @param player
+ */
+export async function getMatchAssociatedWithPlayer(
+  player: Player
+): Promise<MatchInstance | undefined> {
+  const uuid = player.getMatchInstanceUUID();
+
+  if (!uuid) {
+    throw new Error(`player ${player.getUUID()} is missing a match UUID`);
+  }
+
+  const client = await getClient;
+  const data = await client.get(uuid);
+
+  if (data) {
+    return MatchInstance.from(JSON.parse(data));
+  }
 }
 
 /**
