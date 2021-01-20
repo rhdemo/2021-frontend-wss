@@ -77,13 +77,13 @@ declare module 'infinispan' {
     disconnect(): Promise<InfinispanClient>;
 
     stats(): Promise<unknown[]>;
-    iter;
     get(key: string): Promise<string | undefined>;
     put(
       key: string,
       value: string,
       opts?: StoreOptions
     ): Promise<string | undefined>;
+    remove(key: string): Promise<Boolean>;
     iterator(batchSize: number): Promise<InfinispanIterator>;
     addListener(
       event: 'create' | 'modify',

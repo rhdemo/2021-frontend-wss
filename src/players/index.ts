@@ -6,17 +6,15 @@ import log from '../log';
 import WebSocket from 'ws';
 import generateUserName from './username.generator';
 import { nanoid } from 'nanoid';
-import { ShipsLockedData } from '../validations';
 import { ConnectionRequestPayload } from '../sockets/payloads';
 import { getGameConfiguration } from '../game';
 import { matchMakeForPlayer } from '../matchmaking';
 
-const positions = require('../../payloads/pieces.locked.valid.json');
 const getClient = getDataGridClientForCacheNamed(
   DATAGRID_PLAYER_DATA_STORE,
   playerDataGridEventHandler
 );
-const playerSockets = new Map<string, { player: Player; ws: WebSocket }>();
+const playerSockets = new Map<WebSocket, Player>();
 
 /**
  * Initialises a Player entity based on an incoming "connection" event
@@ -64,20 +62,25 @@ export async function initialisePlayer(
   // Keep a reference to the player's socket to facilitate communication by
   // using their UUID for lookup
   log.info(`adding player ${player.getUUID()} to sockets pool`);
-  playerSockets.set(player.getUUID(), {
-    ws,
-    player
-  });
+  playerSockets.set(ws, player);
 
   const uuid = player.getUUID();
   ws.on('close', () => {
     log.debug(
       `removing player ${uuid} from player sockets pool due to socket "close" event`
     );
-    playerSockets.delete(uuid);
+    playerSockets.delete(ws);
   });
 
   return player;
+}
+
+/**
+ * Fetches a player associated with a given socket
+ * @param sock
+ */
+export function getPlayerAssociatedWithSocket(ws: WebSocket) {
+  return playerSockets.get(ws);
 }
 
 /**
@@ -108,7 +111,7 @@ async function getPlayerWithUUID(uuid: string): Promise<Player | undefined> {
  * Insert/Update the player entry in the cache
  * @param player
  */
-async function upsertPlayerInCache(player: Player) {
+export async function upsertPlayerInCache(player: Player) {
   const data = player.toJSON();
   const client = await getClient;
 
@@ -123,13 +126,7 @@ async function createNewPlayer(): Promise<Player> {
   const username = generateUserName();
   const uuid = nanoid();
 
-  const player = new Player(
-    username,
-    0,
-    uuid,
-    undefined,
-    positions as ShipsLockedData
-  );
+  const player = new Player(username, 0, uuid, undefined);
   const existingPlayerWithSameUsername = await getPlayerWithUUID(username);
 
   if (existingPlayerWithSameUsername) {

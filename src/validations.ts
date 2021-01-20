@@ -13,11 +13,11 @@ export enum ShipType {
 }
 
 type ShipData = {
-  position: [number, number];
+  origin: [number, number];
   orientation: ShipOrientation;
 };
 
-export type ShipsLockedData = {
+export type ShipPositionData = {
   [key in ShipType]: ShipData;
 };
 
@@ -66,7 +66,9 @@ const ShipsLockedSchema = Joi.object({
  *
  * @param placementData
  */
-export function validateShipPlacement(placementData: unknown): ShipsLockedData {
+export function validateShipPlacement(
+  placementData: unknown
+): ShipPositionData {
   const result = ShipsLockedSchema.validate(placementData, {
     abortEarly: false,
     stripUnknown: false,
@@ -81,7 +83,7 @@ export function validateShipPlacement(placementData: unknown): ShipsLockedData {
 
   // Cast the data to the correct type now that Joi validated it, then use it
   // to populate a grid using the keys (ship types) from the validated payload
-  const validatedPlacementData = placementData as ShipsLockedData;
+  const validatedPlacementData = placementData as ShipPositionData;
   const grid = generateEmptyGridArray();
 
   Object.keys(validatedPlacementData).forEach((ship) => {
@@ -128,7 +130,7 @@ export function validateShipPlacement(placementData: unknown): ShipsLockedData {
     );
   }
 
-  return placementData as ShipsLockedData;
+  return placementData as ShipPositionData;
 }
 
 /**
@@ -139,8 +141,8 @@ export function validateShipPlacement(placementData: unknown): ShipsLockedData {
  * @param grid
  */
 function populateGridWithShipData(size: number, ship: ShipData, grid: Grid) {
-  const rootX = ship.position[0];
-  const rootY = ship.position[1];
+  const rootX = ship.origin[0];
+  const rootY = ship.origin[1];
 
   if (isNaN(size)) {
     throw new Error('failed to parse ship size to a number');

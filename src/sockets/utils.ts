@@ -59,7 +59,7 @@ export function heartbeat(app: FastifyInstance) {
   const clients = app.websocketServer.clients;
 
   if (clients.size > 0) {
-    log.debug(`starting heartbeat send for ${clients.size} client(s)`);
+    log.debug(`sending heartbeat to ${clients.size} client(s)`);
 
     clients.forEach((client) => {
       send(client, OutgoingMsgType.Heartbeat, {});

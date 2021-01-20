@@ -1,5 +1,8 @@
 {
-  "type": "2x1",
-  "origin": [0, 1],
-  "orientation": "horizontal"
+  "type": "attack",
+  "data": {
+    "type": "2x1",
+    "origin": [0, 1],
+    "orientation": "horizontal"
+  }
 }

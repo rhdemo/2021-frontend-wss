@@ -1,23 +1,33 @@
-import { ShipsLockedData } from '../validations';
+import { ShipPositionData } from '../validations';
 import Model from './model';
+
+export type PlayerBoardData = {
+  valid: boolean;
+  positions: ShipPositionData;
+};
 
 export type PlayerData = {
   score: number;
   uuid: string;
   username: string;
   match?: string;
-  shipPositions?: ShipsLockedData;
+  board?: PlayerBoardData;
 };
 
 export default class Player extends Model<PlayerData> {
+  private board: PlayerBoardData | undefined;
+
   constructor(
     private username: string,
     private score: number,
     uuid?: string,
     private match?: string,
-    private shipPositions?: ShipsLockedData
+    board?: PlayerBoardData
   ) {
     super(uuid);
+    if (board) {
+      this.board = board;
+    }
   }
 
   static from(data: PlayerData) {
@@ -26,12 +36,15 @@ export default class Player extends Model<PlayerData> {
       data.score,
       data.uuid,
       data.match,
-      data.shipPositions
+      data.board
     );
   }
 
-  setShipPositionData(positions: ShipsLockedData) {
-    this.shipPositions = positions;
+  setValidShipPositionData(positions: ShipPositionData) {
+    this.board = {
+      valid: true,
+      positions
+    };
   }
 
   setMatchInstanceUUID(uuid: string) {
@@ -48,7 +61,7 @@ export default class Player extends Model<PlayerData> {
 
   toJSON(): PlayerData {
     return {
-      shipPositions: this.shipPositions,
+      board: this.board,
       username: this.username,
       score: this.score,
       match: this.getMatchInstanceUUID(),

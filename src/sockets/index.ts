@@ -2,8 +2,9 @@ import { FastifyInstance } from 'fastify';
 import Joi from 'joi';
 import WebSocket from 'ws';
 import log from '../log';
-import connectionHandler from './connection.handler';
-import { ConnectionRequestPayload } from './payloads';
+import connectionHandler from './handler.connection';
+import shipPositionHandler from './handler.ship-positions';
+import { ConnectionRequestPayload, ShipPositionDataPayload } from './payloads';
 import { heartbeat, send } from './utils';
 
 export enum IncomingMsgType {
@@ -67,15 +68,21 @@ export default async function processSocketMessage(
     });
   } else {
     const trustedData = valid.value as ParsedWsData;
-
+    let res: unknown;
     switch (trustedData.type) {
       case IncomingMsgType.Connection:
-        const resp = await connectionHandler(
+        res = await connectionHandler(
           ws,
           trustedData.data as ConnectionRequestPayload
         );
-        send(ws, OutgoingMsgType.Configuration, resp);
+        send(ws, OutgoingMsgType.Configuration, res);
         break;
+      case IncomingMsgType.ShipPositions:
+        res = await shipPositionHandler(
+          ws,
+          trustedData.data as ShipPositionDataPayload
+        );
+        send(ws, OutgoingMsgType.Configuration, res);
       default:
         send(ws, OutgoingMsgType.BadPayload, {
           info: 'unrecognised message type'
