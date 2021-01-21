@@ -34,7 +34,7 @@ const EXPECTED_OCCUPIED_SQUARES = Object.values(ShipSize).reduce((total, v) => {
 }, 0);
 
 const ShipSchema = Joi.object({
-  position: Joi.array()
+  origin: Joi.array()
     .min(2)
     .max(2)
     .items(
