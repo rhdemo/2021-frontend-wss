@@ -14,7 +14,7 @@ export enum IncomingMsgType {
 }
 
 export enum OutgoingMsgType {
-  BadMessageType = 'BadMessageType',
+  BadMessageType = 'bad-message-type',
   BadPayload = 'invalid-payload',
   Heartbeat = 'heartbeat',
   Configuration = 'configuration',
