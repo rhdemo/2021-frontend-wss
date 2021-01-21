@@ -25,11 +25,13 @@ export default class MatchInstance extends Model<MatchInstanceData> {
   }
 
   addPlayer(player: Player) {
-    this.playerB = player.getUUID();
-
-    if (this.playerA && this.playerB) {
-      this.ready = true;
+    if (this.playerB) {
+      throw new Error(
+        `match ${this.getUUID()} full, cannot add player ${player.getUUID()}`
+      );
     }
+
+    this.playerB = player.getUUID();
   }
 
   isJoinable(): boolean {
