@@ -5,11 +5,7 @@ import { getMatchAssociatedWithPlayer } from '../matchmaking';
 import PlayerConfiguration, {
   PlayerConfigurationData
 } from '../models/player.configuration';
-import {
-  getPlayerAssociatedWithSocket,
-  upsertPlayerInCache,
-  getPlayerWithUUID
-} from '../players';
+import * as players from '../players';
 import { validateShipPlacement, ShipPositionData } from '../validations';
 import { ShipPositionDataPayload } from './payloads';
 
@@ -19,7 +15,7 @@ export default async function shipPositionHandler(
 ): Promise<PlayerConfigurationData> {
   let validatedPlacementData: undefined | ShipPositionData = undefined;
 
-  const player = getPlayerAssociatedWithSocket(ws);
+  const player = players.getPlayerAssociatedWithSocket(ws);
   if (!player) {
     // TODO: Improve error handling. This could occur if a player disconnects
     // then reconnects, since we do not enforce a second connect sequence
@@ -38,7 +34,7 @@ export default async function shipPositionHandler(
 
   if (player.hasLockedShipPositions()) {
     log.warn(
-      `player ${player.getUUID()} attempted to change already locked positions`
+      `not allowing player ${player.getUUID()} to change already locked positions`
     );
     return new PlayerConfiguration(game, player, match).toJSON();
   }
@@ -52,19 +48,13 @@ export default async function shipPositionHandler(
     );
   }
 
-  const opponentId = match.getPlayerOpponentUUID(player);
-
   // Update the in-memory player object...
   player.setShipPositionData(
     validatedPlacementData || data,
     validatedPlacementData ? true : false
   );
 
-  const results = await Promise.all([
-    // ...and write it to the cache
-    upsertPlayerInCache(player),
-    opponentId ? getPlayerWithUUID(opponentId) : Promise.resolve(undefined)
-  ]);
+  await players.upsertPlayerInCache(player);
 
   return new PlayerConfiguration(game, player, match).toJSON();
 }
