@@ -47,9 +47,7 @@ async function _processSocketMessage(ws: WebSocket, data: ParsedWsData) {
       log.error(e);
       resp = {
         type: OutgoingMsgType.ServerError,
-        data: {
-          info: ''
-        }
+        data: {}
       };
     } finally {
       send(ws, resp);
