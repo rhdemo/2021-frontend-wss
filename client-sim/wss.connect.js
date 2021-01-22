@@ -1,7 +1,7 @@
 'use strict'
 
 const WebSocket = require('ws')
-const payload = require('../payloads/client.connect.json')
+const payload = require('../payloads/incoming/client.connect.json')
 
 /**
  * This provides a setup harness for any future WebSocket test scripts.
