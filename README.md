@@ -9,6 +9,11 @@ Simple WebSocket server that can be used for client development.
 
 ## Usage
 
+### Controlling the WSS Server State
+
+Use the [Admin HQ Web UI](https://github.com/rhdemo/2021-admin-hq) to change
+the game state, e.g from "lobby" to "active", or to reset the server.
+
 ### Run in Dev Mode
 
 Making changes to the TypeScript source code under the *src/* dir after
