@@ -74,7 +74,8 @@ export async function initialisePlayer(
       playerSockets.delete(ws);
     });
   } else {
-    // This was triggered by a change event, so just update the player value
+    // This was triggered by a modify event. Replace the associated player
+    // value since it's the same client, they've just been reset
     playerSockets.set(ws, player);
   }
 
@@ -158,6 +159,9 @@ async function createNewPlayer(): Promise<Player> {
   const existingPlayerWithSameUsername = await getPlayerWithUUID(username);
 
   if (existingPlayerWithSameUsername) {
+    log.warn(
+      `a player with the username "${username}" already exists. retrying player create to obtain a unique username`
+    );
     return createNewPlayer();
   } else {
     await upsertPlayerInCache(player);

@@ -69,9 +69,11 @@ export async function getMatchAssociatedWithPlayer(
  * Insert/update the given match in the cache
  * @param player
  */
-async function upsertMatchInCache(match: MatchInstance) {
+export async function upsertMatchInCache(match: MatchInstance) {
   const client = await getClient;
   const data = match.toJSON();
+
+  log.trace('writing match to cache: %j', data);
 
   await client.put(match.getUUID(), JSON.stringify(data));
 

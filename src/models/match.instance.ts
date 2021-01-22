@@ -38,6 +38,10 @@ export default class MatchInstance extends Model<MatchInstanceData> {
     return this.playerB === undefined;
   }
 
+  setMatchReady(ready = true) {
+    this.ready = ready;
+  }
+
   getPlayers() {
     const playerA = this.playerA;
     const playerB = this.playerB;
