@@ -1,19 +1,20 @@
-import {
-  DATAGRID_GAME_DATA_KEY,
-  DATAGRID_GAME_DATA_STORE,
-  NODE_ENV
-} from '../config';
+import { DATAGRID_GAME_DATA_KEY, DATAGRID_GAME_DATA_STORE } from '../config';
 import getDataGridClientForCacheNamed from '../datagrid/client';
-import gameDataGridEventHandler from './datagrid.game.event';
-import { InfinispanClient } from 'infinispan';
+import { ClientEvent, InfinispanClient } from 'infinispan';
 import delay from 'delay';
 import log from '../log';
 import GameConfiguration from '../models/game.configuration';
+import { getAllConnectedPlayers } from '../players';
+import connectionHandler from '../sockets/handler.connection';
+import { ConnectionRequestPayload } from '../sockets/payloads';
+import { send } from '../sockets/utils';
 
 const getClient = getDataGridClientForCacheNamed(
   DATAGRID_GAME_DATA_STORE,
-  gameDataGridEventHandler
+  gameConfigurationDatagridEventHandler
 );
+
+let currentGameConfig: GameConfiguration;
 
 /**
  * Power on self test for game data.
@@ -31,14 +32,19 @@ export async function POST(): Promise<void> {
 
     return delay(5000).then(() => POST());
   } else {
+    currentGameConfig = GameConfiguration.from(JSON.parse(gameData));
     log.info(
       `${DATAGRID_GAME_DATA_STORE}/${DATAGRID_GAME_DATA_KEY} value is: %j`,
-      JSON.parse(gameData)
+      currentGameConfig.toJSON()
     );
   }
 }
 
-export async function getGameConfiguration() {
+export function getGameConfiguration() {
+  return currentGameConfig;
+}
+
+async function getGameConfigurationFromCache() {
   const client = await getClient;
   const data = await client.get(DATAGRID_GAME_DATA_KEY);
 
@@ -47,6 +53,46 @@ export async function getGameConfiguration() {
   } else {
     throw new Error(
       `${DATAGRID_GAME_DATA_STORE}/${DATAGRID_GAME_DATA_KEY} was missing!`
+    );
+  }
+}
+
+export default async function gameConfigurationDatagridEventHandler(
+  client: InfinispanClient,
+  eventType: ClientEvent,
+  key: string
+) {
+  log.debug(`detected game data "${eventType}" event`);
+  if (eventType === 'modify') {
+    const freshGameData = await getGameConfigurationFromCache();
+    const isReset = freshGameData.getUUID() !== currentGameConfig.getUUID();
+
+    // Replace old stale in-memory config with new data
+    currentGameConfig = freshGameData;
+
+    if (isReset) {
+      log.info(
+        'a game reset was detected. simulating initial connect/configuration event for all connected players'
+      );
+    }
+
+    getAllConnectedPlayers().forEach(async (player, ws) => {
+      // Need to reuse existing player config if it's not a reset. If it is a
+      // reset, then we pass empty data to reset the state for the client
+      let args: ConnectionRequestPayload = isReset
+        ? {}
+        : {
+            playerId: player.getUUID(),
+            gameId: freshGameData.getUUID(),
+            username: player.getUsername()
+          };
+
+      const resp = await connectionHandler(ws, args);
+      send(ws, resp);
+    });
+  } else {
+    log.error(
+      `detected a "${eventType}" for the game state. this shouldn't happen!`
     );
   }
 }

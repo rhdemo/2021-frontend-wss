@@ -1,4 +1,3 @@
-import { InfinispanClient } from 'infinispan';
 import { DATAGRID_GAME_DATA_KEY } from '../config';
 import Model from './model';
 
@@ -10,10 +9,9 @@ export type GameConfigurationData = {
 
 export enum GameState {
   Lobby = 'lobby',
-  Stopped = 'stopped',
-  Paued = 'paused',
-  Loading = 'loading',
-  Active = 'active'
+  Active = 'active',
+  Paused = 'paused',
+  Stopped = 'stopped'
 }
 
 export default class GameConfiguration extends Model<GameConfigurationData> {
@@ -23,6 +21,10 @@ export default class GameConfiguration extends Model<GameConfigurationData> {
 
   static from(data: GameConfigurationData) {
     return new GameConfiguration(data.uuid, data.date, data.state);
+  }
+
+  getGameState() {
+    return this.state;
   }
 
   getModelKey() {

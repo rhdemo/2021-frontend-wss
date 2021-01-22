@@ -26,7 +26,7 @@ export async function initialisePlayer(
   data: ConnectionRequestPayload
 ) {
   let player: Player | undefined;
-  const game = await getGameConfiguration();
+  const game = getGameConfiguration();
 
   log.debug('client connected with connection payload: %j', data);
 
@@ -62,15 +62,21 @@ export async function initialisePlayer(
   // Keep a reference to the player's socket to facilitate communication by
   // using their UUID for lookup
   log.info(`adding player ${player.getUUID()} to sockets pool`);
-  playerSockets.set(ws, player);
 
-  const uuid = player.getUUID();
-  ws.on('close', () => {
-    log.debug(
-      `removing player ${uuid} from player sockets pool due to socket "close" event`
-    );
-    playerSockets.delete(ws);
-  });
+  if (!playerSockets.get(ws)) {
+    playerSockets.set(ws, player);
+
+    const uuid = player.getUUID();
+    ws.on('close', () => {
+      log.debug(
+        `removing player ${uuid} from player sockets pool due to socket "close" event`
+      );
+      playerSockets.delete(ws);
+    });
+  } else {
+    // This was triggered by a change event, so just update the player value
+    playerSockets.set(ws, player);
+  }
 
   return player;
 }
@@ -94,6 +100,13 @@ export function getSocketForPlayer(player: Player): WebSocket | undefined {
       return entry[0];
     }
   }
+}
+
+/**
+ * Returns a Map of websockets and the associated Player object
+ */
+export function getAllConnectedPlayers() {
+  return playerSockets;
 }
 
 /**

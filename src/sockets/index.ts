@@ -4,22 +4,13 @@ import WebSocket from 'ws';
 import log from '../log';
 import connectionHandler from './handler.connection';
 import shipPositionHandler from './handler.ship-positions';
-import { ConnectionRequestPayload, ShipPositionDataPayload } from './payloads';
+import {
+  OutgoingMsgType,
+  IncomingMsgType,
+  MessageHandler,
+  MessageHandlerResponse
+} from './payloads';
 import { heartbeat, send } from './utils';
-
-export enum IncomingMsgType {
-  Connection = 'connection',
-  Ping = 'ping',
-  ShipPositions = 'ship-positions'
-}
-
-export enum OutgoingMsgType {
-  BadMessageType = 'bad-message-type',
-  BadPayload = 'invalid-payload',
-  Heartbeat = 'heartbeat',
-  Configuration = 'configuration',
-  BoardState = 'board-state'
-}
 
 type ParsedWsData = {
   type: IncomingMsgType;
@@ -27,11 +18,7 @@ type ParsedWsData = {
 };
 
 const WsDataSchema = Joi.object({
-  type: Joi.string().valid(
-    IncomingMsgType.Connection,
-    IncomingMsgType.ShipPositions,
-    IncomingMsgType.Ping
-  ),
+  type: Joi.string().required(),
   data: Joi.object()
 });
 
@@ -41,6 +28,39 @@ const WsDataSchema = Joi.object({
  */
 export function configureHeartbeat(app: FastifyInstance) {
   heartbeat(app);
+}
+
+const MessageHandlers: { [key in IncomingMsgType]: MessageHandler<unknown> } = {
+  [IncomingMsgType.Connection]: connectionHandler,
+  [IncomingMsgType.ShipPositions]: shipPositionHandler
+};
+
+async function _processSocketMessage(ws: WebSocket, data: ParsedWsData) {
+  const handler = MessageHandlers[data.type];
+  if (handler) {
+    let resp!: MessageHandlerResponse<unknown>;
+
+    try {
+      resp = await handler(ws, data.data);
+    } catch (e) {
+      log.error('error processing an incoming message: %j', data);
+      log.error(e);
+      resp = {
+        type: OutgoingMsgType.ServerError,
+        data: {
+          info: ''
+        }
+      };
+    } finally {
+      send(ws, resp);
+    }
+  } else {
+    log.warn('received unknown message type: %j', data);
+    send(ws, {
+      type: OutgoingMsgType.BadMessageType,
+      data: { info: `"${data.type}" is an unrecognised message type` }
+    });
+  }
 }
 
 /**
@@ -63,38 +83,16 @@ export default async function processSocketMessage(
 
   const valid = WsDataSchema.validate(parsed);
 
-  if (valid.error || valid.errors) {
+  if (valid.error) {
     log.warn('client sent an invalid message payload: %j', parsed);
-    log.warn(
-      'validation failed with the error: %j',
-      valid.errors || valid.error
-    );
-    send(ws, OutgoingMsgType.BadPayload, {
-      info: 'Your payload was a bit iffy. K thx bye.'
+    log.warn('validation failed with the error(s): %j', valid.error);
+    send(ws, {
+      type: OutgoingMsgType.BadPayload,
+      data: {
+        info: 'Your payload was a bit iffy. K thx bye.'
+      }
     });
   } else {
-    const trustedData = valid.value as ParsedWsData;
-    let res: unknown;
-    switch (trustedData.type) {
-      case IncomingMsgType.Connection:
-        res = await connectionHandler(
-          ws,
-          trustedData.data as ConnectionRequestPayload
-        );
-        send(ws, OutgoingMsgType.Configuration, res);
-        break;
-      case IncomingMsgType.ShipPositions:
-        res = await shipPositionHandler(
-          ws,
-          trustedData.data as ShipPositionDataPayload
-        );
-        send(ws, OutgoingMsgType.BoardState, res);
-        break;
-      default:
-        send(ws, OutgoingMsgType.BadMessageType, {
-          info: `"${trustedData.type}" is an unrecognised message type`
-        });
-        break;
-    }
+    _processSocketMessage(ws, valid.value as ParsedWsData);
   }
 }
