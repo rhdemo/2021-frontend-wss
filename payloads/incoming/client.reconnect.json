@@ -2,6 +2,7 @@
   "type": "connection",
   "data": {
     "username": "Crack Hunter",
-    "gameId": "the-game-id"
+    "gameId": "the-game-id",
+    "playerId": "random-uuid"
   }
 }
