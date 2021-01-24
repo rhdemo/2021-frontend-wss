@@ -3,6 +3,7 @@ import { getGameConfiguration } from '../game';
 import log from '../log';
 import * as matchmaking from '../matchmaking';
 import { GameState } from '../models/game.configuration';
+import { StoredShipData } from '../models/player';
 import PlayerConfiguration, {
   PlayerConfigurationData
 } from '../models/player.configuration';

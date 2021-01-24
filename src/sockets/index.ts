@@ -2,6 +2,7 @@ import { FastifyInstance } from 'fastify';
 import Joi from 'joi';
 import WebSocket from 'ws';
 import log from '../log';
+import attackHandler from './handler.attack';
 import connectionHandler from './handler.connection';
 import shipPositionHandler from './handler.ship-positions';
 import {
@@ -32,7 +33,8 @@ export function configureHeartbeat(app: FastifyInstance) {
 
 const MessageHandlers: { [key in IncomingMsgType]: MessageHandler<unknown> } = {
   [IncomingMsgType.Connection]: connectionHandler,
-  [IncomingMsgType.ShipPositions]: shipPositionHandler
+  [IncomingMsgType.ShipPositions]: shipPositionHandler,
+  [IncomingMsgType.Attack]: attackHandler
 };
 
 /**

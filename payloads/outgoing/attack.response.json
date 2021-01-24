@@ -1,7 +1,21 @@
 {
-  "coordinates": [2, 1],
-  "destroyed": false,
-  "hit": true,
-  "position": 0,
-  "ship": "Battleship"
+  "type": "attack-result",
+  "data": {
+    "hits": [
+      {
+        "origin": [
+          0,
+          0
+        ]
+      },
+      {
+        "origin": [
+          1,
+          0
+        ],
+        "destroyed": "Submarine"
+      }
+    ]
+  },
+  "sequence": 12
 }

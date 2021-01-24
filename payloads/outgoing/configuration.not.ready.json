@@ -1,5 +1,5 @@
 {
-  "type": "board-state",
+  "type": "configuration",
   "data": {
     "game": {
       "uuid": "new-game-1611142489",

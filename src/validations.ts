@@ -1,7 +1,8 @@
 import * as Joi from 'joi';
 import { GAME_GRID_SIZE } from './config';
+import { getCellAreaWidthAndHeight } from './utils';
 
-export enum ShipOrientation {
+export enum Orientation {
   Vertical = 'vertical',
   Horizontal = 'horizontal'
 }
@@ -12,9 +13,18 @@ export enum ShipType {
   Submarine = 'Submarine'
 }
 
+export type CellPosition = [number, number];
+
+export enum CellArea {
+  '4x1' = '4x1',
+  '3x1' = '3x1',
+  '2x1' = '2x1',
+  '1x1' = '1x1'
+}
+
 type ShipData = {
-  origin: [number, number];
-  orientation: ShipOrientation;
+  origin: CellPosition;
+  orientation: Orientation;
 };
 
 export type ShipPositionData = {
@@ -23,15 +33,18 @@ export type ShipPositionData = {
 
 type Grid = number[][];
 
-const ShipSize = {
-  [ShipType.Battleship]: 4,
-  [ShipType.Destroyer]: 3,
-  [ShipType.Submarine]: 2
+export const ShipSize: { [key in ShipType]: CellArea } = {
+  [ShipType.Battleship]: CellArea['4x1'],
+  [ShipType.Destroyer]: CellArea['3x1'],
+  [ShipType.Submarine]: CellArea['2x1']
 };
 
-const EXPECTED_OCCUPIED_SQUARES = Object.values(ShipSize).reduce((total, v) => {
-  return total + v;
-}, 0);
+const EXPECTED_OCCUPIED_SQUARES: number = Object.values(ShipSize).reduce(
+  (total, v) => {
+    return total + parseInt(v.split('x')[0]);
+  },
+  0
+);
 
 const ShipSchema = Joi.object({
   origin: Joi.array()
@@ -44,7 +57,7 @@ const ShipSchema = Joi.object({
     )
     .required(),
   orientation: Joi.string()
-    .allow(ShipOrientation.Vertical, ShipOrientation.Horizontal)
+    .allow(Orientation.Vertical, Orientation.Horizontal)
     .required()
 });
 
@@ -90,7 +103,7 @@ export function validateShipPlacement(
     const shipType = ship as ShipType;
 
     populateGridWithShipData(
-      ShipSize[shipType],
+      getCellAreaWidthAndHeight(ShipSize[shipType]).x,
       validatedPlacementData[shipType],
       grid
     );
@@ -149,7 +162,7 @@ function populateGridWithShipData(size: number, ship: ShipData, grid: Grid) {
   }
 
   for (let i = 0; i < size; i++) {
-    if (ship.orientation === ShipOrientation.Horizontal) {
+    if (ship.orientation === Orientation.Horizontal) {
       const row = rootY;
       const col = rootX + i;
 

@@ -1,3 +1,4 @@
+import { assert } from 'console';
 import Model from './model';
 import Player from './player';
 
@@ -8,20 +9,34 @@ export type MatchInstanceData = {
   // These for the player's "uuid" values, not their usernames
   playerA: string;
   playerB?: string;
+
+  // The player whose UUID is set here is active
+  activePlayer: string;
 };
 
 export default class MatchInstance extends Model<MatchInstanceData> {
+  private activePlayer: string;
   constructor(
     private playerA: string,
     private playerB?: string,
+    activePlayer?: string,
     private ready = false,
     uuid?: string
   ) {
     super(uuid);
+
+    // Default the active player to playerA
+    this.activePlayer = playerA;
   }
 
   static from(data: MatchInstanceData) {
-    return new MatchInstance(data.playerA, data.playerB, data.ready, data.uuid);
+    return new MatchInstance(
+      data.playerA,
+      data.playerB,
+      data.activePlayer,
+      data.ready,
+      data.uuid
+    );
   }
 
   addPlayer(player: Player) {
@@ -40,6 +55,26 @@ export default class MatchInstance extends Model<MatchInstanceData> {
 
   setMatchReady(ready = true) {
     this.ready = ready;
+  }
+
+  isReady() {
+    return this.ready;
+  }
+
+  changeTurn() {
+    if (!this.playerB) {
+      assert('changeTurn() was called, but playerB is missing');
+    }
+
+    if (!this.isReady()) {
+      assert('changeTurn() was called, but match is not yet ready');
+    }
+
+    if (this.activePlayer === this.playerA && this.playerB) {
+      this.activePlayer = this.playerB;
+    } else {
+      this.activePlayer = this.playerA;
+    }
   }
 
   getPlayers() {
@@ -71,7 +106,8 @@ export default class MatchInstance extends Model<MatchInstanceData> {
       uuid: this.getUUID(),
       ready: this.ready,
       playerA: this.playerA,
-      playerB: this.playerB
+      playerB: this.playerB,
+      activePlayer: this.activePlayer
     };
   }
 }
