@@ -11,14 +11,15 @@ const attack = require('../payloads/incoming/client.attack.json')
  */
 module.exports = new Promise(async (resolve, reject) => {
   const sock = await socketPromise
+  let attackSent = false
 
   sock.on('message', async (msg) => {
     msg = JSON.parse(msg)
 
-    if (msg.type === 'configuration' && msg.data?.match?.ready && msg.data.game.state === 'active') {
+    if (msg.type === 'configuration' && attackSent === false && msg.data?.match?.ready && msg.data.game.state === 'active') {
+      attackSent = true
       console.log(`match is ready. sending attack from player ${msg.data.player.uuid}`)
       sock.send(JSON.stringify(attack))
-      attackSent = true
     }
 
     if (msg.type.includes('attack')) {
