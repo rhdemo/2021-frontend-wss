@@ -11,6 +11,8 @@ import * as players from '../players';
 import { validateShipPlacement, ShipPositionData } from '../validations';
 import { MessageHandler, OutgoingMsgType } from './payloads';
 
+const validStates = [GameState.Lobby, GameState.Active];
+
 const shipPositionHandler: MessageHandler<PlayerConfigurationData> = async (
   ws: WebSocket,
   data: unknown
@@ -28,7 +30,7 @@ const shipPositionHandler: MessageHandler<PlayerConfigurationData> = async (
   }
 
   const game = getGameConfiguration();
-  if (game.getGameState() !== GameState.Lobby) {
+  if (validStates.includes(game.getGameState()) === false) {
     throw new Error(
       `player ${player.getUUID()} cannot set positions when game state is "${game.getGameState()}"`
     );

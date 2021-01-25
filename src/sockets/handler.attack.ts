@@ -4,8 +4,8 @@ import { GAME_GRID_SIZE } from '../config';
 import { getGameConfiguration } from '../game';
 import log from '../log';
 import * as matchmaking from '../matchmaking';
+import * as players from '../players';
 import { GameState } from '../models/game.configuration';
-import { getPlayerAssociatedWithSocket, getPlayerWithUUID } from '../players';
 import { getCellCoverageForOriginOrientationAndArea } from '../utils';
 import { CellArea, CellPosition, Orientation, ShipType } from '../validations';
 import {
@@ -14,20 +14,23 @@ import {
   OutgoingMsgType,
   ValidationErrorPayload
 } from './payloads';
+import PlayerConfiguration, {
+  PlayerConfigurationData
+} from '../models/player.configuration';
+import { getPlayerSpecificData } from './utils';
 
-type AttackHit = {
-  cell: CellPosition;
+export type AttackResult = {
+  origin: CellPosition;
   hit: boolean;
-  destroyed: boolean;
-  type: ShipType;
+  destroyed?: boolean;
+  type?: ShipType;
 };
 
 type AttackResponse = {
-  hits: {
-    origin: CellPosition;
-    destroyed?: ShipType;
-  }[];
+  result: AttackResult[];
 };
+
+type MergedAttackReponse = AttackResponse & PlayerConfigurationData;
 
 const AttackPayloadSchema = Joi.object({
   type: Joi.string()
@@ -48,7 +51,7 @@ const AttackPayloadSchema = Joi.object({
 });
 
 const attackHandler: MessageHandler<
-  AttackResponse | ValidationErrorPayload
+  MergedAttackReponse | ValidationErrorPayload
 > = async (ws: WebSocket, data: unknown) => {
   log.debug('processing attack payload: %j', data);
   const validatedData = AttackPayloadSchema.validate(data);
@@ -61,24 +64,30 @@ const attackHandler: MessageHandler<
       }
     };
   } else {
-    const player = getPlayerAssociatedWithSocket(ws);
+    const player = players.getPlayerAssociatedWithSocket(ws);
     if (!player) {
       throw new Error(
         'failed to find player data associated with this websocket'
       );
     }
 
-    const game = getGameConfiguration();
+    const { game, opponent, match } = await getPlayerSpecificData(player);
+
     if (game.getGameState() !== GameState.Active) {
       throw new Error(
         `player ${player.getUUID()} cannot attack when game state is "${game.getGameState()}"`
       );
     }
 
-    const match = await matchmaking.getMatchAssociatedWithPlayer(player);
     if (!match) {
       throw new Error(
         `failed to find match associated with player ${player.getUUID()}`
+      );
+    }
+
+    if (!match.isPlayerTurn(player)) {
+      throw new Error(
+        `player ${player.getUUID()} attempted to attack, but it's not their turn`
       );
     }
 
@@ -89,14 +98,13 @@ const attackHandler: MessageHandler<
       );
     }
 
-    const opponent = getPlayerWithUUID(opponentUUID);
     if (!opponent) {
       throw new Error(
         `failed to find opponent ${opponentUUID} for player ${player.getUUID()}`
       );
     }
 
-    const opponentShipData = player.getShipPositionData();
+    const opponentShipData = opponent.getShipPositionData();
     if (!opponentShipData) {
       throw new Error(
         `player ${player.getUUID()} opponent (${opponentUUID}) was missing ship position data`
@@ -109,17 +117,28 @@ const attackHandler: MessageHandler<
       attack.orientation,
       attack.type
     );
+    const attackResults: AttackResult[] = [];
 
-    log.debug(`determine player ${player.getUUID()} if attack has hits`);
-    log.trace('attack data: %j', attack);
+    log.debug(`determine player ${player.getUUID()} attack hits/misses`);
+    log.debug('attack data: %j', attack);
+    log.debug('attack cells: %j', attackCells);
 
-    const atkResult = Object.keys(opponentShipData).reduce((hits, _ship) => {
-      const ship = opponentShipData[_ship as ShipType];
+    attackCells.forEach((aCell) => {
+      // Create a result entry that defaults to miss
+      const result: AttackResult = {
+        origin: aCell,
+        hit: false
+      };
+      attackResults.push(result);
 
-      attackCells.forEach((aCell) => {
+      Object.keys(opponentShipData).forEach((_ship) => {
+        const ship = opponentShipData[_ship as ShipType];
+        log.trace(`checking attack %j hit vs ${_ship} cells`, aCell);
+
+        // Determine if the this specific shot hit any ship
         ship.cells.forEach((sCell) => {
           if (aCell[0] === sCell.origin[0] && aCell[1] === sCell.origin[1]) {
-            log.trace('attack on %j is a hit', aCell);
+            log.trace(`attack on ${_ship} at %j is a hit`, sCell.origin);
 
             // Mark this ship sell as being hit
             sCell.hit = true;
@@ -130,44 +149,47 @@ const attackHandler: MessageHandler<
               true
             );
 
-            hits.push({
-              cell: aCell,
-              hit: true,
-              destroyed,
-              type: ship.type
-            });
+            // Update the AttackResult object with
+            result.hit = true;
+
+            if (destroyed) {
+              result.destroyed = true;
+              result.type = ship.type;
+            }
           } else {
-            log.trace('attack on %j is a miss', aCell);
+            log.trace(`attack on ${_ship} at %j is a miss`, sCell.origin);
           }
         });
       });
+    });
 
-      return hits;
-    }, [] as AttackHit[]);
+    log.debug(`player ${player.getUUID()} attack result: %j`, attackResults);
 
-    const response = atkResult.reduce(
-      (_response, v) => {
-        if (v.hit) {
-          _response.hits.push({
-            origin: v.cell,
-            // This is when a player would say "you sunk my battleship!"
-            destroyed: v.destroyed ? v.type : undefined
-          });
-        }
+    // Make a record of the attack in the attacking player's record
+    player.recordAttack(attack, attackResults);
 
-        return _response;
-      },
-      {
-        hits: []
-      } as AttackResponse
-    );
+    // Change who's turn it is next
+    match.changeTurn();
 
-    // Make a record of the attack
-    player.recordAttack(attack);
+    await Promise.all([
+      players.upsertPlayerInCache(player),
+      players.upsertPlayerInCache(opponent)
+    ]);
 
+    await matchmaking.upsertMatchInCache(match);
+
+    const config = new PlayerConfiguration(
+      game,
+      player,
+      match,
+      opponent
+    ).toJSON();
     return {
       type: OutgoingMsgType.AttackResult,
-      data: response
+      data: {
+        result: attackResults,
+        ...config
+      }
     };
   }
 };

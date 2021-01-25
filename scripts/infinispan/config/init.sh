@@ -4,7 +4,6 @@ printf "\n\n######## Initializing Caches ########\n"
 
 echo "$(ip a | grep global)"
 HOST=$(ip a | grep -m 1 global | awk '{print$2}' | sed 's|/.*||')
-echo "${HOST}"
 /opt/infinispan/bin/cli.sh -c "http://${HOST}:11222" --file=/config/batch
 
 UUID="new-game-$(date +%s)"

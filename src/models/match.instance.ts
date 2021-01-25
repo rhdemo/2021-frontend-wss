@@ -53,6 +53,10 @@ export default class MatchInstance extends Model<MatchInstanceData> {
     return this.playerB === undefined;
   }
 
+  isPlayerTurn(player: Player) {
+    return this.activePlayer === player.getUUID();
+  }
+
   setMatchReady(ready = true) {
     this.ready = ready;
   }

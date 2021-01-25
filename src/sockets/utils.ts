@@ -2,6 +2,10 @@ import { MessageHandlerResponse, OutgoingMsgType } from './payloads';
 import WebSocket from 'ws';
 import log from '../log';
 import { FastifyInstance } from 'fastify';
+import Player from '../models/player';
+import { getMatchAssociatedWithPlayer } from '../matchmaking';
+import { getPlayerWithUUID } from '../players';
+import { getGameConfiguration } from '../game';
 
 const socks = new Map<WebSocket, number>();
 
@@ -50,6 +54,26 @@ function getSocketSequenceNumber(ws: WebSocket) {
   socks.set(ws, ++sequence);
 
   return sequence;
+}
+
+/**
+ * Poorly named function that will return everything that's required to process
+ * most messages and game logic for a given player
+ * @param {Player} player
+ */
+export async function getPlayerSpecificData(player: Player) {
+  const match = await getMatchAssociatedWithPlayer(player);
+  const opponentUUID = await match?.getPlayerOpponentUUID(player);
+  const opponent = opponentUUID
+    ? await getPlayerWithUUID(opponentUUID)
+    : undefined;
+  const game = getGameConfiguration();
+
+  return {
+    opponent,
+    match,
+    game
+  };
 }
 
 /**

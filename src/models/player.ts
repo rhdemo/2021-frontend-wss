@@ -8,6 +8,7 @@ import {
   ShipType
 } from '../validations';
 import Model from './model';
+import { AttackResult } from '../sockets/handler.attack';
 
 type StoredPositionData = {
   [key in ShipType]: StoredShipData;
@@ -18,13 +19,25 @@ export type PlayerBoardData = {
   positions: StoredPositionData;
 };
 
+export type OpponentData = {
+  score: number;
+  uuid: string;
+  username: string;
+  attacks: StoredAttackData;
+  board: OpponentBoardData;
+};
+
+type OpponentBoardData = {
+  [key in ShipType]?: StoredShipData;
+};
+
 export type PlayerData = {
   score: number;
   uuid: string;
   username: string;
   match?: string;
   board?: PlayerBoardData;
-  attacks?: AttackDataPayload[];
+  attacks: StoredAttackData;
 };
 
 export type StoredShipData = {
@@ -37,20 +50,31 @@ export type StoredShipData = {
   }[];
 };
 
+export type StoredAttackData = {
+  attack: AttackDataPayload;
+  results: AttackResult[];
+}[];
+
 export default class Player extends Model<PlayerData> {
   private board: PlayerBoardData | undefined;
-
+  private attacks: StoredAttackData;
   constructor(
     private username: string,
     private score: number,
     uuid?: string,
     private match?: string,
     board?: PlayerBoardData,
-    private attacks?: AttackDataPayload[]
+    attacks?: StoredAttackData
   ) {
     super(uuid);
     if (board) {
       this.board = board;
+    }
+
+    if (attacks) {
+      this.attacks = attacks;
+    } else {
+      this.attacks = [];
     }
   }
 
@@ -106,6 +130,12 @@ export default class Player extends Model<PlayerData> {
     return this.board?.positions;
   }
 
+  getHitShipPositionData() {
+    const positions = this.board?.positions;
+
+    const ret = positions;
+  }
+
   hasLockedShipPositions() {
     return this.board?.valid;
   }
@@ -114,8 +144,11 @@ export default class Player extends Model<PlayerData> {
     this.match = uuid;
   }
 
-  recordAttack(attack: AttackDataPayload) {
-    this.attacks?.push;
+  recordAttack(attack: AttackDataPayload, results: AttackResult[]) {
+    this.attacks.push({
+      attack,
+      results
+    });
   }
 
   getUsername() {
@@ -124,6 +157,40 @@ export default class Player extends Model<PlayerData> {
 
   getMatchInstanceUUID() {
     return this.match;
+  }
+
+  /**
+   * Generates a JSON object that has secret information redacted. This is
+   * necessary since players need to know certain information about their
+   * opponent, but we don't want to expose ship locations and other data
+   */
+  toOpponentJSON(): OpponentData {
+    const board: OpponentBoardData = {};
+    const positions = this.board?.positions;
+
+    if (positions) {
+      Object.keys(positions).forEach((_ship) => {
+        const type = _ship as ShipType;
+        const ship = positions[type];
+        const sunk = ship.cells.reduce(
+          (result, cell) => result && cell.hit,
+          true
+        );
+
+        if (sunk) {
+          // If the ship has been sunk expose it in returned data
+          board[type] = ship;
+        }
+      });
+    }
+
+    return {
+      username: this.username,
+      attacks: this.attacks,
+      uuid: this.getUUID(),
+      score: this.score,
+      board
+    };
   }
 
   toJSON(): PlayerData {

@@ -1,21 +1,202 @@
 {
   "type": "attack-result",
   "data": {
-    "hits": [
+    "result": [
       {
         "origin": [
           0,
           0
-        ]
+        ],
+        "hit": true
       },
       {
         "origin": [
           1,
           0
         ],
-        "destroyed": "Submarine"
+        "hit": true,
+        "destroyed": true,
+        "type": "Submarine"
       }
-    ]
+    ],
+    "opponent": {
+      "username": "Boom Falcon",
+      "attacks": [],
+      "uuid": "dSiN9enuyDuAgI6W6MMpK",
+      "score": 0,
+      "board": {
+        "Submarine": {
+          "origin": [
+            0,
+            0
+          ],
+          "orientation": "horizontal",
+          "type": "Submarine",
+          "cells": [
+            {
+              "hit": true,
+              "origin": [
+                0,
+                0
+              ]
+            },
+            {
+              "hit": true,
+              "origin": [
+                1,
+                0
+              ]
+            }
+          ]
+        }
+      }
+    },
+    "game": {
+      "uuid": "696d6091e20f0e07",
+      "date": "2021-01-25T18:41:20.305Z",
+      "state": "active"
+    },
+    "player": {
+      "board": {
+        "valid": true,
+        "positions": {
+          "Submarine": {
+            "origin": [
+              0,
+              0
+            ],
+            "orientation": "horizontal",
+            "type": "Submarine",
+            "cells": [
+              {
+                "hit": false,
+                "origin": [
+                  0,
+                  0
+                ]
+              },
+              {
+                "hit": false,
+                "origin": [
+                  1,
+                  0
+                ]
+              }
+            ]
+          },
+          "Destroyer": {
+            "origin": [
+              2,
+              1
+            ],
+            "orientation": "horizontal",
+            "type": "Destroyer",
+            "cells": [
+              {
+                "hit": false,
+                "origin": [
+                  2,
+                  1
+                ]
+              },
+              {
+                "hit": false,
+                "origin": [
+                  3,
+                  1
+                ]
+              },
+              {
+                "hit": false,
+                "origin": [
+                  4,
+                  1
+                ]
+              }
+            ]
+          },
+          "Battleship": {
+            "origin": [
+              0,
+              1
+            ],
+            "orientation": "vertical",
+            "type": "Battleship",
+            "cells": [
+              {
+                "hit": false,
+                "origin": [
+                  0,
+                  1
+                ]
+              },
+              {
+                "hit": false,
+                "origin": [
+                  0,
+                  2
+                ]
+              },
+              {
+                "hit": false,
+                "origin": [
+                  0,
+                  3
+                ]
+              },
+              {
+                "hit": false,
+                "origin": [
+                  0,
+                  4
+                ]
+              }
+            ]
+          }
+        }
+      },
+      "username": "Cyan Dinosaur",
+      "score": 0,
+      "match": "Ee-LZN411H-eyaUmX0OaS",
+      "attacks": [
+        {
+          "attack": {
+            "type": "2x1",
+            "origin": [
+              0,
+              0
+            ],
+            "orientation": "horizontal"
+          },
+          "results": [
+            {
+              "origin": [
+                0,
+                0
+              ],
+              "hit": true
+            },
+            {
+              "origin": [
+                1,
+                0
+              ],
+              "hit": true,
+              "destroyed": true,
+              "type": "Submarine"
+            }
+          ]
+        }
+      ],
+      "uuid": "ofqZ-h9CZa8lSSe36cR4O"
+    },
+    "match": {
+      "uuid": "Ee-LZN411H-eyaUmX0OaS",
+      "ready": true,
+      "playerA": "ofqZ-h9CZa8lSSe36cR4O",
+      "playerB": "dSiN9enuyDuAgI6W6MMpK",
+      "activePlayer": "dSiN9enuyDuAgI6W6MMpK"
+    }
   },
-  "sequence": 12
+  "sequence": 5
 }
