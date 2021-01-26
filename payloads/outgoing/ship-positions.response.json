@@ -2,9 +2,9 @@
   "type": "configuration",
   "data": {
     "game": {
-      "uuid": "new-game-1611142489",
-      "date": "2021-01-20T11:34:49.000Z",
-      "state": "lobby"
+      "uuid": "696d6091e20f0e07",
+      "date": "2021-01-25T18:41:20.305Z",
+      "state": "active"
     },
     "player": {
       "board": {
@@ -15,28 +15,107 @@
               0,
               0
             ],
-            "orientation": "horizontal"
+            "orientation": "horizontal",
+            "type": "Submarine",
+            "cells": [
+              {
+                "hit": false,
+                "origin": [
+                  0,
+                  0
+                ]
+              },
+              {
+                "hit": false,
+                "origin": [
+                  1,
+                  0
+                ]
+              }
+            ]
           },
           "Destroyer": {
             "origin": [
               2,
               1
             ],
-            "orientation": "horizontal"
+            "orientation": "horizontal",
+            "type": "Destroyer",
+            "cells": [
+              {
+                "hit": false,
+                "origin": [
+                  2,
+                  1
+                ]
+              },
+              {
+                "hit": false,
+                "origin": [
+                  3,
+                  1
+                ]
+              },
+              {
+                "hit": false,
+                "origin": [
+                  4,
+                  1
+                ]
+              }
+            ]
           },
           "Battleship": {
             "origin": [
               0,
               1
             ],
-            "orientation": "vertical"
+            "orientation": "vertical",
+            "type": "Battleship",
+            "cells": [
+              {
+                "hit": false,
+                "origin": [
+                  0,
+                  1
+                ]
+              },
+              {
+                "hit": false,
+                "origin": [
+                  0,
+                  2
+                ]
+              },
+              {
+                "hit": false,
+                "origin": [
+                  0,
+                  3
+                ]
+              },
+              {
+                "hit": false,
+                "origin": [
+                  0,
+                  4
+                ]
+              }
+            ]
           }
         }
       },
-      "username": "Phantom Hawk",
+      "username": "Stitch Samurai",
       "score": 0,
-      "match": "ES4EWEntOuA6CospoyKCm",
-      "uuid": "B6nymRtY093ueMBh6iOeI"
+      "match": "kTp_FpTaLaVpvYB8ZMe7R",
+      "attacks": [],
+      "uuid": "JmFAuhuIgIZRO5TMSGd1p"
+    },
+    "match": {
+      "uuid": "kTp_FpTaLaVpvYB8ZMe7R",
+      "ready": false,
+      "playerA": "JmFAuhuIgIZRO5TMSGd1p",
+      "activePlayer": "JmFAuhuIgIZRO5TMSGd1p"
     }
   },
   "sequence": 2
