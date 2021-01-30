@@ -1,4 +1,5 @@
 import { assert } from 'console';
+import log from '../log';
 import Model from './model';
 import Player from './player';
 
@@ -30,6 +31,7 @@ export default class MatchInstance extends Model<MatchInstanceData> {
   }
 
   static from(data: MatchInstanceData) {
+    log.trace('creating match instance from data: %j', data);
     return new MatchInstance(
       data.playerA,
       data.playerB,

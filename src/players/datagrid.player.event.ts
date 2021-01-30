@@ -1,7 +1,13 @@
 import { InfinispanClient, ClientEvent } from 'infinispan';
-import { getPlayerWithUUID } from '.';
+import { getPlayerWithUUID, getSocketForPlayer } from '.';
 import log from '../log';
-import { getMatchByUUID, upsertMatchInCache } from '../matchmaking';
+import { upsertMatchInCache } from '../matchmaking';
+import GameConfiguration from '../models/game.configuration';
+import MatchInstance from '../models/match.instance';
+import Player from '../models/player';
+import PlayerConfiguration from '../models/player.configuration';
+import { OutgoingMsgType } from '../sockets/payloads';
+import { getPlayerSpecificData, send } from '../sockets/utils';
 
 export default async function playerDataGridEventHandler(
   client: InfinispanClient,
@@ -10,44 +16,68 @@ export default async function playerDataGridEventHandler(
 ) {
   log.trace(`"${event}" event detected for player "${key}"`);
 
-  const player = await getPlayerWithUUID(key);
-  const matchUUID = player?.getMatchInstanceUUID();
+  if (event === 'modify') {
+    const player = await getPlayerWithUUID(key);
 
-  if (!player) {
-    log.warn(
-      `a change event was detected for player ${key}, but the player could not be read from datagrid`
-    );
-  } else if (!matchUUID) {
-    log.warn(
-      `a change event was detected for player ${key}, but the player is not assigned to a match`
-    );
-  } else {
-    log.debug(
-      `determining if match ${matchUUID} should be set to ready as a result of a modify event for player ${player.getUUID()}`
-    );
-    const match = await getMatchByUUID(matchUUID);
-    const players = match?.getPlayers();
+    if (!player) {
+      return log.error(
+        `a modify event was detected for player ${key}, but the player could not be read back from datagrid`
+      );
+    }
 
-    if (match && players && players.playerA && players.playerB) {
-      // Two players are associated with the match. Check if they've locked
-      // their ship positions, and if so set the match "ready" property to true
-      const playerInstances = await Promise.all([
-        getPlayerWithUUID(players.playerA),
-        getPlayerWithUUID(players.playerB)
-      ]);
+    const { match, opponent, game } = await getPlayerSpecificData(player);
 
-      if (
-        playerInstances[0]?.hasLockedShipPositions() &&
-        playerInstances[1]?.hasLockedShipPositions()
-      ) {
-        log.info(
-          `players ${playerInstances[0].getUUID()} and ${playerInstances[1].getUUID()} have locked positions. setting match.ready=true for ${matchUUID}`
-        );
-        // Write the match update to the cache. Match updates automatically get
-        // sent to the associated players
-        match?.setMatchReady();
-        await upsertMatchInCache(match);
+    if (!match) {
+      return log.error(
+        `a modify event was detected for player ${key}, but the associated match (${player.getMatchInstanceUUID()}) could not be read from datagrid`
+      );
+    }
+
+    if (!match.isReady()) {
+      log.debug(
+        `determining if match ${match.getUUID()} should be set to ready as a result of a modify event for player ${player.getUUID()}`
+      );
+      const players = match.getPlayers();
+
+      if (match && opponent) {
+        if (
+          player.hasLockedShipPositions() &&
+          opponent.hasLockedShipPositions()
+        ) {
+          log.info(
+            `players ${player.getUUID()} and ${opponent.getUUID()} have locked positions. setting match.ready=true for ${match.getUUID()}`
+          );
+          // Write the match update to the cache. Match updates automatically get
+          // sent to the associated players
+          match.setMatchReady();
+
+          await upsertMatchInCache(match);
+
+          updatePlayer(player, opponent, game, match);
+          updatePlayer(opponent, player, game, match);
+        }
       }
     }
+  }
+}
+
+function updatePlayer(
+  player: Player,
+  opponent: Player,
+  game: GameConfiguration,
+  match: MatchInstance
+) {
+  const sock = getSocketForPlayer(player);
+
+  if (sock) {
+    log.debug(`notify player ${player.getUUID()} that match.ready=true`);
+    send(sock, {
+      type: OutgoingMsgType.Configuration,
+      data: new PlayerConfiguration(game, player, match).toJSON()
+    });
+  } else {
+    log.warn(
+      `failed to find socket for player ${player.getUUID()} to notify of match.ready=true`
+    );
   }
 }

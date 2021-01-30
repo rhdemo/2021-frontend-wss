@@ -2,7 +2,7 @@
   "type": "attack",
   "data": {
     "type": "2x1",
-    "origin": [0, 0],
+    "origin": [1, 0],
     "orientation": "horizontal"
   }
 }

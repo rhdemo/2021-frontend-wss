@@ -130,12 +130,6 @@ export default class Player extends Model<PlayerData> {
     return this.board?.positions;
   }
 
-  getHitShipPositionData() {
-    const positions = this.board?.positions;
-
-    const ret = positions;
-  }
-
   hasLockedShipPositions() {
     return this.board?.valid;
   }

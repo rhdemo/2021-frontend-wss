@@ -1,7 +1,6 @@
 import Joi from 'joi';
 import WebSocket from 'ws';
 import { GAME_GRID_SIZE } from '../config';
-import { getGameConfiguration } from '../game';
 import log from '../log';
 import * as matchmaking from '../matchmaking';
 import * as players from '../players';
@@ -17,7 +16,7 @@ import {
 import PlayerConfiguration, {
   PlayerConfigurationData
 } from '../models/player.configuration';
-import { getPlayerSpecificData } from './utils';
+import { getPlayerSpecificData, send } from './utils';
 
 export type AttackResult = {
   origin: CellPosition;
@@ -27,6 +26,8 @@ export type AttackResult = {
 };
 
 type AttackResponse = {
+  // UUID of the player that performed the attack
+  attacker: string;
   result: AttackResult[];
 };
 
@@ -129,6 +130,7 @@ const attackHandler: MessageHandler<
         origin: aCell,
         hit: false
       };
+
       attackResults.push(result);
 
       Object.keys(opponentShipData).forEach((_ship) => {
@@ -178,17 +180,27 @@ const attackHandler: MessageHandler<
 
     await matchmaking.upsertMatchInCache(match);
 
-    const config = new PlayerConfiguration(
-      game,
-      player,
-      match,
-      opponent
-    ).toJSON();
+    // If the opponent is connected, update with attack results too
+    // If they're not connected they'll get updated on reconnect
+    const opponentSocket = players.getSocketForPlayer(opponent);
+    if (opponentSocket) {
+      send(opponentSocket, {
+        type: OutgoingMsgType.AttackResult,
+        data: {
+          result: attackResults,
+          attacker: player.getUUID(),
+          ...new PlayerConfiguration(game, opponent, match, player).toJSON()
+        }
+      });
+    }
+
+    // Return the attack result to the player
     return {
       type: OutgoingMsgType.AttackResult,
       data: {
         result: attackResults,
-        ...config
+        attacker: player.getUUID(),
+        ...new PlayerConfiguration(game, player, match, opponent).toJSON()
       }
     };
   }
