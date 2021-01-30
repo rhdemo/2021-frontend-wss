@@ -1,7 +1,6 @@
 'use strict'
 
 const socketPromise = require('./wss.ship-positions')
-const clearModule = require('clear-module');
 const attack = require('../payloads/incoming/client.attack.json')
 
 /**
@@ -23,8 +22,7 @@ module.exports = new Promise(async (resolve, reject) => {
     }
 
     if (msg.type.includes('attack')) {
-      console.log('attack response:')
-      console.log(JSON.stringify(msg, null, 2))
+      console.log('received attack response')
     }
   })
 })

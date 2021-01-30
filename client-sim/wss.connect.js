@@ -25,6 +25,11 @@ module.exports = new Promise((resolve, reject) => {
     console.log('received payload from wss:')
     console.log(JSON.stringify(data, null, 2))
 
+    if (data.type === 'server-error') {
+      console.log('received a server error response: ', message)
+      process.exit(1)
+    }
+
     resolve(sock)
   })
 
