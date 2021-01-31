@@ -1,0 +1,546 @@
+{
+  "type": "configuration",
+  "data": {
+    "opponent": {
+      "username": "Root Zebra",
+      "attacks": [
+        {
+          "attack": {
+            "type": "4x1",
+            "origin": [
+              0,
+              0
+            ],
+            "orientation": "horizontal"
+          },
+          "results": [
+            {
+              "origin": [
+                0,
+                0
+              ],
+              "hit": false
+            },
+            {
+              "origin": [
+                1,
+                0
+              ],
+              "hit": true
+            },
+            {
+              "origin": [
+                2,
+                0
+              ],
+              "hit": true
+            },
+            {
+              "origin": [
+                3,
+                0
+              ],
+              "hit": true
+            }
+          ]
+        },
+        {
+          "attack": {
+            "type": "2x1",
+            "origin": [
+              1,
+              2
+            ],
+            "orientation": "horizontal"
+          },
+          "results": [
+            {
+              "origin": [
+                1,
+                2
+              ],
+              "hit": true
+            },
+            {
+              "origin": [
+                2,
+                2
+              ],
+              "hit": false
+            }
+          ]
+        },
+        {
+          "attack": {
+            "type": "1x1",
+            "origin": [
+              1,
+              3
+            ],
+            "orientation": "horizontal"
+          },
+          "results": [
+            {
+              "origin": [
+                1,
+                3
+              ],
+              "hit": true
+            }
+          ]
+        },
+        {
+          "attack": {
+            "type": "2x1",
+            "origin": [
+              1,
+              4
+            ],
+            "orientation": "horizontal"
+          },
+          "results": [
+            {
+              "origin": [
+                1,
+                4
+              ],
+              "hit": true,
+              "destroyed": true,
+              "type": "Destroyer"
+            },
+            {
+              "origin": [
+                2,
+                4
+              ],
+              "hit": false
+            }
+          ]
+        },
+        {
+          "attack": {
+            "type": "1x1",
+            "origin": [
+              4,
+              0
+            ],
+            "orientation": "horizontal"
+          },
+          "results": [
+            {
+              "origin": [
+                4,
+                0
+              ],
+              "hit": true,
+              "destroyed": true,
+              "type": "Battleship"
+            }
+          ]
+        },
+        {
+          "attack": {
+            "type": "1x1",
+            "origin": [
+              2,
+              3
+            ],
+            "orientation": "horizontal"
+          },
+          "results": [
+            {
+              "origin": [
+                2,
+                3
+              ],
+              "hit": false
+            }
+          ]
+        }
+      ],
+      "uuid": "-a57APBw4KiFdot2TfGNw",
+      "score": 0,
+      "board": {
+        "Submarine": {
+          "origin": [
+            0,
+            0
+          ],
+          "orientation": "vertical",
+          "type": "Submarine",
+          "cells": [
+            {
+              "hit": true,
+              "origin": [
+                0,
+                0
+              ]
+            },
+            {
+              "hit": true,
+              "origin": [
+                0,
+                1
+              ]
+            }
+          ]
+        },
+        "Destroyer": {
+          "origin": [
+            3,
+            2
+          ],
+          "orientation": "vertical",
+          "type": "Destroyer",
+          "cells": [
+            {
+              "hit": true,
+              "origin": [
+                3,
+                2
+              ]
+            },
+            {
+              "hit": true,
+              "origin": [
+                3,
+                3
+              ]
+            },
+            {
+              "hit": true,
+              "origin": [
+                3,
+                4
+              ]
+            }
+          ]
+        },
+        "Battleship": {
+          "origin": [
+            1,
+            0
+          ],
+          "orientation": "horizontal",
+          "type": "Battleship",
+          "cells": [
+            {
+              "hit": true,
+              "origin": [
+                1,
+                0
+              ]
+            },
+            {
+              "hit": true,
+              "origin": [
+                2,
+                0
+              ]
+            },
+            {
+              "hit": true,
+              "origin": [
+                3,
+                0
+              ]
+            },
+            {
+              "hit": true,
+              "origin": [
+                4,
+                0
+              ]
+            }
+          ]
+        }
+      }
+    },
+    "game": {
+      "uuid": "b16349f86e83f913",
+      "date": "2021-01-30T15:17:01.495Z",
+      "state": "active"
+    },
+    "player": {
+      "board": {
+        "valid": true,
+        "positions": {
+          "Submarine": {
+            "origin": [
+              3,
+              3
+            ],
+            "orientation": "vertical",
+            "type": "Submarine",
+            "cells": [
+              {
+                "hit": false,
+                "origin": [
+                  3,
+                  3
+                ]
+              },
+              {
+                "hit": false,
+                "origin": [
+                  3,
+                  4
+                ]
+              }
+            ]
+          },
+          "Destroyer": {
+            "origin": [
+              1,
+              2
+            ],
+            "orientation": "vertical",
+            "type": "Destroyer",
+            "cells": [
+              {
+                "hit": true,
+                "origin": [
+                  1,
+                  2
+                ]
+              },
+              {
+                "hit": true,
+                "origin": [
+                  1,
+                  3
+                ]
+              },
+              {
+                "hit": true,
+                "origin": [
+                  1,
+                  4
+                ]
+              }
+            ]
+          },
+          "Battleship": {
+            "origin": [
+              1,
+              0
+            ],
+            "orientation": "horizontal",
+            "type": "Battleship",
+            "cells": [
+              {
+                "hit": true,
+                "origin": [
+                  1,
+                  0
+                ]
+              },
+              {
+                "hit": true,
+                "origin": [
+                  2,
+                  0
+                ]
+              },
+              {
+                "hit": true,
+                "origin": [
+                  3,
+                  0
+                ]
+              },
+              {
+                "hit": true,
+                "origin": [
+                  4,
+                  0
+                ]
+              }
+            ]
+          }
+        }
+      },
+      "username": "Split Thumb",
+      "score": 0,
+      "match": "ed36hWBsWfD1kCH_4WzJY",
+      "attacks": [
+        {
+          "attack": {
+            "type": "2x1",
+            "origin": [
+              1,
+              1
+            ],
+            "orientation": "horizontal"
+          },
+          "results": [
+            {
+              "origin": [
+                1,
+                1
+              ],
+              "hit": false
+            },
+            {
+              "origin": [
+                2,
+                1
+              ],
+              "hit": false
+            }
+          ]
+        },
+        {
+          "attack": {
+            "type": "4x1",
+            "origin": [
+              0,
+              0
+            ],
+            "orientation": "horizontal"
+          },
+          "results": [
+            {
+              "origin": [
+                0,
+                0
+              ],
+              "hit": true
+            },
+            {
+              "origin": [
+                1,
+                0
+              ],
+              "hit": true
+            },
+            {
+              "origin": [
+                2,
+                0
+              ],
+              "hit": true
+            },
+            {
+              "origin": [
+                3,
+                0
+              ],
+              "hit": true
+            }
+          ]
+        },
+        {
+          "attack": {
+            "type": "1x1",
+            "origin": [
+              4,
+              0
+            ],
+            "orientation": "horizontal"
+          },
+          "results": [
+            {
+              "origin": [
+                4,
+                0
+              ],
+              "hit": true,
+              "destroyed": true,
+              "type": "Battleship"
+            }
+          ]
+        },
+        {
+          "attack": {
+            "type": "1x1",
+            "origin": [
+              0,
+              1
+            ],
+            "orientation": "horizontal"
+          },
+          "results": [
+            {
+              "origin": [
+                0,
+                1
+              ],
+              "hit": true,
+              "destroyed": true,
+              "type": "Submarine"
+            }
+          ]
+        },
+        {
+          "attack": {
+            "type": "1x1",
+            "origin": [
+              3,
+              2
+            ],
+            "orientation": "horizontal"
+          },
+          "results": [
+            {
+              "origin": [
+                3,
+                2
+              ],
+              "hit": true
+            }
+          ]
+        },
+        {
+          "attack": {
+            "type": "1x1",
+            "origin": [
+              3,
+              3
+            ],
+            "orientation": "horizontal"
+          },
+          "results": [
+            {
+              "origin": [
+                3,
+                3
+              ],
+              "hit": true
+            }
+          ]
+        },
+        {
+          "attack": {
+            "type": "1x1",
+            "origin": [
+              3,
+              4
+            ],
+            "orientation": "horizontal"
+          },
+          "results": [
+            {
+              "origin": [
+                3,
+                4
+              ],
+              "hit": true,
+              "destroyed": true,
+              "type": "Destroyer"
+            }
+          ]
+        }
+      ],
+      "uuid": "RM2qC4YoZ2kzvvgS6NeZW"
+    },
+    "match": {
+      "uuid": "ed36hWBsWfD1kCH_4WzJY",
+      "ready": true,
+      "playerA": "RM2qC4YoZ2kzvvgS6NeZW",
+      "playerB": "-a57APBw4KiFdot2TfGNw",
+      "activePlayer": "-a57APBw4KiFdot2TfGNw",
+      "winner": "RM2qC4YoZ2kzvvgS6NeZW"
+    }
+  }
+}
