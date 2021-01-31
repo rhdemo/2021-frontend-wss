@@ -13,6 +13,7 @@ import {
   OutgoingMsgType,
   ValidationErrorPayload
 } from './payloads';
+import { getPlayerSpecificData } from './utils';
 
 const ConnectionRequestPayloadSchema = Joi.object({
   username: Joi.string(),
@@ -34,9 +35,9 @@ const connectionHandler: MessageHandler<
       }
     };
   } else {
-    const game = getGameConfiguration();
     const player = await initialisePlayer(ws, data as ConnectionRequestPayload);
-    const match = await getMatchAssociatedWithPlayer(player);
+
+    const { opponent, match, game } = await getPlayerSpecificData(player);
 
     if (!match) {
       throw new Error(
@@ -46,7 +47,7 @@ const connectionHandler: MessageHandler<
 
     return {
       type: OutgoingMsgType.Configuration,
-      data: new PlayerConfiguration(game, player, match).toJSON()
+      data: new PlayerConfiguration(game, player, match, opponent).toJSON()
     };
   }
 };
