@@ -6,7 +6,13 @@ import * as matchmaking from '../matchmaking';
 import * as players from '../players';
 import { GameState } from '../models/game.configuration';
 import { getCellCoverageForOriginOrientationAndArea } from '../utils';
-import { CellArea, CellPosition, Orientation, ShipType } from '../validations';
+import {
+  CellArea,
+  CellPosition,
+  isGameOverForPlayer,
+  Orientation,
+  ShipType
+} from '../validations';
 import {
   MessageHandler,
   AttackDataPayload,
@@ -92,23 +98,22 @@ const attackHandler: MessageHandler<
       );
     }
 
-    const opponentUUID = match.getPlayerOpponentUUID(player);
-    if (!match.isReady() || !opponentUUID) {
+    if (!match.isReady()) {
       throw new Error(
-        `player ${player.getUUID()} attempted an attack, but match instance is not ready or opponent is missing`
+        `player ${player.getUUID()} attempted an attack, but match instance is not ready`
       );
     }
 
     if (!opponent) {
       throw new Error(
-        `failed to find opponent ${opponentUUID} for player ${player.getUUID()}`
+        `no opponent was found in attack handler for player ${player.getUUID()}`
       );
     }
 
     const opponentShipData = opponent.getShipPositionData();
     if (!opponentShipData) {
       throw new Error(
-        `player ${player.getUUID()} opponent (${opponentUUID}) was missing ship position data`
+        `player ${player.getUUID()} opponent (${opponent.getUUID()}) was missing ship position data`
       );
     }
 
@@ -177,6 +182,11 @@ const attackHandler: MessageHandler<
       players.upsertPlayerInCache(player),
       players.upsertPlayerInCache(opponent)
     ]);
+
+    if (isGameOverForPlayer(opponent)) {
+      // The opponent's ships have all been hit. This player is the winner!
+      match.setWinner(player);
+    }
 
     await matchmaking.upsertMatchInCache(match);
 

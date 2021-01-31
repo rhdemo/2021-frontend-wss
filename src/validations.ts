@@ -1,5 +1,6 @@
 import * as Joi from 'joi';
 import { GAME_GRID_SIZE } from './config';
+import Player from './models/player';
 import { getCellAreaWidthAndHeight } from './utils';
 
 export enum Orientation {
@@ -173,6 +174,24 @@ function populateGridWithShipData(size: number, ship: ShipData, grid: Grid) {
 
       grid[row][col] += 1;
     }
+  }
+}
+
+/**
+ * Determines if the given player has lost the game, i.e all their ships
+ * cells have been hit, and thus all their ships are destroyed
+ * @param {Player} player
+ */
+export function isGameOverForPlayer(player: Player): boolean {
+  const shipPositions = player.getShipPositionData();
+
+  if (!shipPositions) {
+    return false;
+  } else {
+    return Object.values(shipPositions)
+      .map((s) => s.cells)
+      .flat()
+      .every((c) => c.hit === true);
   }
 }
 

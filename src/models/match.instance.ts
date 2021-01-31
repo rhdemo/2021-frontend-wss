@@ -13,21 +13,21 @@ export type MatchInstanceData = {
 
   // The player whose UUID is set here is active
   activePlayer: string;
+
+  // This will be set to the UUID of the winning player at some point
+  winner?: string;
 };
 
 export default class MatchInstance extends Model<MatchInstanceData> {
-  private activePlayer: string;
   constructor(
     private playerA: string,
     private playerB?: string,
-    activePlayer?: string,
+    private activePlayer = playerA,
     private ready = false,
+    private winner?: string,
     uuid?: string
   ) {
     super(uuid);
-
-    // Default the active player to playerA
-    this.activePlayer = playerA;
   }
 
   static from(data: MatchInstanceData) {
@@ -37,6 +37,7 @@ export default class MatchInstance extends Model<MatchInstanceData> {
       data.playerB,
       data.activePlayer,
       data.ready,
+      data.winner,
       data.uuid
     );
   }
@@ -65,6 +66,12 @@ export default class MatchInstance extends Model<MatchInstanceData> {
 
   isReady() {
     return this.ready;
+  }
+
+  setWinner(player: Player) {
+    const uuid = player.getUUID();
+    log.info(`setting ${uuid} as the winner for match ${this.getUUID()}`);
+    this.winner = uuid;
   }
 
   changeTurn() {
@@ -113,7 +120,8 @@ export default class MatchInstance extends Model<MatchInstanceData> {
       ready: this.ready,
       playerA: this.playerA,
       playerB: this.playerB,
-      activePlayer: this.activePlayer
+      activePlayer: this.activePlayer,
+      winner: this.winner
     };
   }
 }
