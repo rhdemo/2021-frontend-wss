@@ -71,11 +71,17 @@ const attackHandler: MessageHandler<
       }
     };
   } else {
-    const player = players.getPlayerAssociatedWithSocket(ws);
+    const wsPlayer = players.getPlayerAssociatedWithSocket(ws);
+
+    if (!wsPlayer) {
+      throw new Error('failed to find player associated with this websocket');
+    }
+
+    // Despite the fact a player is associated with a socket, we always
+    // use the cache as a source of truth. The socket is a lookup reference
+    const player = await players.getPlayerWithUUID(wsPlayer.getUUID());
     if (!player) {
-      throw new Error(
-        'failed to find player data associated with this websocket'
-      );
+      throw new Error('failed to find player data');
     }
 
     const { game, opponent, match } = await getPlayerSpecificData(player);
@@ -184,6 +190,9 @@ const attackHandler: MessageHandler<
     ]);
 
     if (isGameOverForPlayer(opponent)) {
+      log.info(
+        `determined that player ${player.getUUID()} lost match ${match.getUUID}`
+      );
       // The opponent's ships have all been hit. This player is the winner!
       match.setWinner(player);
     }

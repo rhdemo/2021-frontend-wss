@@ -118,6 +118,7 @@ export function getAllConnectedPlayers() {
 export async function getPlayerWithUUID(
   uuid: string
 ): Promise<Player | undefined> {
+  log.trace(`reading data for player ${uuid}`);
   const client = await getClient;
   const data = await client.get(uuid);
 
@@ -143,7 +144,7 @@ export async function getPlayerWithUUID(
 export async function upsertPlayerInCache(player: Player) {
   const data = player.toJSON();
   const client = await getClient;
-
+  log.trace(`writing player to cache: %j`, data);
   return client.put(player.getUUID(), JSON.stringify(data));
 }
 
@@ -152,6 +153,7 @@ export async function upsertPlayerInCache(player: Player) {
  * conflict with an existing player.
  */
 async function createNewPlayer(): Promise<Player> {
+  log.info('creating a new player');
   const username = generateUserName();
   const uuid = nanoid();
 

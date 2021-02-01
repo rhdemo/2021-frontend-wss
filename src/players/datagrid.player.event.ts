@@ -37,7 +37,6 @@ export default async function playerDataGridEventHandler(
       log.debug(
         `determining if match ${match.getUUID()} should be set to ready as a result of a modify event for player ${player.getUUID()}`
       );
-      const players = match.getPlayers();
 
       if (match && opponent) {
         if (
@@ -73,7 +72,7 @@ function updatePlayer(
     log.debug(`notify player ${player.getUUID()} that match.ready=true`);
     send(sock, {
       type: OutgoingMsgType.Configuration,
-      data: new PlayerConfiguration(game, player, match).toJSON()
+      data: new PlayerConfiguration(game, player, match, opponent).toJSON()
     });
   } else {
     log.warn(

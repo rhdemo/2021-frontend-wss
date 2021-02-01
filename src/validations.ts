@@ -1,5 +1,6 @@
 import * as Joi from 'joi';
 import { GAME_GRID_SIZE } from './config';
+import log from './log';
 import Player from './models/player';
 import { getCellAreaWidthAndHeight } from './utils';
 
@@ -184,6 +185,11 @@ function populateGridWithShipData(size: number, ship: ShipData, grid: Grid) {
  */
 export function isGameOverForPlayer(player: Player): boolean {
   const shipPositions = player.getShipPositionData();
+
+  log.trace(
+    `checking if player ${player.getUUID()} lost match. ships: %j`,
+    shipPositions
+  );
 
   if (!shipPositions) {
     return false;

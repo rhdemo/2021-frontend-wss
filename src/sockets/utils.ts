@@ -62,6 +62,9 @@ function getSocketSequenceNumber(ws: WebSocket) {
  * @param {Player} player
  */
 export async function getPlayerSpecificData(player: Player) {
+  log.debug(
+    `fetching match, game, and opponent data for player ${player.getUUID()}`
+  );
   const match = await getMatchAssociatedWithPlayer(player);
   const opponentUUID = await match?.getPlayerOpponentUUID(player);
   const opponent = opponentUUID

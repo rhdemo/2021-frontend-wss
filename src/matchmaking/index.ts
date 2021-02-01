@@ -36,7 +36,7 @@ export async function getMatchByUUID(
 ): Promise<MatchInstance | undefined> {
   const client = await getClient;
   const data = await client.get(uuid);
-
+  log.trace(`read match with UUID: ${uuid}`);
   if (data) {
     return MatchInstance.from(JSON.parse(data));
   } else {
@@ -52,6 +52,7 @@ export async function getMatchAssociatedWithPlayer(
   player: Player
 ): Promise<MatchInstance | undefined> {
   const uuid = player.getMatchInstanceUUID();
+  log.trace(`find match for player ${player.getUUID()}`);
 
   if (!uuid) {
     throw new Error(`player ${player.getUUID()} is missing a match UUID`);
@@ -61,6 +62,7 @@ export async function getMatchAssociatedWithPlayer(
   const data = await client.get(uuid);
 
   if (data) {
+    log.trace(`found match for player ${uuid}`);
     return MatchInstance.from(JSON.parse(data));
   }
 }

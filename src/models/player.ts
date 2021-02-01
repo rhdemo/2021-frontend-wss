@@ -9,6 +9,7 @@ import {
 } from '../validations';
 import Model from './model';
 import { AttackResult } from '../sockets/handler.attack';
+import log from '../log';
 
 type StoredPositionData = {
   [key in ShipType]: StoredShipData;
@@ -79,6 +80,7 @@ export default class Player extends Model<PlayerData> {
   }
 
   static from(data: PlayerData) {
+    log.trace('creating player instance from data: %j', data);
     return new Player(
       data.username,
       data.score,
@@ -96,6 +98,10 @@ export default class Player extends Model<PlayerData> {
    * @param valid
    */
   setShipPositionData(data: ShipPositionData, valid: boolean) {
+    log.info(
+      `setting ship position data for player ${this.getUUID()} to: %j`,
+      data
+    );
     const positions = Object.keys(data).reduce((updated, _type) => {
       const type = _type as ShipType;
       const shipData = data[type];
