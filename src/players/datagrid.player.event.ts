@@ -25,6 +25,13 @@ export default async function playerDataGridEventHandler(
       );
     }
 
+    if (player.hasAttacked()) {
+      log.trace(
+        `skipping player ${key} "modify" event logic, since they've already been active and attacking`
+      );
+      return;
+    }
+
     const { match, opponent, game } = await getPlayerSpecificData(player);
 
     if (!match) {

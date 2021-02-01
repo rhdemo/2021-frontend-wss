@@ -132,6 +132,10 @@ export default class Player extends Model<PlayerData> {
     };
   }
 
+  hasAttacked() {
+    return this.attacks.length > 0;
+  }
+
   getShipPositionData() {
     return this.board?.positions;
   }
