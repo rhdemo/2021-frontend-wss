@@ -35,9 +35,10 @@ yarn start
 ```
 
 Open `http://localhost:3001` (the Admin UI), and click the *Play* button.
+
 Next, open up `http://localhost:3002` in two separate browsers, or in a regular
 and incognito/private browsing session - this allows you to play as two players
-against each other on one machine.
+against each other on one machine!
 
 ### Controlling the WSS Server Game State
 
