@@ -9,10 +9,40 @@ Simple WebSocket server that can be used for client development.
 
 ## Usage
 
-### Controlling the WSS Server State
+### All Services in Dev Mode TDLR
+
+First, get the 3 necessary services running:
+
+```bash
+git clone https://github.com/rhdemo/2021-frontend-wss
+git clone https://github.com/rhdemo/2021-admin-hq
+git clone https://github.com/rhdemo/2021-frontend-css-html
+
+# Start the infinispan server and game websocket server
+cd 2021-frontend-wss
+./scripts/infinispan/infinispan.start.sh
+./scripts/node/node.start.sh
+
+# Start the Admin HQ (in another terminal)
+cd 2021-admin-hq
+./scripts/node.start.sh
+
+# Start the UI service (in another terminal)
+cd 2021-frontend-css-html
+npm i -g yarn
+yarn install
+yarn start
+```
+
+Open `http://localhost:3001` (the Admin UI), and click the *Play* button.
+Next, open up `http://localhost:3002` in two separate browsers, or in a regular
+and incognito/private browsing session - this allows you to play as two players
+against each other on one machine.
+
+### Controlling the WSS Server Game State
 
 Use the [Admin HQ Web UI](https://github.com/rhdemo/2021-admin-hq) to change
-the game state, e.g from "lobby" to "active", or to reset the server.
+the game state. You must select *Play* to make attacks in the game.
 
 ### Run in Dev Mode
 
