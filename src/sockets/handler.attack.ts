@@ -156,15 +156,6 @@ const attackHandler: MessageHandler<
             // Mark this ship sell as being hit
             sCell.hit = true;
 
-            // Send a hit cloud event
-            ce.hit({
-              by: player.getUUID(),
-              against: opponent.getUUID(),
-              origin: aCell,
-              ts: Date.now(),
-              match: match.getUUID()
-            });
-
             // Determine if it was the final peg required
             const destroyed = ship.cells.reduce(
               (_destroyed, v) => _destroyed && v.hit,
@@ -177,31 +168,47 @@ const attackHandler: MessageHandler<
             if (destroyed) {
               result.destroyed = true;
               result.type = ship.type;
-
-              // Send a sink cloud event
-              ce.sink({
-                by: player.getUUID(),
-                against: opponent.getUUID(),
-                ts: Date.now(),
-                type: ship.type,
-                match: match.getUUID()
-              });
             }
           } else {
             log.trace(`attack on ${_ship} at %j is a miss`, sCell.origin);
-            ce.miss({
-              by: player.getUUID(),
-              against: opponent.getUUID(),
-              origin: aCell,
-              ts: Date.now(),
-              match: match.getUUID()
-            });
           }
         });
       });
     });
 
     log.debug(`player ${player.getUUID()} attack result: %j`, attackResults);
+
+    attackResults.forEach((result) => {
+      if (result.hit) {
+        // Send a hit cloud event
+        ce.hit({
+          by: player.getUUID(),
+          against: opponent.getUUID(),
+          origin: result.origin,
+          ts: Date.now(),
+          match: match.getUUID()
+        });
+      } else {
+        ce.miss({
+          by: player.getUUID(),
+          against: opponent.getUUID(),
+          origin: result.origin,
+          ts: Date.now(),
+          match: match.getUUID()
+        });
+      }
+
+      if (result.destroyed && result.type) {
+        // Send a sink cloud event
+        ce.sink({
+          by: player.getUUID(),
+          against: opponent.getUUID(),
+          ts: Date.now(),
+          type: result.type,
+          match: match.getUUID()
+        });
+      }
+    })
 
     // Make a record of the attack in the attacking player's record
     player.recordAttack(attack, attackResults);
