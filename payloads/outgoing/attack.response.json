@@ -23,7 +23,6 @@
       "username": "Boom Falcon",
       "attacks": [],
       "uuid": "dSiN9enuyDuAgI6W6MMpK",
-      "score": 0,
       "board": {
         "Submarine": {
           "origin": [
@@ -156,7 +155,6 @@
         }
       },
       "username": "Cyan Dinosaur",
-      "score": 0,
       "match": "Ee-LZN411H-eyaUmX0OaS",
       "attacks": [
         {

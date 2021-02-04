@@ -40,9 +40,8 @@ type AttackResponse = {
 type MergedAttackReponse = AttackResponse & PlayerConfigurationData;
 
 const AttackPayloadSchema = Joi.object({
-  type: Joi.string()
-    .valid(CellArea['4x1'], CellArea['3x1'], CellArea['2x1'], CellArea['1x1'])
-    .required(),
+  type: Joi.string().valid(CellArea['1x1']).required(),
+  human: Joi.boolean().default(true),
   origin: Joi.array()
     .min(2)
     .max(2)

@@ -13,6 +13,7 @@ export type ConnectionRequestPayload = {
 };
 
 export type AttackDataPayload = {
+  human: boolean;
   type: CellArea;
   origin: CellPosition;
   orientation: Orientation;

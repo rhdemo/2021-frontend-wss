@@ -21,7 +21,6 @@ export type PlayerBoardData = {
 };
 
 export type OpponentData = {
-  score: number;
   uuid: string;
   username: string;
   attacks: StoredAttackData;
@@ -33,7 +32,6 @@ type OpponentBoardData = {
 };
 
 export type PlayerData = {
-  score: number;
   uuid: string;
   username: string;
   match?: string;
@@ -52,6 +50,7 @@ export type StoredShipData = {
 };
 
 export type StoredAttackData = {
+  ts: number;
   attack: AttackDataPayload;
   results: AttackResult[];
 }[];
@@ -61,7 +60,6 @@ export default class Player extends Model<PlayerData> {
   private attacks: StoredAttackData;
   constructor(
     private username: string,
-    private score: number,
     uuid?: string,
     private match?: string,
     board?: PlayerBoardData,
@@ -83,7 +81,6 @@ export default class Player extends Model<PlayerData> {
     log.trace('creating player instance from data: %j', data);
     return new Player(
       data.username,
-      data.score,
       data.uuid,
       data.match,
       data.board,
@@ -150,6 +147,7 @@ export default class Player extends Model<PlayerData> {
 
   recordAttack(attack: AttackDataPayload, results: AttackResult[]) {
     this.attacks.push({
+      ts: Date.now(),
       attack,
       results
     });
@@ -192,7 +190,6 @@ export default class Player extends Model<PlayerData> {
       username: this.username,
       attacks: this.attacks,
       uuid: this.getUUID(),
-      score: this.score,
       board
     };
   }
@@ -201,7 +198,6 @@ export default class Player extends Model<PlayerData> {
     return {
       board: this.board,
       username: this.username,
-      score: this.score,
       match: this.getMatchInstanceUUID(),
       attacks: this.attacks,
       uuid: this.getUUID()
