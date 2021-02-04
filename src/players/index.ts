@@ -157,7 +157,7 @@ async function createNewPlayer(): Promise<Player> {
   const username = generateUserName();
   const uuid = nanoid();
 
-  const player = new Player(username, 0, uuid, undefined);
+  const player = new Player(username, uuid);
   const existingPlayerWithSameUsername = await getPlayerWithUUID(username);
 
   if (existingPlayerWithSameUsername) {

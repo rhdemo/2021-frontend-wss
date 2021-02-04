@@ -15,6 +15,12 @@ const config = {
   // This is the grid size for the game, e.g "5" would produce a 5x5 grid
   GAME_GRID_SIZE: get('GAME_GRID_SIZE').default(5).asIntPositive(),
 
+  CLOUD_EVENT_BROKER_URL: get('CLOUD_EVENT_BROKER_URL')
+    .default(
+      'http://broker-ingress.knative-eventing.svc.cluster.local/knative-eventing/default'
+    )
+    .asUrlString(),
+
   DATAGRID_GAME_DATA_STORE: get('DATAGRID_GAME_DATA_STORE')
     .default('game')
     .asString(),

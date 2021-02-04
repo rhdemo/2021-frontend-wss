@@ -5,6 +5,7 @@ import log from '../log';
 import * as matchmaking from '../matchmaking';
 import * as players from '../players';
 import { GameState } from '../models/game.configuration';
+import * as ce from '../cloud-events';
 import { getCellCoverageForOriginOrientationAndArea } from '../utils';
 import {
   CellArea,
@@ -155,6 +156,15 @@ const attackHandler: MessageHandler<
             // Mark this ship sell as being hit
             sCell.hit = true;
 
+            // Send a hit cloud event
+            ce.hit({
+              by: player.getUUID(),
+              against: opponent.getUUID(),
+              origin: aCell,
+              ts: Date.now(),
+              match: match.getUUID()
+            });
+
             // Determine if it was the final peg required
             const destroyed = ship.cells.reduce(
               (_destroyed, v) => _destroyed && v.hit,
@@ -167,9 +177,25 @@ const attackHandler: MessageHandler<
             if (destroyed) {
               result.destroyed = true;
               result.type = ship.type;
+
+              // Send a sink cloud event
+              ce.sink({
+                by: player.getUUID(),
+                against: opponent.getUUID(),
+                ts: Date.now(),
+                type: ship.type,
+                match: match.getUUID()
+              });
             }
           } else {
             log.trace(`attack on ${_ship} at %j is a miss`, sCell.origin);
+            ce.miss({
+              by: player.getUUID(),
+              against: opponent.getUUID(),
+              origin: aCell,
+              ts: Date.now(),
+              match: match.getUUID()
+            });
           }
         });
       });

@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "build": "tsc",
-    "dev": "NODE_ENV=dev LOG_LEVEL=trace nodemon -e ts -x ts-node src/index.ts | pino-pretty -t",
+    "dev": "NODE_ENV=dev CLOUD_EVENT_BROKER_URL=http://summit-sink:8080 LOG_LEVEL=trace nodemon -e ts -x ts-node src/index.ts | pino-pretty -t",
     "test": "ts-node node_modules/tape/bin/tape test/*.test.ts",
     "start": "node build/src/index.js"
   },
@@ -29,11 +29,13 @@
   },
   "homepage": "https://github.com/rhdemo/2021-frontend-wss#readme",
   "dependencies": {
+    "cloudevents": "^4.0.0",
     "delay": "~4.4.0",
     "env-var": "~7.0.0",
     "fastify": "~3.9.2",
     "fastify-plugin": "~3.0.0",
     "fastify-websocket": "~2.0.11",
+    "got": "^11.8.1",
     "humanize-duration": "~3.25.0",
     "infinispan": "~0.7.0",
     "joi": "~17.3.0",
