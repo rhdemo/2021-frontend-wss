@@ -2,7 +2,7 @@ import { HTTP, CloudEvent } from 'cloudevents';
 import got from 'got';
 import { CLOUD_EVENT_BROKER_URL } from '../config';
 import log from '../log';
-import { CellPosition, ShipType } from '../validations';
+import { ShipType } from '../validations';
 
 const source = 'battleship-wss';
 
@@ -18,7 +18,7 @@ type ShotEventData = {
   by: string;
   match: string;
   against: string;
-  origin: CellPosition;
+  origin: `${number},${number}`;
 };
 
 type SinkEventData = {

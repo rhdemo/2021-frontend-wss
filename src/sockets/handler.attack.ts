@@ -184,7 +184,7 @@ const attackHandler: MessageHandler<
         ce.hit({
           by: player.getUUID(),
           against: opponent.getUUID(),
-          origin: result.origin,
+          origin: `${result.origin[0]},${result.origin[1]}` as const,
           ts: Date.now(),
           match: match.getUUID()
         });
@@ -192,7 +192,7 @@ const attackHandler: MessageHandler<
         ce.miss({
           by: player.getUUID(),
           against: opponent.getUUID(),
-          origin: result.origin,
+          origin: `${result.origin[0]},${result.origin[1]}` as const,
           ts: Date.now(),
           match: match.getUUID()
         });
@@ -208,7 +208,7 @@ const attackHandler: MessageHandler<
           match: match.getUUID()
         });
       }
-    })
+    });
 
     // Make a record of the attack in the attacking player's record
     player.recordAttack(attack, attackResults);
