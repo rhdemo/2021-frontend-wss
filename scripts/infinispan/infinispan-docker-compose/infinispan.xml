@@ -1,0 +1,38 @@
+<infinispan
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="urn:infinispan:config:12.0 https://infinispan.org/schemas/infinispan-config-12.0.xsd
+                            urn:infinispan:server:12.0 https://infinispan.org/schemas/infinispan-server-12.0.xsd"
+  xmlns="urn:infinispan:config:12.0"
+  xmlns:server="urn:infinispan:server:12.0">
+
+  <cache-container name="default" statistics="true">
+    <transport cluster="${infinispan.cluster.name:cluster}" stack="${infinispan.cluster.stack:tcp}" node-name="${infinispan.node.name:}"/>
+    <distributed-cache-configuration name="distributed-off-heap">
+      <memory>
+        <off-heap/>
+      </memory>
+<!--      <encoding media-type="application/x-protostream"/>-->
+    </distributed-cache-configuration>
+    <distributed-cache name="game" configuration="distributed-off-heap" />
+    <distributed-cache name="match-instances" configuration="distributed-off-heap" />
+    <distributed-cache name="players" configuration="distributed-off-heap" />
+  </cache-container>
+
+  <server xmlns="urn:infinispan:server:12.0">
+    <interfaces>
+      <interface name="public">
+        <inet-address value="${infinispan.bind.address:127.0.0.1}"/>
+      </interface>
+    </interfaces>
+
+    <socket-bindings default-interface="public" port-offset="${infinispan.socket.binding.port-offset:0}">
+      <socket-binding name="default" port="${infinispan.bind.port:11222}"/>
+      <socket-binding name="memcached" port="11221"/>
+    </socket-bindings>
+
+    <endpoints socket-binding="default">
+      <hotrod-connector/>
+      <rest-connector/>
+    </endpoints>
+  </server>
+</infinispan>
