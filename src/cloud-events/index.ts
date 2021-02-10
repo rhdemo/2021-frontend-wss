@@ -13,7 +13,7 @@ const enum CloudEventType {
   Bonus = 'bonus'
 }
 
-type ShotEventData = {
+type EventDataBase = {
   ts: number;
   by: string;
   match: string;
@@ -21,11 +21,13 @@ type ShotEventData = {
   origin: `${number},${number}`;
 };
 
-type SinkEventData = {
-  ts: number;
-  by: string;
-  match: string;
-  against: string;
+type HitShotEventData = EventDataBase & {
+  type: ShipType;
+};
+
+type MissShotEventData = EventDataBase;
+
+type SinkEventData = EventDataBase & {
   type: ShipType;
 };
 
@@ -54,11 +56,11 @@ async function sendEvent(type: CloudEventType, data: unknown) {
   }
 }
 
-export function hit(data: ShotEventData) {
+export function hit(data: HitShotEventData) {
   sendEvent(CloudEventType.Hit, data);
 }
 
-export function miss(data: ShotEventData) {
+export function miss(data: MissShotEventData) {
   sendEvent(CloudEventType.Miss, data);
 }
 

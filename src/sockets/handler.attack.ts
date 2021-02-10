@@ -131,6 +131,11 @@ const attackHandler: MessageHandler<
     );
     const attackResults: AttackResult[] = [];
 
+    // TODO: improve attacking logic. We've removed the wide area attacks,
+    // so all of this code can be simplified a lil bit. This is a quick fix
+    // to track the ship type for cloud events, assuming one was hit
+    let hitShipType: ShipType;
+
     log.debug(`determine player ${player.getUUID()} attack hits/misses`);
     log.debug('attack data: %j', attack);
     log.debug('attack cells: %j', attackCells);
@@ -165,6 +170,9 @@ const attackHandler: MessageHandler<
             // Update the AttackResult object with
             result.hit = true;
 
+            // Note the type of ship that was hit
+            hitShipType = ship.type;
+
             if (destroyed) {
               result.destroyed = true;
               result.type = ship.type;
@@ -186,7 +194,8 @@ const attackHandler: MessageHandler<
           against: opponent.getUUID(),
           origin: `${result.origin[0]},${result.origin[1]}` as const,
           ts: Date.now(),
-          match: match.getUUID()
+          match: match.getUUID(),
+          type: hitShipType
         });
       } else {
         ce.miss({
@@ -205,7 +214,8 @@ const attackHandler: MessageHandler<
           against: opponent.getUUID(),
           ts: Date.now(),
           type: result.type,
-          match: match.getUUID()
+          match: match.getUUID(),
+          origin: `${result.origin[0]},${result.origin[1]}` as const
         });
       }
     });
