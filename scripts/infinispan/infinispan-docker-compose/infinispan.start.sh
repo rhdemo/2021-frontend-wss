@@ -2,7 +2,8 @@
 printf "\n\n######## infinispan dev container run in background ########\n"
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
-
+# Need to change into this dir since docker-compose searches cwd for yaml
+cd $DIR
 docker-compose down
 docker-compose up --force-recreate --detach &
 
