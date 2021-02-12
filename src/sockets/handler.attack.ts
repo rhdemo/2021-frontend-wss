@@ -191,6 +191,7 @@ const attackHandler: MessageHandler<
         // Send a hit cloud event
         ce.hit({
           by: player.getUUID(),
+          game: game.getUUID(),
           against: opponent.getUUID(),
           origin: `${result.origin[0]},${result.origin[1]}` as const,
           ts: Date.now(),
@@ -200,6 +201,7 @@ const attackHandler: MessageHandler<
       } else {
         ce.miss({
           by: player.getUUID(),
+          game: game.getUUID(),
           against: opponent.getUUID(),
           origin: `${result.origin[0]},${result.origin[1]}` as const,
           ts: Date.now(),
@@ -211,6 +213,7 @@ const attackHandler: MessageHandler<
         // Send a sink cloud event
         ce.sink({
           by: player.getUUID(),
+          game: game.getUUID(),
           against: opponent.getUUID(),
           ts: Date.now(),
           type: result.type,
@@ -235,8 +238,20 @@ const attackHandler: MessageHandler<
       log.info(
         `determined that player ${player.getUUID()} lost match ${match.getUUID}`
       );
+
       // The opponent's ships have all been hit. This player is the winner!
       match.setWinner(player);
+
+      ce.win({
+        game: game.getUUID(),
+        match: match.getUUID(),
+        player: player.getUUID()
+      });
+      ce.lose({
+        game: game.getUUID(),
+        match: match.getUUID(),
+        player: opponent.getUUID()
+      });
     }
 
     await matchmaking.upsertMatchInCache(match);
