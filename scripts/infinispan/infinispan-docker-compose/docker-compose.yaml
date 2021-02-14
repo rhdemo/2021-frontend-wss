@@ -1,0 +1,16 @@
+version: '3'
+
+networks:
+  summit:
+    driver: bridge
+services:
+  infinispan:
+    image: infinispan/server:12.0
+    ports:
+      - "11222:11222"
+    container_name: infinispan
+    networks:
+      - summit
+    volumes:
+      - ${PWD}:/user-config
+    command: /opt/infinispan/bin/server.sh -b SITE_LOCAL -c /user-config/infinispan.xml
