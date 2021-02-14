@@ -1,9 +1,13 @@
 import { HTTP, CloudEvent } from 'cloudevents';
 import got from 'got';
+import { Agent } from 'http';
 import { CLOUD_EVENT_BROKER_URL } from '../config';
 import log from '../log';
 import { ShipType } from '../validations';
 
+const agent = new Agent({
+  keepAlive: true
+});
 const source = 'battleship-wss';
 
 const enum CloudEventType {
@@ -54,6 +58,9 @@ async function sendEvent(type: CloudEventType, data: unknown) {
   try {
     const res = await got(CLOUD_EVENT_BROKER_URL, {
       method: 'POST',
+      agent: {
+        http: agent
+      },
       headers: ce.headers,
       body: JSON.stringify(ce.body)
     });
