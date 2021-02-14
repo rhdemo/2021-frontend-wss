@@ -50,7 +50,7 @@ export function writeGameRecord(
       });
   } else {
     log.debug(
-      `In production mode. Skipping write of game ${game.getUUID()} / match ${match.getUUID()}`
+      `In production mode. Skipping S3 write of game ${game.getUUID()} / match ${match.getUUID()}`
     );
   }
 }
