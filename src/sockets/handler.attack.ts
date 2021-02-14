@@ -23,6 +23,7 @@ import PlayerConfiguration, {
   PlayerConfigurationData
 } from '../models/player.configuration';
 import { getPlayerSpecificData, send } from './utils';
+import * as ml from '../ml';
 
 export type AttackResult = {
   origin: CellPosition;
@@ -219,6 +220,7 @@ const attackHandler: MessageHandler<
       // The opponent's ships have all been hit. This player is the winner!
       match.setWinner(player);
 
+      // Send win and lose Cloud Events
       ce.win({
         game: game.getUUID(),
         match: match.getUUID(),
@@ -229,6 +231,9 @@ const attackHandler: MessageHandler<
         match: match.getUUID(),
         player: opponent.getUUID()
       });
+
+      // Write payload to storage for analysis by ML services
+      ml.writeGameRecord(player, opponent, match, game);
     }
 
     await matchmaking.upsertMatchInCache(match);

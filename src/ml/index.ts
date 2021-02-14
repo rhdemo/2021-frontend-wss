@@ -7,8 +7,8 @@ import { AWS_BUCKET_NAME } from '../config';
 import { getStorageInstance } from './s3';
 
 export function writeGameRecord(
-  playerA: Player,
-  playerB: Player,
+  winner: Player,
+  loser: Player,
   match: MatchInstance,
   game: GameConfiguration
 ) {
@@ -30,8 +30,8 @@ export function writeGameRecord(
         Bucket: AWS_BUCKET_NAME,
         Key: `${new Date().toJSON()}.json`,
         Body: JSON.stringify({
-          playerA: playerA.toJSON(),
-          playerB: playerB.toJSON(),
+          winner: winner.toJSON(),
+          loser: loser.toJSON(),
           match: match.toJSON(),
           game: game.toJSON()
         })
@@ -42,10 +42,11 @@ export function writeGameRecord(
           `S3 upload success for game ${game.getUUID()} / match ${match.getUUID()}`
         );
       })
-      .catch((e) => {
+      .catch((e: any) => {
         log.error(
           `S3 upload failed for game ${game.getUUID()} / match ${match.getUUID()}`
         );
+        log.error(e);
       });
   } else {
     log.debug(
