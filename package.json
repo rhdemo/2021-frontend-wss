@@ -29,6 +29,7 @@
   },
   "homepage": "https://github.com/rhdemo/2021-frontend-wss#readme",
   "dependencies": {
+    "aws-sdk": "^2.843.0",
     "cloudevents": "^4.0.0",
     "delay": "~4.4.0",
     "env-var": "~7.0.0",

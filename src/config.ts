@@ -21,6 +21,12 @@ const config = {
     )
     .asUrlString(),
 
+  AWS_ACCESS_KEY_ID: get('AWS_ACCESS_KEY_ID').asString(),
+  AWS_SECRET_ACCESS_KEY: get('AWS_SECRET_ACCESS_KEY').asString(),
+  AWS_BUCKET_NAME: get('AWS_BUCKET_NAME')
+    .default('summit-game-records')
+    .asString(),
+
   DATAGRID_GAME_DATA_STORE: get('DATAGRID_GAME_DATA_STORE')
     .default('game')
     .asString(),
