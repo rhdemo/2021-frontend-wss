@@ -18,7 +18,8 @@ import { getPlayerSpecificData, send } from './utils';
 const ConnectionRequestPayloadSchema = Joi.object({
   username: Joi.string(),
   gameId: Joi.string(),
-  playerId: Joi.string()
+  playerId: Joi.string(),
+  useAiOpponent: Joi.boolean()
 });
 
 const connectionHandler: MessageHandler<

@@ -25,6 +25,8 @@ export default async function playerDataGridEventHandler(
       );
     }
 
+    log.debug('processing modify event for player: %j', player.toJSON());
+
     if (player.hasAttacked()) {
       log.trace(
         `skipping player ${key} "modify" event logic, since they've already been active and attacking`

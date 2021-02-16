@@ -1,5 +1,22 @@
 import { Server } from 'http';
 import { CellArea, CellPosition, Orientation } from './validations';
+import got, { OptionsOfTextResponseBody } from 'got';
+import { Agent } from 'http';
+
+const agent = new Agent({
+  // TODO: maybe try the new undici http library?
+  // Using keep-alive agents can massively improves performance/throughput
+  keepAlive: true
+});
+
+export async function http(url: string, opts: OptionsOfTextResponseBody) {
+  return got(url, {
+    agent: {
+      http: agent
+    },
+    ...opts
+  });
+}
 
 export function getWsAddressFromServer(server: Server): string {
   const addr = server.address();

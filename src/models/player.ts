@@ -34,6 +34,7 @@ type OpponentBoardData = {
 export type PlayerData = {
   uuid: string;
   username: string;
+  isAi: boolean;
   match?: string;
   board?: PlayerBoardData;
   attacks: StoredAttackData;
@@ -60,6 +61,7 @@ export default class Player extends Model<PlayerData> {
   private attacks: StoredAttackData;
   constructor(
     private username: string,
+    private isAi = false,
     uuid?: string,
     private match?: string,
     board?: PlayerBoardData,
@@ -81,6 +83,7 @@ export default class Player extends Model<PlayerData> {
     log.trace('creating player instance from data: %j', data);
     return new Player(
       data.username,
+      data.isAi,
       data.uuid,
       data.match,
       data.board,
@@ -142,6 +145,7 @@ export default class Player extends Model<PlayerData> {
   }
 
   setMatchInstanceUUID(uuid: string) {
+    log.trace(`setting player ${this.getUUID()} match UUID to ${uuid}`);
     this.match = uuid;
   }
 
@@ -197,6 +201,7 @@ export default class Player extends Model<PlayerData> {
   toJSON(): PlayerData {
     return {
       board: this.board,
+      isAi: this.isAi,
       username: this.username,
       match: this.getMatchInstanceUUID(),
       attacks: this.attacks,

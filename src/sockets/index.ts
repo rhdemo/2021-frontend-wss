@@ -46,6 +46,7 @@ const MessageHandlers: { [key in IncomingMsgType]: MessageHandler<unknown> } = {
 async function _processSocketMessage(ws: WebSocket, data: ParsedWsData) {
   const handler = MessageHandlers[data.type];
   if (handler) {
+    log.trace('processing incoming message: %j', data);
     let resp!: MessageHandlerResponse<unknown>;
 
     try {

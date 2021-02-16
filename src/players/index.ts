@@ -1,4 +1,8 @@
-import { DATAGRID_PLAYER_DATA_STORE } from '../config';
+import {
+  AI_AGENT_SERVER_URL,
+  DATAGRID_PLAYER_DATA_STORE,
+  NODE_ENV
+} from '../config';
 import getDataGridClientForCacheNamed from '../datagrid/client';
 import Player from '../models/player';
 import playerDataGridEventHandler from './datagrid.player.event';
@@ -9,6 +13,7 @@ import { nanoid } from 'nanoid';
 import { ConnectionRequestPayload } from '../sockets/payloads';
 import { getGameConfiguration } from '../game';
 import { matchMakeForPlayer } from '../matchmaking';
+import { http } from '../utils';
 
 const getClient = getDataGridClientForCacheNamed(
   DATAGRID_PLAYER_DATA_STORE,
@@ -42,7 +47,7 @@ export async function initialisePlayer(
     // first time client is connecting, or they provided stale lookup data
     // we compare the usernames as an extra layer of protection, though UUIDs
     // should be enough realistically...
-    player = await createNewPlayer();
+    player = await createNewPlayer({ ai: false });
 
     log.info('created new player: %j', player.toJSON());
   } else {
@@ -50,12 +55,35 @@ export async function initialisePlayer(
   }
 
   if (!player.getMatchInstanceUUID()) {
-    // player has not been matched to a game instance, so we do it now
-    const instance = await matchMakeForPlayer(player);
+    log.info(
+      `connecting player ${player.getUUID()} has not been assigned a match. Will matchmake now.`
+    );
 
+    let opponent: Player | undefined;
+
+    if (NODE_ENV === 'prod' || (NODE_ENV === 'dev' && data.useAiOpponent)) {
+      // In dev we default to using human to human games. In prod we force AI
+      opponent = await createNewPlayer({ ai: true });
+    }
+
+    if (opponent) {
+      log.info(
+        `created AI opponent for player ${player.getUUID()}: %j`,
+        opponent.toJSON()
+      );
+    }
+
+    const instance = await matchMakeForPlayer(player, opponent);
+
+    // Update the player and opponent in infinispan with their match data
     player.setMatchInstanceUUID(instance.getUUID());
 
-    // Update the player model in infinispan with this data
+    if (opponent) {
+      opponent.setMatchInstanceUUID(instance.getUUID());
+      await upsertPlayerInCache(opponent);
+      await createAiOpponentAgent(opponent, game.getUUID());
+    }
+
     await upsertPlayerInCache(player);
   }
 
@@ -80,6 +108,26 @@ export async function initialisePlayer(
   }
 
   return player;
+}
+
+/**
+ * Send a request to the AI agent server to create an AI player instance
+ * for the given UUID and Username
+ * @param aiOpponent {Player}
+ * @param gameId {String}
+ */
+export async function createAiOpponentAgent(
+  aiOpponent: Player,
+  gameId: string
+) {
+  await http(AI_AGENT_SERVER_URL, {
+    method: 'POST',
+    json: {
+      gameId,
+      uuid: aiOpponent.getUUID(),
+      username: aiOpponent.getUsername()
+    }
+  });
 }
 
 /**
@@ -152,19 +200,19 @@ export async function upsertPlayerInCache(player: Player) {
  * Creates a new player. Will be recursively called until there's no naming
  * conflict with an existing player.
  */
-async function createNewPlayer(): Promise<Player> {
+async function createNewPlayer(opts: { ai: boolean }): Promise<Player> {
   log.info('creating a new player');
   const username = generateUserName();
   const uuid = nanoid();
 
-  const player = new Player(username, uuid);
+  const player = new Player(username, opts.ai, uuid);
   const existingPlayerWithSameUsername = await getPlayerWithUUID(username);
 
   if (existingPlayerWithSameUsername) {
     log.warn(
       `a player with the username "${username}" already exists. retrying player create to obtain a unique username`
     );
-    return createNewPlayer();
+    return createNewPlayer(opts);
   } else {
     await upsertPlayerInCache(player);
 

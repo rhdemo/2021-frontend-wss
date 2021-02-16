@@ -15,6 +15,10 @@ const config = {
   // This is the grid size for the game, e.g "5" would produce a 5x5 grid
   GAME_GRID_SIZE: get('GAME_GRID_SIZE').default(5).asIntPositive(),
 
+  AI_AGENT_SERVER_URL: get('AI_AGENT_SERVER_URL')
+    .default('http://ai-agent.frontend.svc.cluster.local:8080/agent')
+    .asUrlString(),
+
   CLOUD_EVENT_BROKER_URL: get('CLOUD_EVENT_BROKER_URL')
     .default(
       'http://broker-ingress.knative-eventing.svc.cluster.local/knative-eventing/default'
