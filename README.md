@@ -17,11 +17,16 @@ First, get the 3 necessary services running:
 git clone https://github.com/rhdemo/2021-frontend-wss
 git clone https://github.com/rhdemo/2021-admin-hq
 git clone https://github.com/rhdemo/2021-frontend-css-html
+git clone https://github.com/rhdemo/2021-ai-agent-server
 
 # Start the infinispan server and game websocket server
 cd 2021-frontend-wss
-./scripts/infinispan/infinispan.start.sh
+./scripts/infinispan/infinispan-docker-compose/infinispan.start.sh
 ./scripts/node/node.start.sh
+
+# Start the AI Agent service (in another terminal)
+cd 2021-ai-agent-server
+./scripts/node.start.sh
 
 # Start the Admin HQ (in another terminal)
 cd 2021-admin-hq
@@ -39,6 +44,9 @@ Open `http://localhost:3001` (the Admin UI), and click the *Play* button.
 Next, open up `http://localhost:3002` in two separate browsers, or in a regular
 and incognito/private browsing session - this allows you to play as two players
 against each other on one machine!
+
+To play against an AI opponent open the Game UI with this querystring
+`http://localhost:3002/?useAiOpponent=true`.
 
 ### Controlling the WSS Server Game State
 
