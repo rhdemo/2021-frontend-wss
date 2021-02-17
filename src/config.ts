@@ -16,7 +16,7 @@ const config = {
   GAME_GRID_SIZE: get('GAME_GRID_SIZE').default(5).asIntPositive(),
 
   AI_AGENT_SERVER_URL: get('AI_AGENT_SERVER_URL')
-    .default('http://ai-agent.frontend.svc.cluster.local:8080/agent')
+    .default('http://ai-agent-server.ai.svc.cluster.local:8080/agent')
     .asUrlString(),
 
   CLOUD_EVENT_BROKER_URL: get('CLOUD_EVENT_BROKER_URL')
