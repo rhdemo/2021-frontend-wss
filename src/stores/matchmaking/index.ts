@@ -126,13 +126,13 @@ export async function matchMakeForPlayer(
       if (match) {
         return match;
       } else {
-        const match = await createMatchInstanceWithPlayers(player);
+        const newMatch = await createMatchInstanceWithPlayers(player);
 
         log.info(
-          `unable to find match for player ${player.getUUID()}. created new match instance ${match.getUUID()}`
+          `unable to find match for player ${player.getUUID()}. created new match instance ${newMatch.getUUID()}`
         );
 
-        return match;
+        return newMatch;
       }
 
       async function find(
@@ -143,22 +143,22 @@ export async function matchMakeForPlayer(
         if (entry.done) {
           return;
         } else {
-          const match = MatchInstance.from(
+          const potentialMatch = MatchInstance.from(
             JSON.parse(entry.value) as MatchInstanceData
           );
 
           log.trace(
             `checking if player ${player.getUUID()} can join match: %j,`,
-            match.toJSON()
+            potentialMatch.toJSON()
           );
 
-          if (match.isJoinable()) {
+          if (potentialMatch.isJoinable()) {
             log.info(
-              `adding player ${player.getUUID()} to match ${match.getUUID()}`
+              `adding player ${player.getUUID()} to match ${potentialMatch.getUUID()}`
             );
-            match.addPlayer(player);
-            await upsertMatchInCache(match);
-            return match;
+            potentialMatch.addPlayer(player);
+            await upsertMatchInCache(potentialMatch);
+            return potentialMatch;
           } else {
             return find(iterator.next());
           }

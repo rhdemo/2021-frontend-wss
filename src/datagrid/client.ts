@@ -39,7 +39,7 @@ export default async function getDataGridClientForCacheNamed(
 
   const client = await getClient(nodes, cacheName);
 
-  const listenerId = await client.addListener('create', (key, version, id) =>
+  const listenerId = await client.addListener('create', (key) =>
     eventHandler(client, 'create', key)
   );
 

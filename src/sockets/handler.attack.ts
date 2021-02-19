@@ -18,7 +18,6 @@ import PlayerConfiguration, {
 import { getPlayerSpecificData, send } from './common';
 import * as ml from '@app/ml';
 import { AttackPayloadSchema } from '@app/payloads/schemas';
-import Player from '@app/models/player';
 
 export type AttackResult = {
   origin: CellPosition;
@@ -111,7 +110,7 @@ const attackHandler: MessageHandler<
       );
     }
 
-    let attackResult: AttackResult = {
+    const attackResult: AttackResult = {
       origin: attack.origin,
       hit: false,
       destroyed: false
@@ -120,7 +119,7 @@ const attackHandler: MessageHandler<
     log.debug(`determine player ${player.getUUID()} attack hit/miss`);
     log.debug('attack data: %j', attack);
 
-    for (let _ship in opponentShipData) {
+    for (const _ship in opponentShipData) {
       if (attackResult.hit) {
         // If a hit was registered, then break the loop
         break;

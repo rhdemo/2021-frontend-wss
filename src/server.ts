@@ -1,4 +1,6 @@
-import fastify from 'fastify';
+/* eslint-disable @typescript-eslint/no-var-requires */
+
+import fastify, { FastifyInstance } from 'fastify';
 import { ServerOptions } from 'ws';
 import { WebsocketPluginOptions } from 'fastify-websocket';
 import { WS_MAX_PAYLOAD, HTTP_PORT } from '@app/config';
@@ -31,7 +33,7 @@ app.register(require('fastify-websocket'), {
 // Expose the game WS endpoint
 app.register(require('./plugins/game'));
 
-export default async function startServer() {
+export default async function startServer(): Promise<FastifyInstance> {
   try {
     await app.listen(HTTP_PORT, '0.0.0.0');
 

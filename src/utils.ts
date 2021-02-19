@@ -51,8 +51,8 @@ export function getWsAddressFromServer(server: Server): string {
 export function getCellAreaWidthAndHeight(area: CellArea) {
   const values = area.split('x');
   return {
-    x: parseInt(values[0]),
-    y: parseInt(values[1])
+    x: parseInt(values[0], 10),
+    y: parseInt(values[1], 10)
   };
 }
 
@@ -77,15 +77,15 @@ export function getCellCoverageForOriginOrientationAndArea(
   orientation: Orientation,
   area: CellArea
 ): CellPosition[] {
-  let xMax = parseInt(area.split('x')[0]);
-  let yMax = parseInt(area.split('x')[1]);
+  let xMax = parseInt(area.split('x')[0], 10);
+  let yMax = parseInt(area.split('x')[1], 10);
   const originX = origin[0];
   const originY = origin[1];
 
   const positions: CellPosition[] = [];
 
   if (orientation === Orientation.Vertical) {
-    let newX = yMax;
+    const newX = yMax;
     yMax = xMax;
     xMax = newX;
   }

@@ -14,7 +14,7 @@ import { ShipsLockedSchema } from '@app/payloads/schemas';
 
 const EXPECTED_OCCUPIED_SQUARES: number = Object.values(ShipSize).reduce(
   (total, v) => {
-    return total + parseInt(v.split('x')[0]);
+    return total + parseInt(v.split('x')[0], 10);
   },
   0
 );

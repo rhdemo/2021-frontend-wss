@@ -7,6 +7,7 @@
   "scripts": {
     "build": "tsc",
     "dev": "NODE_ENV=dev AI_AGENT_SERVER_URL=http://summit-ai-agent-server:3003/agent CLOUD_EVENT_BROKER_URL=http://summit-sink:8080 LOG_LEVEL=trace nodemon -e ts -x ts-node -r tsconfig-paths/register src/index.ts | pino-pretty -t",
+    "lint": "eslint 'src/**/*.ts'",
     "test": "ts-node node_modules/tape/bin/tape test/*.test.ts",
     "start": "node -r module-alias/register build/index.js"
   },
@@ -56,7 +57,10 @@
     "@types/pino": "~6.3.4",
     "@types/tape": "~4.13.0",
     "@types/ws": "~7.4.0",
+    "@typescript-eslint/eslint-plugin": "^4.15.1",
+    "@typescript-eslint/parser": "^4.15.1",
     "clear-module": "^4.1.1",
+    "eslint": "^7.20.0",
     "husky": "~4.3.6",
     "nodemon": "~2.0.6",
     "pino-pretty": "~4.3.0",

@@ -65,26 +65,26 @@ async function sendEvent(type: CloudEventType, data: unknown) {
   }
 }
 
-export function hit(data: HitShotEventData) {
+export function hit(data: HitShotEventData): void {
   sendEvent(CloudEventType.Hit, data);
 }
 
-export function miss(data: MissShotEventData) {
+export function miss(data: MissShotEventData): void {
   sendEvent(CloudEventType.Miss, data);
 }
 
-export function sink(data: SinkEventData) {
+export function sink(data: SinkEventData): void {
   sendEvent(CloudEventType.Sink, data);
 }
 
-export function win(data: WinLoseEventData) {
+export function win(data: WinLoseEventData): void {
   sendEvent(CloudEventType.Win, data);
 }
 
-export function lose(data: WinLoseEventData) {
+export function lose(data: WinLoseEventData): void {
   sendEvent(CloudEventType.Win, data);
 }
 
-export function bonus() {
+export function bonus(): void {
   // TODO
 }

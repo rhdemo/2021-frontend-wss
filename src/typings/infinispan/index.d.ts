@@ -83,7 +83,7 @@ declare module 'infinispan' {
       value: string,
       opts?: StoreOptions
     ): Promise<string | undefined>;
-    remove(key: string): Promise<Boolean>;
+    remove(key: string): Promise<boolean>;
     iterator(batchSize: number): Promise<InfinispanIterator>;
     addListener(
       event: 'create' | 'modify',

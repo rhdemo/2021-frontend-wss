@@ -59,8 +59,7 @@ async function getGameConfigurationFromCache() {
 
 export default async function gameConfigurationDatagridEventHandler(
   client: InfinispanClient,
-  eventType: ClientEvent,
-  key: string
+  eventType: ClientEvent
 ) {
   log.debug(`detected game data "${eventType}" event`);
   if (eventType === 'modify') {
@@ -79,7 +78,7 @@ export default async function gameConfigurationDatagridEventHandler(
     getAllConnectedPlayers().forEach(async (player, ws) => {
       // Need to reuse existing player config if it's not a reset. If it is a
       // reset, then we pass empty data to reset the state for the client
-      let args: ConnectionRequestPayload = isReset
+      const args: ConnectionRequestPayload = isReset
         ? {}
         : {
             playerId: player.getUUID(),

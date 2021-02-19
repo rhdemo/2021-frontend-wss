@@ -17,7 +17,7 @@ const shipPositionHandler: MessageHandler<PlayerConfigurationData> = async (
   data: unknown
 ) => {
   log.debug('processing ship-postion payload: %j', data);
-  let validatedPlacementData: undefined | ShipPositionData = undefined;
+  let validatedPlacementData: undefined | ShipPositionData;
 
   const player = players.getPlayerAssociatedWithSocket(ws);
   if (!player) {

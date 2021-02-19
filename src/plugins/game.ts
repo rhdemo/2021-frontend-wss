@@ -3,16 +3,10 @@ import fp from 'fastify-plugin';
 import log from '@app/log';
 import processSocketMessage from '@app/sockets';
 
-export interface GameRoutePluginOptions {}
-
-const gameRoutePlugin: FastifyPluginCallback<GameRoutePluginOptions> = (
-  server,
-  options,
-  done
-) => {
+const gameRoutePlugin: FastifyPluginCallback = (server, options, done) => {
   // This is the WS endpoint, i.e ws://localhost:3000/game
-  server.get('/game', { websocket: true }, (conn, req) => {
-    conn.on('error', (err: any) => {
+  server.get('/game', { websocket: true }, (conn) => {
+    conn.on('error', (err) => {
       server.log.error(
         `error generated. client will be disconnected due to: ${err}`
       );
