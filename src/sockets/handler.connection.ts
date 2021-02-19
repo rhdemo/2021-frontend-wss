@@ -1,4 +1,3 @@
-import Joi from 'joi';
 import WebSocket from 'ws';
 import log from '@app/log';
 import PlayerConfiguration, {
@@ -10,15 +9,9 @@ import {
   ValidationErrorPayload
 } from '@app/payloads/outgoing';
 import { ConnectionRequestPayload } from '@app/payloads/incoming';
+import { ConnectionRequestPayloadSchema } from '@app/payloads/schemas';
 import { MessageHandler } from './common';
 import { getPlayerSpecificData, send } from './common';
-
-const ConnectionRequestPayloadSchema = Joi.object({
-  username: Joi.string(),
-  gameId: Joi.string(),
-  playerId: Joi.string(),
-  useAiOpponent: Joi.boolean()
-});
 
 const connectionHandler: MessageHandler<
   PlayerConfigurationData | ValidationErrorPayload

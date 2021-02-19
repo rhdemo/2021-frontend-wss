@@ -57,6 +57,15 @@ export function getCellAreaWidthAndHeight(area: CellArea) {
 }
 
 /**
+ * Determine if two vectors/positions are equal
+ * @param a
+ * @param b
+ */
+export function isSameOrigin(a: CellPosition, b: CellPosition) {
+  return a[0] === b[0] && a[1] === b[1];
+}
+
+/**
  * This function will return an array containing occupied cell coordinates for
  * an input (typically and attack) given area, origin, and orientation.
  * @param origin

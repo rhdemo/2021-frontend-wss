@@ -1,5 +1,6 @@
 export enum OutgoingMsgType {
   AttackResult = 'attack-result',
+  BadAttack = 'bad-attack',
   ServerError = 'server-error',
   BadMessageType = 'bad-message-type',
   BadPayload = 'invalid-payload',

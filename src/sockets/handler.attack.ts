@@ -18,6 +18,7 @@ import PlayerConfiguration, {
 import { getPlayerSpecificData, send } from './common';
 import * as ml from '@app/ml';
 import { AttackPayloadSchema } from '@app/payloads/schemas';
+import Player from '@app/models/player';
 
 export type AttackResult = {
   origin: CellPosition;
@@ -48,6 +49,7 @@ const attackHandler: MessageHandler<
       }
     };
   } else {
+    const attack = validatedData.value as AttackDataPayload;
     const wsPlayer = players.getPlayerAssociatedWithSocket(ws);
 
     if (!wsPlayer) {
@@ -93,6 +95,15 @@ const attackHandler: MessageHandler<
       );
     }
 
+    if (player.hasAttackedLocation(attack.origin)) {
+      return {
+        type: OutgoingMsgType.BadAttack,
+        data: {
+          info: `location ${attack.origin.join(',')} has already been attacked`
+        }
+      };
+    }
+
     const opponentShipData = opponent.getShipPositionData();
     if (!opponentShipData) {
       throw new Error(
@@ -100,7 +111,6 @@ const attackHandler: MessageHandler<
       );
     }
 
-    const attack = validatedData.value as AttackDataPayload;
     let attackResult: AttackResult = {
       origin: attack.origin,
       hit: false,

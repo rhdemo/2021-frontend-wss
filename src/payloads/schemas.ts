@@ -2,6 +2,11 @@ import Joi from 'joi';
 import { GAME_GRID_SIZE } from '@app/config';
 import { ShipType, Orientation, CellArea } from '@app/game/types';
 
+export const WsPayloadSchema = Joi.object({
+  type: Joi.string().required(),
+  data: Joi.object()
+});
+
 export const ShipSchema = Joi.object({
   origin: Joi.array()
     .min(2)
@@ -15,6 +20,13 @@ export const ShipSchema = Joi.object({
   orientation: Joi.string()
     .allow(Orientation.Vertical, Orientation.Horizontal)
     .required()
+});
+
+export const ConnectionRequestPayloadSchema = Joi.object({
+  username: Joi.string(),
+  gameId: Joi.string(),
+  playerId: Joi.string(),
+  useAiOpponent: Joi.boolean()
 });
 
 export const ShipsLockedSchema = Joi.object({

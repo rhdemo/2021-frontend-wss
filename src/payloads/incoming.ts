@@ -6,6 +6,11 @@ export enum IncomingMsgType {
   Attack = 'attack'
 }
 
+export type WsPayload = {
+  type: IncomingMsgType;
+  data: unknown;
+};
+
 export type ConnectionRequestPayload = {
   username?: string;
   gameId?: string;

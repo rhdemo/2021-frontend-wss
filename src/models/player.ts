@@ -1,5 +1,8 @@
 import { AttackDataPayload } from '@app/payloads/incoming';
-import { getCellCoverageForOriginOrientationAndArea } from '@app/utils';
+import {
+  getCellCoverageForOriginOrientationAndArea,
+  isSameOrigin
+} from '@app/utils';
 import {
   CellPosition,
   Orientation,
@@ -134,6 +137,10 @@ export default class Player extends Model<PlayerData> {
 
   hasAttacked() {
     return this.attacks.length > 0;
+  }
+
+  hasAttackedLocation(origin: CellPosition): boolean {
+    return !!this.attacks.find((a) => isSameOrigin(a.attack.origin, origin));
   }
 
   getShipPositionData() {
