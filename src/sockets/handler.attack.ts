@@ -1,29 +1,23 @@
-import Joi from 'joi';
 import WebSocket from 'ws';
-import { GAME_GRID_SIZE } from '../config';
-import log from '../log';
-import * as matchmaking from '../matchmaking';
-import * as players from '../players';
-import { GameState } from '../models/game.configuration';
-import * as ce from '../cloud-events';
+import log from '@app/log';
+import * as matchmaking from '@app/stores/matchmaking';
+import * as players from '@app/stores/players';
+import { GameState } from '@app/models/game.configuration';
+import * as ce from '@app/cloud-events';
+import { CellPosition, ShipType } from '@app/game/types';
+import { isGameOverForPlayer } from '@app/game';
+import { MessageHandler } from './common';
+import { AttackDataPayload } from '@app/payloads/incoming';
 import {
-  CellArea,
-  CellPosition,
-  isGameOverForPlayer,
-  Orientation,
-  ShipType
-} from '../validations';
-import {
-  MessageHandler,
-  AttackDataPayload,
   OutgoingMsgType,
   ValidationErrorPayload
-} from './payloads';
+} from '@app/payloads/outgoing';
 import PlayerConfiguration, {
   PlayerConfigurationData
-} from '../models/player.configuration';
-import { getPlayerSpecificData, send } from './utils';
-import * as ml from '../ml';
+} from '@app/models/player.configuration';
+import { getPlayerSpecificData, send } from './common';
+import * as ml from '@app/ml';
+import { AttackPayloadSchema } from '@app/payloads/schemas';
 
 export type AttackResult = {
   origin: CellPosition;
@@ -39,23 +33,6 @@ type AttackResponse = {
 };
 
 type MergedAttackReponse = AttackResponse & PlayerConfigurationData;
-
-const AttackPayloadSchema = Joi.object({
-  type: Joi.string().valid(CellArea['1x1']).required(),
-  human: Joi.boolean().default(true),
-  origin: Joi.array()
-    .min(2)
-    .max(2)
-    .items(
-      Joi.number()
-        .min(0)
-        .max(GAME_GRID_SIZE - 1)
-    )
-    .required(),
-  orientation: Joi.string()
-    .allow(Orientation.Vertical, Orientation.Horizontal)
-    .required()
-});
 
 const attackHandler: MessageHandler<
   MergedAttackReponse | ValidationErrorPayload
@@ -129,8 +106,6 @@ const attackHandler: MessageHandler<
       hit: false,
       destroyed: false
     };
-
-    let type: ShipType | undefined = undefined;
 
     log.debug(`determine player ${player.getUUID()} attack hit/miss`);
     log.debug('attack data: %j', attack);

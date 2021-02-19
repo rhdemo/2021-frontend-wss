@@ -1,19 +1,17 @@
 import Joi from 'joi';
 import WebSocket from 'ws';
-import { getGameConfiguration } from '../game';
-import log from '../log';
-import { getMatchAssociatedWithPlayer } from '../matchmaking';
+import log from '@app/log';
 import PlayerConfiguration, {
   PlayerConfigurationData
-} from '../models/player.configuration';
-import * as players from '../players';
+} from '@app/models/player.configuration';
+import * as players from '@app/stores/players';
 import {
-  ConnectionRequestPayload,
-  MessageHandler,
   OutgoingMsgType,
   ValidationErrorPayload
-} from './payloads';
-import { getPlayerSpecificData, send } from './utils';
+} from '@app/payloads/outgoing';
+import { ConnectionRequestPayload } from '@app/payloads/incoming';
+import { MessageHandler } from './common';
+import { getPlayerSpecificData, send } from './common';
 
 const ConnectionRequestPayloadSchema = Joi.object({
   username: Joi.string(),

@@ -1,5 +1,5 @@
 import pino from 'pino';
-import { LOG_LEVEL, NODE_ENV } from './config';
+import { LOG_LEVEL, NODE_ENV } from '@app/config';
 
 const level = LOG_LEVEL ? LOG_LEVEL : NODE_ENV === 'prod' ? 'info' : 'debug';
 

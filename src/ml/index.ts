@@ -1,9 +1,9 @@
-import { NODE_ENV } from '../config';
-import log from '../log';
-import GameConfiguration from '../models/game.configuration';
-import MatchInstance from '../models/match.instance';
-import Player from '../models/player';
-import { AWS_BUCKET_NAME } from '../config';
+import { NODE_ENV } from '@app/config';
+import log from '@app/log';
+import GameConfiguration from '@app/models/game.configuration';
+import MatchInstance from '@app/models/match.instance';
+import Player from '@app/models/player';
+import { AWS_BUCKET_NAME } from '@app/config';
 import { getStorageInstance } from './s3';
 
 export function writeGameRecord(

@@ -1,17 +1,14 @@
 import { FastifyInstance } from 'fastify';
 import Joi from 'joi';
 import WebSocket from 'ws';
-import log from '../log';
+import log from '@app/log';
 import attackHandler from './handler.attack';
 import connectionHandler from './handler.connection';
 import shipPositionHandler from './handler.ship-positions';
-import {
-  OutgoingMsgType,
-  IncomingMsgType,
-  MessageHandler,
-  MessageHandlerResponse
-} from './payloads';
-import { heartbeat, send } from './utils';
+import { OutgoingMsgType } from '@app/payloads/outgoing';
+import { IncomingMsgType } from '@app/payloads/incoming';
+import { MessageHandler, MessageHandlerResponse } from './common';
+import { heartbeat, send } from './common';
 
 type ParsedWsData = {
   type: IncomingMsgType;

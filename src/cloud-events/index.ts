@@ -1,8 +1,8 @@
 import { HTTP, CloudEvent } from 'cloudevents';
-import { CLOUD_EVENT_BROKER_URL } from '../config';
-import log from '../log';
-import { ShipType } from '../validations';
-import { http } from '../utils';
+import { CLOUD_EVENT_BROKER_URL } from '@app/config';
+import log from '@app/log';
+import { ShipType } from '@app/game/types';
+import { http } from '@app/utils';
 
 const source = 'battleship-wss';
 

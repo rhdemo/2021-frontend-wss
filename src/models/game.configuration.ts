@@ -1,4 +1,4 @@
-import { DATAGRID_GAME_DATA_KEY } from '../config';
+import { DATAGRID_GAME_DATA_KEY } from '@app/config';
 import Model from './model';
 
 export type GameConfigurationData = {

@@ -1,5 +1,5 @@
 import { ClientEvent, InfinispanClient } from 'infinispan';
-import log from '../log';
+import log from '@app/log';
 
 /**
  * This function is invoked whenever a match instance is updated in the cache.

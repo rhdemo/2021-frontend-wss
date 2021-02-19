@@ -1,5 +1,5 @@
 import { S3 } from 'aws-sdk';
-import { AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY } from '../config';
+import { AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY } from '@app/config';
 
 export function getStorageInstance() {
   if (!AWS_ACCESS_KEY_ID || !AWS_SECRET_ACCESS_KEY) {

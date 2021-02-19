@@ -1,8 +1,8 @@
 import fastify from 'fastify';
 import { ServerOptions } from 'ws';
 import { WebsocketPluginOptions } from 'fastify-websocket';
-import { WS_MAX_PAYLOAD, HTTP_PORT } from './config';
-import { getWsAddressFromServer } from './utils';
+import { WS_MAX_PAYLOAD, HTTP_PORT } from '@app/config';
+import { getWsAddressFromServer } from '@app/utils';
 
 const { version } = require('../package.json');
 const app = fastify({ logger: true });

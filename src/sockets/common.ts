@@ -1,15 +1,23 @@
-import { MessageHandlerResponse, OutgoingMsgType } from './payloads';
+import { OutgoingMsgType } from '@app/payloads/outgoing';
 import WebSocket from 'ws';
-import log from '../log';
+import log from '@app/log';
 import { FastifyInstance } from 'fastify';
-import Player from '../models/player';
-import { getMatchAssociatedWithPlayer } from '../matchmaking';
-import { getPlayerWithUUID } from '../players';
-import { getGameConfiguration } from '../game';
+import Player from '@app/models/player';
+import { getMatchAssociatedWithPlayer } from '@app/stores/matchmaking';
+import { getPlayerWithUUID } from '@app/stores/players';
+import { getGameConfiguration } from '@app/stores/game';
 
 const socks = new Map<WebSocket, number>();
 
-export type ResponsePayloadGeneratorFn<T> = () => Promise<T>;
+export type MessageHandlerResponse<T = unknown> = {
+  type: OutgoingMsgType;
+  data: T;
+};
+
+export type MessageHandler<T> = (
+  ws: WebSocket,
+  data: unknown
+) => Promise<MessageHandlerResponse<T>>;
 
 /**
  * Wrapper function that safely sends data to a websocket client

@@ -1,7 +1,7 @@
 import { InfinispanClient, ClientEvent, InfinispanNode } from 'infinispan';
-import { DATAGRID_HOST, DATAGRID_HOTROD_PORT } from '../config';
+import { DATAGRID_HOST, DATAGRID_HOTROD_PORT } from '@app/config';
 import infinispan from 'infinispan';
-import log from '../log';
+import log from '@app/log';
 
 export type DataGridEventHandle = (
   client: InfinispanClient,

@@ -1,9 +1,6 @@
 import test from 'tape';
-import {
-  Orientation,
-  ShipType,
-  validateShipPlacement
-} from '../src/validations';
+import { validateShipPlacement } from '../src/game/index';
+import { Orientation, ShipType } from '../src/game/types';
 
 function getValidShipPlacement(): any {
   return {

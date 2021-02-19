@@ -1,23 +1,37 @@
 import { Server } from 'http';
-import { CellArea, CellPosition, Orientation } from './validations';
+import { CellArea, CellPosition, Orientation } from '@app/game/types';
 import got, { OptionsOfTextResponseBody } from 'got';
 import { Agent } from 'http';
 
-const agent = new Agent({
+const DEFAULT_AGENTS: OptionsOfTextResponseBody['agent'] = {
   // TODO: maybe try the new undici http library?
-  // Using keep-alive agents can massively improves performance/throughput
-  keepAlive: true
-});
+  // Using keep-alive agents can massively improve performance/throughput
+  http: new Agent({
+    keepAlive: true
+  })
+};
 
-export async function http(url: string, opts: OptionsOfTextResponseBody) {
+/**
+ * Reusable http function. Uses agents with keepAlive=true to boost performance
+ * @param url
+ * @param opts
+ * @param agent
+ */
+export async function http(
+  url: string,
+  opts: OptionsOfTextResponseBody,
+  agent = DEFAULT_AGENTS
+) {
   return got(url, {
-    agent: {
-      http: agent
-    },
+    agent,
     ...opts
   });
 }
 
+/**
+ * Extracts a friendly address string from a http.Server instance
+ * @param server
+ */
 export function getWsAddressFromServer(server: Server): string {
   const addr = server.address();
 

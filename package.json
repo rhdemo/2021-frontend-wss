@@ -6,9 +6,9 @@
   "private": true,
   "scripts": {
     "build": "tsc",
-    "dev": "NODE_ENV=dev AI_AGENT_SERVER_URL=http://summit-ai-agent-server:3003/agent CLOUD_EVENT_BROKER_URL=http://summit-sink:8080 LOG_LEVEL=trace nodemon -e ts -x ts-node src/index.ts | pino-pretty -t",
+    "dev": "NODE_ENV=dev AI_AGENT_SERVER_URL=http://summit-ai-agent-server:3003/agent CLOUD_EVENT_BROKER_URL=http://summit-sink:8080 LOG_LEVEL=trace nodemon -e ts -x ts-node -r tsconfig-paths/register src/index.ts | pino-pretty -t",
     "test": "ts-node node_modules/tape/bin/tape test/*.test.ts",
-    "start": "node build/index.js"
+    "start": "node -r module-alias/register build/index.js"
   },
   "repository": {
     "type": "git",
@@ -28,6 +28,9 @@
     "trailingComma": "none",
     "singleQuote": true
   },
+  "_moduleAliases": {
+    "@app": "./build"
+  },
   "homepage": "https://github.com/rhdemo/2021-frontend-wss#readme",
   "dependencies": {
     "aws-sdk": "^2.843.0",
@@ -42,6 +45,7 @@
     "infinispan": "~0.7.0",
     "joi": "~17.3.0",
     "make-promises-safe": "~5.1.0",
+    "module-alias": "^2.2.2",
     "nanoid": "~3.1.20",
     "p-limit": "~3.1.0",
     "pino": "~6.9.0"
@@ -60,6 +64,7 @@
     "pretty-quick": "~3.1.0",
     "tape": "~5.1.0",
     "ts-node": "~9.1.1",
+    "tsconfig-paths": "^3.9.0",
     "typescript": "~4.1.3"
   }
 }

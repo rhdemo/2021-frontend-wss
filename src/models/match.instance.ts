@@ -1,5 +1,5 @@
 import { assert } from 'console';
-import log from '../log';
+import log from '@app/log';
 import Model from './model';
 import Player from './player';
 

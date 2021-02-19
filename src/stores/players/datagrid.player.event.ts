@@ -1,13 +1,13 @@
 import { InfinispanClient, ClientEvent } from 'infinispan';
 import { getPlayerWithUUID, getSocketForPlayer } from '.';
-import log from '../log';
-import { upsertMatchInCache } from '../matchmaking';
-import GameConfiguration from '../models/game.configuration';
-import MatchInstance from '../models/match.instance';
-import Player from '../models/player';
-import PlayerConfiguration from '../models/player.configuration';
-import { OutgoingMsgType } from '../sockets/payloads';
-import { getPlayerSpecificData, send } from '../sockets/utils';
+import log from '@app/log';
+import { upsertMatchInCache } from '@app/stores/matchmaking';
+import GameConfiguration from '@app/models/game.configuration';
+import MatchInstance from '@app/models/match.instance';
+import Player from '@app/models/player';
+import PlayerConfiguration from '@app/models/player.configuration';
+import { OutgoingMsgType } from '@app/payloads/outgoing';
+import { getPlayerSpecificData, send } from '@app/sockets/common';
 
 export default async function playerDataGridEventHandler(
   client: InfinispanClient,

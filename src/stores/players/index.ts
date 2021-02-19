@@ -2,18 +2,18 @@ import {
   AI_AGENT_SERVER_URL,
   DATAGRID_PLAYER_DATA_STORE,
   NODE_ENV
-} from '../config';
-import getDataGridClientForCacheNamed from '../datagrid/client';
-import Player from '../models/player';
+} from '@app/config';
+import getDataGridClientForCacheNamed from '@app/datagrid/client';
+import Player from '@app/models/player';
 import playerDataGridEventHandler from './datagrid.player.event';
-import log from '../log';
+import log from '@app/log';
 import WebSocket from 'ws';
 import generateUserName from './username.generator';
 import { nanoid } from 'nanoid';
-import { ConnectionRequestPayload } from '../sockets/payloads';
-import { getGameConfiguration } from '../game';
-import { matchMakeForPlayer } from '../matchmaking';
-import { http } from '../utils';
+import { ConnectionRequestPayload } from '@app/payloads/incoming';
+import { getGameConfiguration } from '@app/stores/game';
+import { matchMakeForPlayer } from '@app/stores/matchmaking';
+import { http } from '@app/utils';
 
 const getClient = getDataGridClientForCacheNamed(
   DATAGRID_PLAYER_DATA_STORE,

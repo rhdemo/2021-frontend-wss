@@ -1,16 +1,14 @@
 import WebSocket from 'ws';
-import { getGameConfiguration } from '../game';
-import log from '../log';
-import * as matchmaking from '../matchmaking';
-import { GameState } from '../models/game.configuration';
-import { StoredShipData } from '../models/player';
+import log from '@app/log';
+import { GameState } from '@app/models/game.configuration';
 import PlayerConfiguration, {
   PlayerConfigurationData
-} from '../models/player.configuration';
-import * as players from '../players';
-import { validateShipPlacement, ShipPositionData } from '../validations';
-import { MessageHandler, OutgoingMsgType } from './payloads';
-import { getPlayerSpecificData } from './utils';
+} from '@app/models/player.configuration';
+import * as players from '@app/stores/players';
+import { ShipPositionData } from '@app/game/types';
+import { validateShipPlacement } from '@app/game';
+import { OutgoingMsgType } from '@app/payloads/outgoing';
+import { MessageHandler, getPlayerSpecificData } from './common';
 
 const validStates = [GameState.Lobby, GameState.Active];
 

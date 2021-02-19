@@ -1,10 +1,9 @@
 import { InfinispanIteratorEntry } from 'infinispan';
 import pLimit from 'p-limit';
-import { NODE_ENV } from '../config';
-import getDataGridClientForCacheNamed from '../datagrid/client';
-import log from '../log';
-import MatchInstance, { MatchInstanceData } from '../models/match.instance';
-import Player from '../models/player';
+import getDataGridClientForCacheNamed from '@app/datagrid/client';
+import log from '@app/log';
+import MatchInstance, { MatchInstanceData } from '@app/models/match.instance';
+import Player from '@app/models/player';
 import matchInstanceDatagridEventHandler from './datagrid.event-handler';
 
 const getClient = getDataGridClientForCacheNamed(

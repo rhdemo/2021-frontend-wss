@@ -1,15 +1,15 @@
-import { AttackDataPayload } from '../sockets/payloads';
-import { getCellCoverageForOriginOrientationAndArea } from '../utils';
+import { AttackDataPayload } from '@app/payloads/incoming';
+import { getCellCoverageForOriginOrientationAndArea } from '@app/utils';
 import {
   CellPosition,
   Orientation,
   ShipSize,
   ShipPositionData,
   ShipType
-} from '../validations';
+} from '@app/game/types';
 import Model from './model';
-import { AttackResult } from '../sockets/handler.attack';
-import log from '../log';
+import { AttackResult } from '@app/sockets/handler.attack';
+import log from '@app/log';
 
 type StoredPositionData = {
   [key in ShipType]: StoredShipData;
