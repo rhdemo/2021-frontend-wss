@@ -46,7 +46,7 @@ export function writeGameRecord(
         log.error(
           `S3 upload failed for game ${game.getUUID()} / match ${match.getUUID()}`
         );
-        log.error(e);
+        log.error(e as any);
       });
   } else {
     log.debug(
