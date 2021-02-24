@@ -4,12 +4,16 @@ import { Orientation, ShipType } from '../src/game/types';
 
 function getValidShipPlacement(): any {
   return {
+    [ShipType.Carrier]: {
+      origin: [4, 0],
+      orientation: Orientation.Vertical
+    },
     [ShipType.Submarine]: {
       origin: [0, 0],
       orientation: Orientation.Horizontal
     },
     [ShipType.Destroyer]: {
-      origin: [2, 1],
+      origin: [1, 1],
       orientation: Orientation.Horizontal
     },
     [ShipType.Battleship]: {
@@ -112,18 +116,21 @@ test('throws an error since a piece/key has a co-ordinate(s) greater than grid s
 
 test('throws an error if a ship is hanging over the board edge', (t) => {
   const placement = {
+    [ShipType.Carrier]: {
+      origin: [4, 1],
+      orientation: Orientation.Vertical
+    },
     [ShipType.Submarine]: {
       origin: [0, 0],
       orientation: Orientation.Horizontal
     },
     [ShipType.Destroyer]: {
-      origin: [2, 1],
+      origin: [1, 1],
       orientation: Orientation.Horizontal
     },
     [ShipType.Battleship]: {
-      // x=3, so a ship of width 4 will be over the edge
-      origin: [3, 1],
-      orientation: Orientation.Horizontal
+      origin: [0, 1],
+      orientation: Orientation.Vertical
     }
   };
 
@@ -138,17 +145,20 @@ test('throws an error if a ship is hanging over the board edge', (t) => {
 
 test('throws an error if ships overlap', (t) => {
   const placement = {
+    [ShipType.Carrier]: {
+      origin: [4, 0],
+      orientation: Orientation.Vertical
+    },
     [ShipType.Submarine]: {
       origin: [0, 0],
       orientation: Orientation.Horizontal
     },
     [ShipType.Destroyer]: {
-      origin: [2, 1],
+      origin: [0, 1],
       orientation: Orientation.Horizontal
     },
     [ShipType.Battleship]: {
-      // This ship will intersect with the one above
-      origin: [3, 1],
+      origin: [0, 1],
       orientation: Orientation.Vertical
     }
   };
@@ -157,7 +167,7 @@ test('throws an error if ships overlap', (t) => {
     validateShipPlacement(placement);
     t.fail();
   } catch (e) {
-    t.match(e.toString(), /ships are overlapping at grid \[3, 1\]/gi);
+    t.match(e.toString(), /ships are overlapping at grid \[0, 1\]/gi);
     t.end();
   }
 });

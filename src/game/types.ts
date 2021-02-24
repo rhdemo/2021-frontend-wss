@@ -5,6 +5,7 @@ export enum Orientation {
 
 export enum ShipType {
   Battleship = 'Battleship',
+  Carrier = 'Carrier',
   Destroyer = 'Destroyer',
   Submarine = 'Submarine'
 }
@@ -12,6 +13,7 @@ export enum ShipType {
 export type CellPosition = [number, number];
 
 export enum CellArea {
+  '5x1' = '5x1',
   '4x1' = '4x1',
   '3x1' = '3x1',
   '2x1' = '2x1',
@@ -30,7 +32,8 @@ export type ShipPositionData = {
 export type Grid = number[][];
 
 export const ShipSize: { [key in ShipType]: CellArea } = {
+  [ShipType.Carrier]: CellArea['5x1'],
   [ShipType.Battleship]: CellArea['4x1'],
-  [ShipType.Destroyer]: CellArea['3x1'],
-  [ShipType.Submarine]: CellArea['2x1']
+  [ShipType.Submarine]: CellArea['3x1'],
+  [ShipType.Destroyer]: CellArea['2x1']
 };
