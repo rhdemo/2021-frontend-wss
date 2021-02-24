@@ -31,6 +31,7 @@ export const ConnectionRequestPayloadSchema = Joi.object({
 
 export const ShipsLockedSchema = Joi.object({
   [ShipType.Battleship]: ShipSchema.required(),
+  [ShipType.Carrier]: ShipSchema.required(),
   [ShipType.Destroyer]: ShipSchema.required(),
   [ShipType.Submarine]: ShipSchema.required()
 });

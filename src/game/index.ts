@@ -63,18 +63,12 @@ export function validateShipPlacement(
 
   // Prints the NxN grid for debugging purposes. It may be wider than N cells
   // if a player is sending invalid inputs, or being nefarious
-  // populatedGrid.forEach(r => console.log(r))
+  // grid.forEach(r => console.log(r))
 
-  // Validate that:
-  // 1. ships do not overlap (squares can only contain 0 or 1 values)
-  // 2. ships do no stick out over the edges (array must have length N)
+  // Validate that ships do not overlap (square can only contain a 0 or 1)
   let occupiedSquares = 0;
   for (let i = 0; i < grid.length; i++) {
     const row = grid[i];
-
-    if (row.length !== GAME_GRID_SIZE) {
-      throw new Error('a ship is over the edge of the board');
-    }
 
     for (let j = 0; j < row.length; j++) {
       const val = row[j];
@@ -114,17 +108,22 @@ function populateGridWithShipData(size: number, ship: ShipData, grid: Grid) {
   }
 
   for (let i = 0; i < size; i++) {
+    let row: number;
+    let col: number;
+
     if (ship.orientation === Orientation.Horizontal) {
-      const row = rootY;
-      const col = rootX + i;
-
-      grid[row][col] += 1;
+      row = rootY;
+      col = rootX + i;
     } else {
-      const row = rootY + i;
-      const col = rootX;
-
-      grid[row][col] += 1;
+      row = rootY + i;
+      col = rootX;
     }
+
+    if (row >= GAME_GRID_SIZE || col >= GAME_GRID_SIZE) {
+      throw new Error(`a ship is over the edge of the board`);
+    }
+
+    grid[row][col] += 1;
   }
 }
 
