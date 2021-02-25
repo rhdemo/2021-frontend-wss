@@ -16,6 +16,9 @@ app.register(require('./plugins/health'), {
   }
 });
 
+// Allows testing of cloud events
+app.register(require('./plugins/events'));
+
 // Register the WS plugin, apply a max payload limit, and optional authorisation
 app.register(require('fastify-websocket'), {
   options: {

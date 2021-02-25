@@ -1,6 +1,25 @@
 import Joi from 'joi';
 import { GAME_GRID_SIZE } from '@app/config';
 import { ShipType, Orientation, CellArea } from '@app/game/types';
+import { nanoid } from 'nanoid';
+
+export const ManualEventSchema = Joi.object({
+  ts: Joi.date()
+    .timestamp('javascript')
+    .default(() => Date.now()),
+  by: Joi.string().default(() => nanoid()),
+  game: Joi.string().default(() => nanoid()),
+  match: Joi.string().default(() => nanoid()),
+  against: Joi.string().default(() => nanoid()),
+  type: Joi.string().valid(
+    ShipType.Battleship,
+    ShipType.Carrier,
+    ShipType.Submarine,
+    ShipType.Destroyer
+  ),
+  origin: Joi.string().regex(/[0-4],[0-4]/),
+  player: Joi.string().default(() => nanoid())
+});
 
 export const WsPayloadSchema = Joi.object({
   type: Joi.string().required(),
