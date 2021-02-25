@@ -21,7 +21,7 @@ const config = {
 
   CLOUD_EVENT_BROKER_URL: get('CLOUD_EVENT_BROKER_URL')
     .default(
-      'http://broker-ingress.knative-eventing.svc.cluster.local/knative-eventing/default'
+      'http://broker-ingress.knative-eventing.svc.cluster.local/battleships-backend/default'
     )
     .asUrlString(),
 
