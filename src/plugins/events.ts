@@ -46,15 +46,15 @@ const eventsPlugin: FastifyPluginCallback<EventPluginOptions> = (
           return reply.status(400).send(result.error);
         }
 
-        const body = result.value as EventBody;
+        const body = result.value as CE.CloudEventBase & { type: string, player: string };
 
         switch (type) {
           case CE.CloudEventType.Hit:
             await CE.hit({
-              by: body.by || nanoid(),
-              against: body.against || nanoid(),
-              match: body.match || nanoid(),
-              game: body.game || nanoid(),
+              by: body.by,
+              against: body.against,
+              match: body.match,
+              game: body.game,
               ts: body.ts || Date.now(),
               // This line causes a funky compiler error without the cast and as const...
               origin: (body.origin as any) || (`${0},${0}` as const),
@@ -64,10 +64,10 @@ const eventsPlugin: FastifyPluginCallback<EventPluginOptions> = (
             break;
           case CE.CloudEventType.Miss:
             await CE.miss({
-              by: body.by || nanoid(),
-              against: body.against || nanoid(),
-              match: body.match || nanoid(),
-              game: body.game || nanoid(),
+              by: body.by,
+              against: body.against,
+              match: body.match,
+              game: body.game,
               ts: body.ts || Date.now(),
               // This line causes a funky compiler error without the cast and as const...
               origin: (body.origin as any) || (`${0},${0}` as const)
@@ -76,10 +76,10 @@ const eventsPlugin: FastifyPluginCallback<EventPluginOptions> = (
             break;
           case CE.CloudEventType.Sink:
             await CE.sink({
-              by: body.by || nanoid(),
-              against: body.against || nanoid(),
-              match: body.match || nanoid(),
-              game: body.game || nanoid(),
+              by: body.by,
+              against: body.against,
+              match: body.match,
+              game: body.game,
               ts: body.ts || Date.now(),
               origin: (body.origin as any) || (`${0},${0}` as const),
               type: (body.type as ShipType) || ShipType.Carrier
@@ -88,17 +88,17 @@ const eventsPlugin: FastifyPluginCallback<EventPluginOptions> = (
             break;
           case CE.CloudEventType.Win:
             await CE.win({
-              player: body.player || nanoid(),
-              match: body.match || nanoid(),
-              game: body.game || nanoid()
+              player: body.player,
+              match: body.match,
+              game: body.game
             });
             reply.send({ info: 'ok' });
             break;
           case CE.CloudEventType.Lose:
             await CE.lose({
-              player: body.player || nanoid(),
-              match: body.match || nanoid(),
-              game: body.game || nanoid()
+              player: body.player,
+              match: body.match,
+              game: body.game
             });
             reply.send({ info: 'ok' });
             break;
