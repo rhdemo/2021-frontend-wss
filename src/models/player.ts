@@ -102,7 +102,7 @@ export default class Player extends Model<PlayerData> {
    */
   setShipPositionData(data: ShipPositionData, valid: boolean) {
     log.info(
-      `setting ship position data for player ${this.getUUID()} to: %j`,
+      `setting ship position data (valid: ${valid}) for player ${this.getUUID()} to: %j`,
       data
     );
     const positions = Object.keys(data).reduce((updated, _type) => {
