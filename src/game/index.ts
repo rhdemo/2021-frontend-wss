@@ -1,14 +1,14 @@
 import { GAME_GRID_SIZE } from '@app/config';
 import log from '@app/log';
 import Player from '@app/models/player';
-import { getCellAreaWidthAndHeight } from '@app/utils';
 import {
   ShipType,
   ShipSize,
   ShipData,
   Grid,
   ShipPositionData,
-  Orientation
+  Orientation,
+  CellArea
 } from './types';
 import { ShipsLockedSchema } from '@app/payloads/schemas';
 
@@ -18,6 +18,20 @@ const EXPECTED_OCCUPIED_SQUARES: number = Object.values(ShipSize).reduce(
   },
   0
 );
+
+/**
+ * Since all areas are rectangles defined with the assumption they are
+ * horizontal or square, we can split them and use the X value to determine
+ * length and Y for height
+ * @param area
+ */
+export function getCellAreaWidthAndHeight(area: CellArea) {
+  const values = area.split('x');
+  return {
+    x: parseInt(values[0], 10),
+    y: parseInt(values[1], 10)
+  };
+}
 
 /**
  * Validate a ship placement payload. Code is not great, not terrible.

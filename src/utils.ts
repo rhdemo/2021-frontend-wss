@@ -2,6 +2,7 @@ import { Server } from 'http';
 import { CellArea, CellPosition, Orientation } from '@app/game/types';
 import got, { OptionsOfTextResponseBody } from 'got';
 import { Agent } from 'http';
+import { getAllPossibleShipLayouts } from './game/layouts';
 
 const DEFAULT_AGENTS: OptionsOfTextResponseBody['agent'] = {
   // TODO: maybe try the new undici http library?
@@ -10,6 +11,16 @@ const DEFAULT_AGENTS: OptionsOfTextResponseBody['agent'] = {
     keepAlive: true
   })
 };
+
+/**
+ * Returns a random, but valid ship layout.
+ */
+export function getRandomShipLayout() {
+  const layouts = getAllPossibleShipLayouts();
+  const idx = Math.floor(Math.random() * layouts.length);
+
+  return layouts[idx];
+}
 
 /**
  * Reusable http function. Uses agents with keepAlive=true to boost performance
@@ -40,20 +51,6 @@ export function getWsAddressFromServer(server: Server): string {
   } else {
     return `${addr?.address}:${addr?.port}`;
   }
-}
-
-/**
- * Since all areas are rectangles defined with the assumption they are
- * horizontal or square, we can split them and use the X value to determine
- * length and Y for height
- * @param area
- */
-export function getCellAreaWidthAndHeight(area: CellArea) {
-  const values = area.split('x');
-  return {
-    x: parseInt(values[0], 10),
-    y: parseInt(values[1], 10)
-  };
 }
 
 /**

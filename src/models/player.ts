@@ -1,6 +1,7 @@
 import { AttackDataPayload } from '@app/payloads/incoming';
 import {
   getCellCoverageForOriginOrientationAndArea,
+  getRandomShipLayout,
   isSameOrigin
 } from '@app/utils';
 import {
@@ -71,8 +72,13 @@ export default class Player extends Model<PlayerData> {
     attacks?: StoredAttackData
   ) {
     super(uuid);
+
     if (board) {
       this.board = board;
+    } else {
+      // Set default positions, but don't mark as validated. We only validate
+      // when the player confirms the positions themselves
+      this.setShipPositionData(getRandomShipLayout(), false);
     }
 
     if (attacks) {
