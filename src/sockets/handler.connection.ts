@@ -17,7 +17,9 @@ const connectionHandler: MessageHandler<
   PlayerConfigurationData | ValidationErrorPayload
 > = async (ws: WebSocket, data: unknown) => {
   log.debug('processing connection payload: %j', data);
-  const validatedData = ConnectionRequestPayloadSchema.validate(data);
+  const validatedData = ConnectionRequestPayloadSchema.validate(data, {
+    stripUnknown: true
+  });
 
   if (validatedData.error) {
     return {

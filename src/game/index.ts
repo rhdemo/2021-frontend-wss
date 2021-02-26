@@ -50,7 +50,7 @@ export function validateShipPlacement(
 ): ShipPositionData {
   const result = ShipsLockedSchema.validate(placementData, {
     abortEarly: false,
-    stripUnknown: false,
+    stripUnknown: true,
     allowUnknown: false
   });
 
