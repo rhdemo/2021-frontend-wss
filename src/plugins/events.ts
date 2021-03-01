@@ -2,13 +2,9 @@ import { FastifyPluginCallback, FastifyRequest } from 'fastify';
 import fp from 'fastify-plugin';
 import * as CE from '@app/cloud-events';
 import { NODE_ENV } from '@app/config';
-import { nanoid } from 'nanoid';
 import { ShipType } from '@app/game/types';
 import log from '@app/log';
-import Joi from 'joi';
 import { ManualEventSchema } from '@app/payloads/schemas';
-
-export interface EventPluginOptions {}
 
 type PartialCloudEvent = {
   [K in keyof CE.CloudEventBase]?: CE.CloudEventBase[K];
@@ -16,11 +12,7 @@ type PartialCloudEvent = {
 type EventParams = { type: CE.CloudEventType };
 type EventBody = PartialCloudEvent & { type?: string; player?: string };
 
-const eventsPlugin: FastifyPluginCallback<EventPluginOptions> = (
-  server,
-  options,
-  done
-) => {
+const eventsPlugin: FastifyPluginCallback = (server, options, done) => {
   if (NODE_ENV === 'dev') {
     log.info(
       `mounting cloud event debug endpoint /event/:type since NODE_ENV=${NODE_ENV}`
@@ -46,7 +38,10 @@ const eventsPlugin: FastifyPluginCallback<EventPluginOptions> = (
           return reply.status(400).send(result.error);
         }
 
-        const body = result.value as CE.CloudEventBase & { type: string, player: string };
+        const body = result.value as CE.CloudEventBase & {
+          type: string;
+          player: string;
+        };
 
         switch (type) {
           case CE.CloudEventType.Hit:
@@ -81,6 +76,7 @@ const eventsPlugin: FastifyPluginCallback<EventPluginOptions> = (
               match: body.match,
               game: body.game,
               ts: body.ts || Date.now(),
+              // This line causes a funky compiler error without the cast and as const...
               origin: (body.origin as any) || (`${0},${0}` as const),
               type: (body.type as ShipType) || ShipType.Carrier
             });
