@@ -104,7 +104,9 @@ const validatedCombinations = unvalidatedPositionCombinations.filter(
     try {
       validateShipPlacement(positionData);
       valid = true;
-    } catch (e) {}
+    } catch (e) {
+      // eslint no-empty: 0
+    }
 
     return valid;
   }

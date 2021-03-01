@@ -42,11 +42,11 @@ export function writeGameRecord(
           `S3 upload success for game ${game.getUUID()} / match ${match.getUUID()}`
         );
       })
-      .catch((e: unknown) => {
+      .catch((e) => {
         log.error(
           `S3 upload failed for game ${game.getUUID()} / match ${match.getUUID()}`
         );
-        log.error(e as any);
+        log.error(e);
       });
   } else {
     log.debug(
