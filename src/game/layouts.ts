@@ -85,7 +85,7 @@ const unvalidatedPositionCombinations: Array<ShipPositionData> = [];
 validPositionsForPieceLen[ShipType.Carrier].forEach((five) => {
   validPositionsForPieceLen[ShipType.Battleship].forEach((four) => {
     validPositionsForPieceLen[ShipType.Submarine].forEach((three) => {
-      validPositionsForPieceLen[ShipType.Submarine].forEach((two) => {
+      validPositionsForPieceLen[ShipType.Destroyer].forEach((two) => {
         unvalidatedPositionCombinations.push({
           [ShipType.Carrier]: five,
           [ShipType.Battleship]: four,
