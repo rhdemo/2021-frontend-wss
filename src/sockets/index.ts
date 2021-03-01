@@ -64,10 +64,10 @@ async function _processSocketMessage(ws: WebSocket, data: WsPayload) {
         }
       };
     } finally {
-      // Send the response and importantly...
+      // Unlock the socket for processing future messages
+      sockLocks.set(ws, false);
+      // Send the response
       send(ws, resp);
-      // ...unlock the socket for processing future messages
-      sockLocks.set(ws, true);
     }
   } else {
     log.warn('received unknown message type: %j', data);
