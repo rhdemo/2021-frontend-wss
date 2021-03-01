@@ -102,7 +102,7 @@ export async function initialisePlayer(
       playerSockets.delete(ws);
     });
   } else {
-    // This was triggered by a modify event. Replace the associated player
+    // This was triggered by a "game" modify event. Replace the associated player
     // value since it's the same client, they've just been reset
     playerSockets.set(ws, player);
   }
