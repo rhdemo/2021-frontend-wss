@@ -57,7 +57,7 @@ export type StoredShipData = {
 export type StoredAttackData = {
   ts: number;
   attack: AttackDataPayload;
-  results: AttackResult[];
+  result: AttackResult;
 }[];
 
 export default class Player extends Model<PlayerData> {
@@ -162,11 +162,11 @@ export default class Player extends Model<PlayerData> {
     this.match = uuid;
   }
 
-  recordAttack(attack: AttackDataPayload, results: AttackResult[]) {
+  recordAttack(attack: AttackDataPayload, result: AttackResult) {
     this.attacks.push({
       ts: Date.now(),
       attack,
-      results
+      result
     });
   }
 

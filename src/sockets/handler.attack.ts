@@ -29,7 +29,7 @@ export type AttackResult = {
 type AttackResponse = {
   // UUID of the player that performed the attack
   attacker: string;
-  result: AttackResult[];
+  result: AttackResult;
 };
 
 type MergedAttackReponse = AttackResponse & PlayerConfigurationData;
@@ -186,7 +186,7 @@ const attackHandler: MessageHandler<
     }
 
     // Make a record of the attack in the attacking player's record
-    player.recordAttack(attack, [attackResult]);
+    player.recordAttack(attack, attackResult);
 
     // Change who's turn it is next
     match.changeTurn();
@@ -229,7 +229,7 @@ const attackHandler: MessageHandler<
       send(opponentSocket, {
         type: OutgoingMsgType.AttackResult,
         data: {
-          result: [attackResult],
+          result: attackResult,
           attacker: player.getUUID(),
           ...new PlayerConfiguration(game, opponent, match, player).toJSON()
         }
@@ -240,7 +240,7 @@ const attackHandler: MessageHandler<
     return {
       type: OutgoingMsgType.AttackResult,
       data: {
-        result: [attackResult],
+        result: attackResult,
         attacker: player.getUUID(),
         ...new PlayerConfiguration(game, player, match, opponent).toJSON()
       }

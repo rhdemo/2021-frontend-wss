@@ -10,6 +10,10 @@ import { WsPayloadSchema } from '@app/payloads/schemas';
 import { MessageHandler, MessageHandlerResponse } from './common';
 import { heartbeat, send } from './common';
 
+// Used to track socket message processing. The server only supports
+// processing a single message per user/socket at any given time
+const sockLocks = new WeakMap<WebSocket, boolean>();
+
 /**
  * Configures a heartbeat for the WSS attached to the given fastify instance.
  * @param app {FastifyInstance}
@@ -32,9 +36,21 @@ const MessageHandlers: { [key in IncomingMsgType]: MessageHandler<unknown> } = {
  */
 async function _processSocketMessage(ws: WebSocket, data: WsPayload) {
   const handler = MessageHandlers[data.type];
-  if (handler) {
+
+  if (sockLocks.get(ws) === true) {
+    send(ws, {
+      type: OutgoingMsgType.PleaseWait,
+      data: {
+        info:
+          'Already processing a message on your behalf. Slow down there kiddo!'
+      }
+    });
+  } else if (handler) {
     log.trace('processing incoming message: %j', data);
     let resp!: MessageHandlerResponse<unknown>;
+
+    // Lock the socket while we process this message
+    sockLocks.set(ws, true);
 
     try {
       resp = await handler(ws, data.data);
@@ -48,6 +64,9 @@ async function _processSocketMessage(ws: WebSocket, data: WsPayload) {
         }
       };
     } finally {
+      // Unlock the socket for processing future messages
+      sockLocks.set(ws, false);
+      // Send the response
       send(ws, resp);
     }
   } else {

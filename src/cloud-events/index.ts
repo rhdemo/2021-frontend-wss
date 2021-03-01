@@ -89,7 +89,7 @@ export function win(data: WinLoseEventData): Promise<void> {
 }
 
 export function lose(data: WinLoseEventData): Promise<void> {
-  return sendEvent(CloudEventType.Win, data);
+  return sendEvent(CloudEventType.Lose, data);
 }
 
 export function bonus(): Promise<void> {

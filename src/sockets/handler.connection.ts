@@ -29,9 +29,10 @@ const connectionHandler: MessageHandler<
       }
     };
   } else {
+    log.trace('validated connection payload: %j', validatedData.value);
     const player = await players.initialisePlayer(
       ws,
-      data as ConnectionRequestPayload
+      validatedData.value as ConnectionRequestPayload
     );
 
     const { opponent, match, game } = await getPlayerSpecificData(player);

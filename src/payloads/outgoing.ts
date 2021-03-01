@@ -6,7 +6,8 @@ export enum OutgoingMsgType {
   BadPayload = 'invalid-payload',
   Heartbeat = 'heartbeat',
   Configuration = 'configuration',
-  BoardState = 'board-state'
+  BoardState = 'board-state',
+  PleaseWait = 'please-wait'
 }
 
 export type ValidationErrorPayload = {
