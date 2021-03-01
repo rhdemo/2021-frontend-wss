@@ -91,21 +91,23 @@ export async function initialisePlayer(
   // using their UUID for lookup
   log.info(`adding player ${player.getUUID()} to sockets pool`);
 
-  if (!playerSockets.get(ws)) {
-    playerSockets.set(ws, player);
-
-    const uuid = player.getUUID();
-    ws.on('close', () => {
-      log.debug(
-        `removing player ${uuid} from player sockets pool due to socket "close" event`
-      );
-      playerSockets.delete(ws);
-    });
-  } else {
-    // This was triggered by a "game" modify event. Replace the associated player
-    // value since it's the same client, they've just been reset
-    playerSockets.set(ws, player);
+  const existingSocketForPlayer = getSocketForPlayer(player);
+  if (existingSocketForPlayer) {
+    // Player is connecting despite the fact they seem to be connected already.
+    // This is sus. Accept this new connection, but close the existing one.
+    existingSocketForPlayer.close();
+    playerSockets.delete(existingSocketForPlayer);
   }
+
+  // Store a reference to this socket and player combination
+  playerSockets.set(ws, player);
+  const uuid = player.getUUID();
+  ws.on('close', (code) => {
+    log.debug(
+      `removing player ${uuid} from player sockets pool due to socket "close" event with code ${code}`
+    );
+    playerSockets.delete(ws);
+  });
 
   return player;
 }
