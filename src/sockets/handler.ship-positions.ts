@@ -12,10 +12,10 @@ import { MessageHandler, getPlayerSpecificData } from './common';
 
 const validStates = [GameState.Lobby, GameState.Active];
 
-const shipPositionHandler: MessageHandler<PlayerConfigurationData> = async (
-  ws: WebSocket,
-  data: unknown
-) => {
+const shipPositionHandler: MessageHandler<
+  ShipPositionData,
+  PlayerConfigurationData
+> = async (ws: WebSocket, data: ShipPositionData) => {
   log.debug('processing ship-postion payload: %j', data);
   let validatedPlacementData: undefined | ShipPositionData;
 

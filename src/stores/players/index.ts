@@ -1,8 +1,4 @@
-import {
-  AI_AGENT_SERVER_URL,
-  DATAGRID_PLAYER_DATA_STORE,
-  NODE_ENV
-} from '@app/config';
+import { DATAGRID_PLAYER_DATA_STORE, NODE_ENV } from '@app/config';
 import getDataGridClientForCacheNamed from '@app/datagrid/client';
 import Player from '@app/models/player';
 import playerDataGridEventHandler from './datagrid.player.event';
@@ -13,7 +9,6 @@ import { nanoid } from 'nanoid';
 import { ConnectionRequestPayload } from '@app/payloads/incoming';
 import { getGameConfiguration } from '@app/stores/game';
 import { matchMakeForPlayer } from '@app/stores/matchmaking';
-import { http } from '@app/utils';
 
 const getClient = getDataGridClientForCacheNamed(
   DATAGRID_PLAYER_DATA_STORE,
@@ -36,7 +31,7 @@ export async function initialisePlayer(
   log.debug('client connected with connection payload: %j', data);
 
   if (data.playerId && game.getUUID() === data.gameId) {
-    // client is reconnecting
+    // Client/Player is reconnecting with previous connection info
     log.debug(
       `player "${data.playerId}" is trying to reconnect for game "${data.gameId}"`
     );
@@ -62,13 +57,10 @@ export async function initialisePlayer(
     let opponent: Player | undefined;
 
     if (NODE_ENV === 'prod' || (NODE_ENV === 'dev' && data.useAiOpponent)) {
-      // In dev we default to using human to human games. In prod we force AI
+      // We default to using AI opponents, but this can be bypassed in dev env
       opponent = await createNewPlayer({ ai: true });
-    }
-
-    if (opponent) {
       log.info(
-        `created AI opponent for player ${player.getUUID()}: %j`,
+        `created AI opponent in cache for player ${player.getUUID()}: %j`,
         opponent.toJSON()
       );
     }
@@ -81,7 +73,6 @@ export async function initialisePlayer(
     if (opponent) {
       opponent.setMatchInstanceUUID(instance.getUUID());
       await upsertPlayerInCache(opponent);
-      await createAiOpponentAgent(opponent, game.getUUID());
     }
 
     await upsertPlayerInCache(player);
@@ -110,26 +101,6 @@ export async function initialisePlayer(
   });
 
   return player;
-}
-
-/**
- * Send a request to the AI agent server to create an AI player instance
- * for the given UUID and Username
- * @param aiOpponent {Player}
- * @param gameId {String}
- */
-export async function createAiOpponentAgent(
-  aiOpponent: Player,
-  gameId: string
-) {
-  await http(AI_AGENT_SERVER_URL, {
-    method: 'POST',
-    json: {
-      gameId,
-      uuid: aiOpponent.getUUID(),
-      username: aiOpponent.getUsername()
-    }
-  });
 }
 
 /**

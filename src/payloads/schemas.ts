@@ -48,7 +48,7 @@ export const ConnectionRequestPayloadSchema = Joi.object({
   useAiOpponent: Joi.boolean().default(true)
 });
 
-export const ShipsLockedSchema = Joi.object({
+export const ShipsLockedPayloadSchema = Joi.object({
   [ShipType.Battleship]: ShipSchema.required(),
   [ShipType.Carrier]: ShipSchema.required(),
   [ShipType.Destroyer]: ShipSchema.required(),
@@ -66,8 +66,5 @@ export const AttackPayloadSchema = Joi.object({
         .min(0)
         .max(GAME_GRID_SIZE - 1)
     )
-    .required(),
-  orientation: Joi.string()
-    .allow(Orientation.Vertical, Orientation.Horizontal)
     .required()
 });

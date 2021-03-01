@@ -7,17 +7,90 @@ import { getMatchAssociatedWithPlayer } from '@app/stores/matchmaking';
 import { getPlayerWithUUID } from '@app/stores/players';
 import { getGameConfiguration } from '@app/stores/game';
 
-const socks = new Map<WebSocket, number>();
+type SocketData = { sequence: number; locked: boolean };
+
+const socks = new WeakMap<WebSocket, SocketData>();
 
 export type MessageHandlerResponse<T = unknown> = {
   type: OutgoingMsgType;
   data: T;
 };
 
-export type MessageHandler<T> = (
+export type MessageHandler<IncomingType, ResponseType> = (
   ws: WebSocket,
-  data: unknown
-) => Promise<MessageHandlerResponse<T>>;
+  data: IncomingType
+) => Promise<MessageHandlerResponse<ResponseType>>;
+
+/**
+ * Get the metadata associated with the given WebSocket
+ * @param ws
+ */
+function getSocketData(ws: WebSocket): SocketData {
+  const s = socks.get(ws);
+
+  if (!s) {
+    // Remove socket from the set on disconnect
+    ws.on('close', () => socks.delete(ws));
+
+    // Lazily initialise socket data and event handler
+    return setSocketData(ws, {
+      sequence: 0,
+      locked: false
+    });
+  }
+
+  return s;
+}
+
+/**
+ * Set the metadata associated with the given WebSocket
+ * @param ws
+ * @param data
+ */
+function setSocketData(ws: WebSocket, data: SocketData): SocketData {
+  socks.set(ws, data);
+
+  return data;
+}
+
+/**
+ * Determines if the given socket is locked. The lock on a socket is a mutex
+ * used to prevent processing multiple incoming messages for a given socket.
+ *
+ * The mutex does NOT affect outbound data, i.e the server can freely send
+ * out updates as necessary.
+ *
+ * @param ws
+ */
+export function isLockedSocket(ws: WebSocket) {
+  return getSocketData(ws).locked;
+}
+
+/**
+ * Lock the given socket
+ * @param ws
+ */
+export function lockSock(ws: WebSocket) {
+  const data = getSocketData(ws);
+
+  setSocketData(ws, {
+    sequence: data.sequence,
+    locked: true
+  });
+}
+
+/**
+ * Unlock the given socket
+ * @param ws
+ */
+export function unlockSock(ws: WebSocket) {
+  const data = getSocketData(ws);
+
+  setSocketData(ws, {
+    sequence: data.sequence,
+    locked: false
+  });
+}
 
 /**
  * Wrapper function that safely sends data to a websocket client
@@ -49,17 +122,12 @@ export async function send(ws: WebSocket, response: MessageHandlerResponse) {
  * @param ws {WebSocket}
  */
 function getSocketSequenceNumber(ws: WebSocket) {
-  let sequence: number | undefined = socks.get(ws);
+  let { sequence, locked } = getSocketData(ws);
 
-  if (sequence === undefined) {
-    // Perform initial setup
-    sequence = 0;
-
-    // Remove socket from the set on disconnect
-    ws.on('close', () => socks.delete(ws));
-  }
-
-  socks.set(ws, ++sequence);
+  setSocketData(ws, {
+    locked,
+    sequence: ++sequence
+  });
 
   return sequence;
 }

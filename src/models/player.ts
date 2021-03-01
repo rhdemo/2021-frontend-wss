@@ -141,6 +141,10 @@ export default class Player extends Model<PlayerData> {
     };
   }
 
+  isAiPlayer() {
+    return this.isAi;
+  }
+
   hasAttacked() {
     return this.attacks.length > 0;
   }
