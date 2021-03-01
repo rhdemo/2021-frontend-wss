@@ -45,7 +45,7 @@ export const ConnectionRequestPayloadSchema = Joi.object({
   username: Joi.string(),
   gameId: Joi.string(),
   playerId: Joi.string(),
-  useAiOpponent: Joi.boolean()
+  useAiOpponent: Joi.boolean().default(true)
 });
 
 export const ShipsLockedSchema = Joi.object({
