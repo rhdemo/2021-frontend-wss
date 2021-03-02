@@ -2,14 +2,8 @@ apiVersion: eventing.knative.dev/v1
 kind: Trigger
 metadata:
   name: score-events-consumer
+  namespace: frontend
 spec:
   broker: default
-  # filter:
-  #   attributes:
-  #     type: greeting
   subscriber:
-    ref:
-      apiVersion: v1
-      kind: Service
-      name: game-server
-    uri: /event/trigger
+    uri: http://game-server.frontend.svc.cluster.local:8080/event/trigger
