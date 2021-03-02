@@ -178,7 +178,7 @@ async function createNewPlayer(opts: { ai: boolean }): Promise<Player> {
   const username = generateUserName();
   const uuid = nanoid();
 
-  const player = new Player(username, opts.ai, uuid);
+  const player = new Player({ username, isAi: opts.ai, uuid });
   const existingPlayerWithSameUsername = await getPlayerWithUUID(username);
 
   if (existingPlayerWithSameUsername) {

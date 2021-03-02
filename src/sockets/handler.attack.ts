@@ -4,7 +4,6 @@ import * as matchmaking from '@app/stores/matchmaking';
 import * as players from '@app/stores/players';
 import { GameState } from '@app/models/game.configuration';
 import * as ce from '@app/cloud-events';
-import { CellPosition, ShipType } from '@app/game/types';
 import { isGameOverForPlayer } from '@app/game';
 import { MessageHandler } from './common';
 import { AttackDataPayload } from '@app/payloads/incoming';
@@ -17,13 +16,7 @@ import PlayerConfiguration, {
 } from '@app/models/player.configuration';
 import { getPlayerSpecificData, send } from './common';
 import * as ml from '@app/ml';
-
-export type AttackResult = {
-  origin: CellPosition;
-  hit: boolean;
-  destroyed?: boolean;
-  type?: ShipType;
-};
+import { AttackResult } from '@app/payloads/common';
 
 type AttackResponse = {
   // UUID of the player that performed the attack
@@ -52,7 +45,7 @@ const attackHandler: MessageHandler<
 
   const { game, opponent, match } = await getPlayerSpecificData(player);
 
-  if (game.getGameState() !== GameState.Active) {
+  if (!game.isInState(GameState.Active)) {
     throw new Error(
       `player ${player.getUUID()} cannot attack when game state is "${game.getGameState()}"`
     );
@@ -91,94 +84,64 @@ const attackHandler: MessageHandler<
     };
   }
 
-  const opponentShipData = opponent.getShipPositionData();
-  if (!opponentShipData) {
-    throw new Error(
-      `player ${player.getUUID()} opponent (${opponent.getUUID()}) was missing ship position data`
-    );
-  }
+  log.info(
+    `determine player ${player.getUUID()} attack hit/miss vs ${opponent.getUUID()}. Attack data %j`,
+    attack
+  );
 
-  const attackResult: AttackResult = {
-    origin: attack.origin,
-    hit: false,
-    destroyed: false
-  };
-
-  log.debug(`determine player ${player.getUUID()} attack hit/miss`);
-  log.debug('attack data: %j', attack);
-
-  for (const _ship in opponentShipData) {
-    if (attackResult.hit) {
-      // If a hit was registered, then break the loop
-      break;
-    }
-
-    const ship = opponentShipData[_ship as ShipType];
-    log.trace(`checking attack %j hit vs ${_ship} cells`, attack.origin);
-
-    const hitCell = ship.cells.find((c) => {
-      return (
-        attack.origin[0] === c.origin[0] && attack.origin[1] === c.origin[1]
-      );
-    });
-
-    if (hitCell) {
-      // Mark the cell as hit in both the main record, and attack result
-      hitCell.hit = attackResult.hit = true;
-      attackResult.type = ship.type;
-
-      // Determine if the ship is destroyed
-      attackResult.destroyed = ship.cells.reduce((_destroyed: boolean, v) => {
-        return _destroyed && v.hit;
-      }, true);
-    } else {
-      log.trace(`attack did not hit any cells of ${_ship}`);
-    }
-  }
-
-  log.debug(`player ${player.getUUID()} attack result: %j`, attackResult);
+  const attackResult: AttackResult = opponent.determineAttackResult(attack);
 
   if (attackResult.hit) {
+    log.info(
+      `player ${player.getUUID()} hit ${
+        attackResult.type
+      } of opponent ${opponent.getUUID()} at %j`,
+      attack.origin
+    );
+
     // Send a hit cloud event
     ce.hit({
       by: player.getUUID(),
       game: game.getUUID(),
       against: opponent.getUUID(),
-      origin: `${attackResult.origin[0]},${attackResult.origin[1]}` as const,
+      origin: `${attack.origin[0]},${attack.origin[1]}` as const,
       ts: Date.now(),
       match: match.getUUID(),
-      type: attackResult.type as ShipType
+      type: attackResult.type
     });
+
+    if (attackResult.destroyed) {
+      // Send a sink cloud event when a ship has been destroyed
+      ce.sink({
+        by: player.getUUID(),
+        game: game.getUUID(),
+        against: opponent.getUUID(),
+        ts: Date.now(),
+        type: attackResult.type,
+        match: match.getUUID(),
+        origin: `${attack.origin[0]},${attack.origin[1]}` as const
+      });
+    }
   } else {
+    log.info(
+      `player ${player.getUUID()} attack %j did not hit opponent ${opponent.getUUID()} ships`,
+      attack.origin
+    );
+
     ce.miss({
       by: player.getUUID(),
       game: game.getUUID(),
       against: opponent.getUUID(),
-      origin: `${attackResult.origin[0]},${attackResult.origin[1]}` as const,
+      origin: `${attack.origin[0]},${attack.origin[1]}` as const,
       ts: Date.now(),
       match: match.getUUID()
     });
   }
 
-  if (attackResult.destroyed && attackResult.type) {
-    // Send a sink cloud event
-    ce.sink({
-      by: player.getUUID(),
-      game: game.getUUID(),
-      against: opponent.getUUID(),
-      ts: Date.now(),
-      type: attackResult.type,
-      match: match.getUUID(),
-      origin: `${attackResult.origin[0]},${attackResult.origin[1]}` as const
-    });
-  }
+  // Record the attack result in the attacking players state
+  player.recordAttackResult(attack, attackResult);
 
-  // Make a record of the attack in the attacking player's record
-  player.recordAttack(attack, attackResult);
-
-  // Change who's turn it is next
-  match.changeTurn();
-
+  // Save both updated player objects to cache
   await Promise.all([
     players.upsertPlayerInCache(player),
     players.upsertPlayerInCache(opponent)
@@ -206,6 +169,9 @@ const attackHandler: MessageHandler<
 
     // Write payload to storage for analysis by ML services
     ml.writeGameRecord(player, opponent, match, game);
+  } else {
+    // Change turns so the player that just received an attack can retaliate
+    match.changeTurn();
   }
 
   await matchmaking.upsertMatchInCache(match);

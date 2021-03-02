@@ -122,14 +122,14 @@ export async function send(ws: WebSocket, response: MessageHandlerResponse) {
  * @param ws {WebSocket}
  */
 function getSocketSequenceNumber(ws: WebSocket) {
-  let { sequence, locked } = getSocketData(ws);
+  const data = getSocketData(ws);
 
   setSocketData(ws, {
-    locked,
-    sequence: ++sequence
+    locked: data.locked,
+    sequence: ++data.sequence
   });
 
-  return sequence;
+  return data.sequence;
 }
 
 /**

@@ -10,8 +10,6 @@ import { validateShipPlacement } from '@app/game';
 import { OutgoingMsgType } from '@app/payloads/outgoing';
 import { MessageHandler, getPlayerSpecificData } from './common';
 
-const validStates = [GameState.Lobby, GameState.Active];
-
 const shipPositionHandler: MessageHandler<
   ShipPositionData,
   PlayerConfigurationData
@@ -30,7 +28,7 @@ const shipPositionHandler: MessageHandler<
 
   const { game, match } = await getPlayerSpecificData(player);
 
-  if (validStates.includes(game.getGameState()) === false) {
+  if (!game.isInState(GameState.Active) && !game.isInState(GameState.Lobby)) {
     throw new Error(
       `player ${player.getUUID()} cannot set positions when game state is "${game.getGameState()}"`
     );
@@ -61,7 +59,8 @@ const shipPositionHandler: MessageHandler<
     );
   }
 
-  // Update the in-memory player object...
+  // Update the in-memory player object. If validation was successful pass the
+  // validated data. If it failed keep the old data and mark it as invalid.
   player.setShipPositionData(
     validatedPlacementData || (data as ShipPositionData),
     validatedPlacementData ? true : false

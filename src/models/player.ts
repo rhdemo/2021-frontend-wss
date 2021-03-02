@@ -12,133 +12,126 @@ import {
   ShipType
 } from '@app/game/types';
 import Model from './model';
-import { AttackResult } from '@app/sockets/handler.attack';
+import { AttackResult } from '@app/payloads/common';
 import log from '@app/log';
 
-type StoredPositionData = {
+/**
+ * The location and hit status of a ship cell. A ship will cover multiple cells
+ * on the board, so we track them individually over time.
+ */
+type StoredShipDataCell = {
+  origin: CellPosition;
+  hit: boolean;
+  type: ShipType;
+};
+
+/**
+ * Player attacks are stored. These are used by the client to render the game
+ * board at any point in time.
+ */
+type StoredAttackData = {
+  ts: number;
+  attack: AttackDataPayload;
+  result: AttackResult;
+};
+
+/**
+ * The ship data that is stored includes the cells and their current state,
+ * i.e if they have been hit by an attack
+ */
+type StoredShipData = {
+  type: ShipType;
+  origin: CellPosition;
+  orientation: Orientation;
+  cells: StoredShipDataCell[];
+};
+
+/**
+ * Container type to store player ship position data.
+ */
+type PlayerPositionData = {
   [key in ShipType]: StoredShipData;
 };
 
-export type PlayerBoardData = {
-  valid: boolean;
-  positions: StoredPositionData;
-};
-
-export type OpponentData = {
-  uuid: string;
-  username: string;
-  attacks: StoredAttackData;
-  board: OpponentBoardData;
-};
-
-type OpponentBoardData = {
+/**
+ * The opponent ship placements (from the perspective of another player) are
+ * only revealed after the particular ship has been completely destroyed
+ */
+type OpponentPositionData = {
   [key in ShipType]?: StoredShipData;
 };
 
+/**
+ * A player's board data must be validated. So we store it alongside a flag
+ * that indicates if it has passed validation.
+ */
+type PlayerBoardData = {
+  valid: boolean;
+  positions: PlayerPositionData;
+};
+
+/**
+ * A representation of the overall Player state. This is the type of data that
+ * inifinispan will hold for a Player instance, and is used to instantiate a
+ * Player object from cache entries.
+ */
 export type PlayerData = {
   uuid: string;
   username: string;
   isAi: boolean;
   match?: string;
-  board?: PlayerBoardData;
-  attacks: StoredAttackData;
+  board: PlayerBoardData;
+  attacks: StoredAttackData[];
 };
 
-export type StoredShipData = {
-  type: ShipType;
-  origin: CellPosition;
-  orientation: Orientation;
-  cells: {
-    origin: CellPosition;
-    hit: boolean;
-  }[];
+/**
+ * Similar to PlayerData, but contains a sanitised version of data top prevent
+ * a nefarious player from getting an upper hand by inspecting packets.
+ */
+export type OpponentData = {
+  uuid: string;
+  username: string;
+  attacks: StoredAttackData[];
+  board: OpponentPositionData;
 };
-
-export type StoredAttackData = {
-  ts: number;
-  attack: AttackDataPayload;
-  result: AttackResult;
-}[];
 
 export default class Player extends Model<PlayerData> {
-  private board: PlayerBoardData | undefined;
-  private attacks: StoredAttackData;
-  constructor(
-    private username: string,
-    private isAi = false,
-    uuid?: string,
-    private match?: string,
-    board?: PlayerBoardData,
-    attacks?: StoredAttackData
-  ) {
-    super(uuid);
+  private board: PlayerBoardData;
+  private attacks: StoredAttackData[];
+  private username: string;
+  private isAi: boolean;
+  private match?: string;
 
-    if (board) {
-      this.board = board;
-    } else {
-      // Set default positions, but don't mark as validated. We only validate
-      // when the player confirms the positions themselves
-      this.setShipPositionData(getRandomShipLayout(), false);
-    }
+  constructor(opts: {
+    username: string;
+    isAi: boolean;
+    uuid?: string;
+    match?: string;
+    board?: PlayerBoardData;
+    attacks?: StoredAttackData[];
+  }) {
+    super(opts.uuid);
 
-    if (attacks) {
-      this.attacks = attacks;
+    this.match = opts.match;
+    this.attacks = opts.attacks || [];
+    this.username = opts.username;
+    this.isAi = opts.isAi;
+
+    if (opts.board) {
+      this.board = opts.board;
     } else {
-      this.attacks = [];
+      // Create a default set of valid, but not unconfirmed positions. The
+      // end-user will need to confirm them via the UI
+      this.board = {
+        valid: false,
+        positions: createPositionDataWithCells(getRandomShipLayout())
+      };
     }
   }
 
   static from(data: PlayerData) {
     log.trace('creating player instance from data: %j', data);
-    return new Player(
-      data.username,
-      data.isAi,
-      data.uuid,
-      data.match,
-      data.board,
-      data.attacks
-    );
-  }
-
-  /**
-   * Take a validated set on incoming ship positions, initialise them for game
-   * logic, and store on this player instance.
-   * @param data
-   * @param valid
-   */
-  setShipPositionData(data: ShipPositionData, valid: boolean) {
-    log.info(
-      `setting ship position data (valid: ${valid}) for player ${this.getUUID()} to: %j`,
-      data
-    );
-    const positions = Object.keys(data).reduce((updated, _type) => {
-      const type = _type as ShipType;
-      const shipData = data[type];
-
-      const cells = getCellCoverageForOriginOrientationAndArea(
-        shipData.origin,
-        shipData.orientation,
-        ShipSize[type]
-      );
-
-      updated[type] = {
-        ...shipData,
-        type,
-        cells: cells.map((origin) => {
-          return {
-            hit: false,
-            origin
-          };
-        })
-      };
-
-      return updated;
-    }, {} as StoredPositionData);
-
-    this.board = {
-      valid,
-      positions
-    };
+    return new Player(data);
   }
 
   isAiPlayer() {
@@ -166,14 +159,6 @@ export default class Player extends Model<PlayerData> {
     this.match = uuid;
   }
 
-  recordAttack(attack: AttackDataPayload, result: AttackResult) {
-    this.attacks.push({
-      ts: Date.now(),
-      attack,
-      result
-    });
-  }
-
   getUsername() {
     return this.username;
   }
@@ -183,13 +168,90 @@ export default class Player extends Model<PlayerData> {
   }
 
   /**
+   * Returns the information for all cells occupied by this player's ships
+   */
+  private getAllShipCells(): Array<StoredShipDataCell> {
+    return Object.keys(this.board.positions).reduce((agg, key) => {
+      const shipData = this.board.positions[key as ShipType];
+
+      shipData.cells.forEach((c) => agg.push(c));
+
+      return agg;
+    }, [] as Array<StoredShipDataCell>);
+  }
+
+  /**
+   * Take a validated set on incoming ship positions, initialise them for game
+   * logic, and store on this player instance.
+   * @param data
+   * @param valid
+   */
+  setShipPositionData(data: ShipPositionData, valid: boolean) {
+    log.info(
+      `setting ship position data (valid: ${valid}) for player ${this.getUUID()} to: %j`,
+      data
+    );
+
+    this.board = {
+      valid,
+      positions: createPositionDataWithCells(data)
+    };
+  }
+
+  /**
+   * Determines if a given attack at an origin will hit/miss. It the attack is
+   * deemed to be a hit, it will also determine if it destroyed a ship.
+   *
+   * This is called if this player is the recipient of an attack.
+   */
+  determineAttackResult({ origin }: AttackDataPayload): AttackResult {
+    const cells = this.getAllShipCells();
+
+    const hitCell = cells.find((c) => isSameOrigin(c.origin, origin));
+
+    if (hitCell) {
+      // Mark cell as hit since we need to keep track of this!
+      hitCell.hit = true;
+
+      // Determine if this hit was the final one required to sink the ship
+      const destroyed = cells
+        .filter((c) => c.type === hitCell.type)
+        .reduce((_destroyed: boolean, v) => {
+          return _destroyed && v.hit;
+        }, true);
+
+      return {
+        ...hitCell,
+        destroyed
+      };
+    } else {
+      return {
+        hit: false,
+        origin
+      };
+    }
+  }
+
+  /**
+   * Records the result of an attack in this player record. This is called if
+   * this player was the one making the attack.
+   */
+  recordAttackResult(attack: AttackDataPayload, result: AttackResult) {
+    this.attacks.push({
+      ts: Date.now(),
+      attack,
+      result
+    });
+  }
+
+  /**
    * Generates a JSON object that has secret information redacted. This is
    * necessary since players need to know certain information about their
    * opponent, but we don't want to expose ship locations and other data
    */
   toOpponentJSON(): OpponentData {
-    const board: OpponentBoardData = {};
-    const positions = this.board?.positions;
+    const board: OpponentPositionData = {};
+    const positions = this.board.positions;
 
     if (positions) {
       Object.keys(positions).forEach((_ship) => {
@@ -215,6 +277,10 @@ export default class Player extends Model<PlayerData> {
     };
   }
 
+  /**
+   * Returns a JSON object that is used to serialise this Player instance for
+   * storage in the infinispan cache, or to be sent via WebSocket
+   */
   toJSON(): PlayerData {
     return {
       board: this.board,
@@ -225,6 +291,40 @@ export default class Player extends Model<PlayerData> {
       uuid: this.getUUID()
     };
   }
+}
+
+/**
+ * Take basic ShipPositionData and explode out the cells that each of the
+ * provided ships occupy, i.e the x,y coordinates that it covers.
+ * @param data
+ */
+function createPositionDataWithCells(
+  data: ShipPositionData
+): PlayerPositionData {
+  return Object.keys(data).reduce((updated, _type) => {
+    const type = _type as ShipType;
+    const shipData = data[type];
+
+    const cells = getCellCoverageForOriginOrientationAndArea(
+      shipData.origin,
+      shipData.orientation,
+      ShipSize[type]
+    );
+
+    updated[type] = {
+      ...shipData,
+      type,
+      cells: cells.map((origin) => {
+        return {
+          hit: false,
+          origin,
+          type
+        };
+      })
+    };
+
+    return updated;
+  }, {} as PlayerPositionData);
 }
 
 module.exports = Player;

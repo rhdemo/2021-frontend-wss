@@ -88,6 +88,12 @@ export default class MatchInstance extends Model<MatchInstanceData> {
     } else {
       this.activePlayer = this.playerA;
     }
+
+    log.trace(
+      `changed turn for match ${this.getUUID()}. active player is ${
+        this.activePlayer
+      }`
+    );
   }
 
   getPlayers() {

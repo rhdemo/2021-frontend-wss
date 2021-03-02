@@ -23,6 +23,8 @@ const connectionHandler: MessageHandler<
   const { opponent, match, game } = await getPlayerSpecificData(player);
 
   if (!match) {
+    // A match should always be found. A player is added to a match during
+    // the execution of the initialisePlayer function
     throw new Error(
       `failed to find match associated with player ${player.getUUID()}`
     );
@@ -35,15 +37,15 @@ const connectionHandler: MessageHandler<
     // create endpoint again.
     //
     // It's fine if the AI agent already exists since the AI agent server can
-    // handle a follow-up creation request.
+    // gracefully handle a follow-up creation request and return a 200 OK.
     createAiOpponentAgent(opponent, game.getUUID());
   }
 
   if (opponent && !opponent.isAiPlayer()) {
     // If matched with a non-AI opponent we need to let that opponent know
-    // that a match has been found. They might already be aware, but better
+    // that an opponent has been found. They might already be aware, but better
     // safe than sorry...or bored in their case since they could be left
-    // sitting and waiting for this message if we don't send it
+    // sitting and waiting for this message if we don't make sure to send it
     const sock = players.getSocketForPlayer(opponent);
     if (!sock) {
       log.warn(

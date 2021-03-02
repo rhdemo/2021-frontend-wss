@@ -12,20 +12,16 @@ import {
   ShipsLockedPayloadSchema,
   WsPayloadSchema
 } from '@app/payloads/schemas';
-import {
-  isLockedSocket,
-  lockSock,
-  MessageHandler,
-  MessageHandlerResponse,
-  unlockSock
-} from './common';
+import { isLockedSocket, lockSock, MessageHandler, unlockSock } from './common';
 import { heartbeat, send } from './common';
 import Joi from 'joi';
 import { NODE_ENV } from '@app/config';
 
-type Handler = {
-  schema: Joi.Schema;
-  fn: MessageHandler<any, any>;
+type MessageHandlersContainer = {
+  [key in IncomingMsgType]: {
+    schema: Joi.Schema;
+    fn: MessageHandler<any, any>;
+  };
 };
 
 /**
@@ -36,7 +32,7 @@ export function configureHeartbeat(app: FastifyInstance) {
   heartbeat(app);
 }
 
-const MessageHandlers: { [key in IncomingMsgType]: Handler } = {
+const MessageHandlers: MessageHandlersContainer = {
   [IncomingMsgType.Connection]: {
     fn: connectionHandler,
     schema: ConnectionRequestPayloadSchema

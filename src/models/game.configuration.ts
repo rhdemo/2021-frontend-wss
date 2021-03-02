@@ -23,6 +23,10 @@ export default class GameConfiguration extends Model<GameConfigurationData> {
     return new GameConfiguration(data.uuid, data.date, data.state);
   }
 
+  isInState(state: GameState) {
+    return this.state === state;
+  }
+
   getGameState() {
     return this.state;
   }
