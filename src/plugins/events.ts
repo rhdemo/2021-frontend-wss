@@ -13,6 +13,19 @@ type EventParams = { type: CE.CloudEventType };
 type EventBody = PartialCloudEvent & { type?: string; player?: string };
 
 const eventsPlugin: FastifyPluginCallback = (server, options, done) => {
+  /**
+   * This endpoint is used to process received cloud events.
+   * These events are forwarded to this service using a Knative Trigger.
+   */
+  server.route({
+    method: 'POST',
+    url: '/event/trigger',
+    handler: (request, reply) => {
+      log.trace('received cloud event. body was: %j', request.body);
+      reply.send('ok');
+    }
+  });
+
   if (NODE_ENV === 'dev') {
     log.info(
       `mounting cloud event debug endpoint /event/:type since NODE_ENV=${NODE_ENV}`

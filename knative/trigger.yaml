@@ -1,0 +1,15 @@
+apiVersion: eventing.knative.dev/v1
+kind: Trigger
+metadata:
+  name: score-events-consumer
+spec:
+  broker: default
+  # filter:
+  #   attributes:
+  #     type: greeting
+  subscriber:
+    ref:
+      apiVersion: v1
+      kind: Service
+      name: game-server
+    uri: /event/trigger
