@@ -104,6 +104,7 @@ const attackHandler: MessageHandler<
     ce.hit({
       by: player.getUUID(),
       game: game.getUUID(),
+      human: !player.isAiPlayer(),
       against: opponent.getUUID(),
       origin: `${attack.origin[0]},${attack.origin[1]}` as const,
       ts: Date.now(),
@@ -116,6 +117,7 @@ const attackHandler: MessageHandler<
       ce.sink({
         by: player.getUUID(),
         game: game.getUUID(),
+        human: !player.isAiPlayer(),
         against: opponent.getUUID(),
         ts: Date.now(),
         type: attackResult.type,
@@ -132,6 +134,7 @@ const attackHandler: MessageHandler<
     ce.miss({
       by: player.getUUID(),
       game: game.getUUID(),
+      human: !player.isAiPlayer(),
       against: opponent.getUUID(),
       origin: `${attack.origin[0]},${attack.origin[1]}` as const,
       ts: Date.now(),
@@ -157,14 +160,17 @@ const attackHandler: MessageHandler<
     match.setWinner(player);
 
     // Send win and lose Cloud Events
+    const isWinnerHuman = !player.isAiPlayer();
     ce.win({
       game: game.getUUID(),
       match: match.getUUID(),
+      human: isWinnerHuman,
       player: player.getUUID()
     });
     ce.lose({
       game: game.getUUID(),
       match: match.getUUID(),
+      human: !isWinnerHuman,
       player: opponent.getUUID()
     });
 

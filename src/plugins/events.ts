@@ -90,6 +90,7 @@ const eventsPlugin: FastifyPluginCallback = (server, options, done) => {
               by: body.by,
               against: body.against,
               match: body.match,
+              human: true,
               game: body.game,
               ts: body.ts || Date.now(),
               // This line causes a funky compiler error without the cast and as const...
@@ -103,6 +104,7 @@ const eventsPlugin: FastifyPluginCallback = (server, options, done) => {
               by: body.by,
               against: body.against,
               match: body.match,
+              human: true,
               game: body.game,
               ts: body.ts || Date.now(),
               // This line causes a funky compiler error without the cast and as const...
@@ -115,6 +117,7 @@ const eventsPlugin: FastifyPluginCallback = (server, options, done) => {
               by: body.by,
               against: body.against,
               match: body.match,
+              human: true,
               game: body.game,
               ts: body.ts || Date.now(),
               // This line causes a funky compiler error without the cast and as const...
@@ -127,6 +130,7 @@ const eventsPlugin: FastifyPluginCallback = (server, options, done) => {
             await SendEvents.win({
               player: body.player,
               match: body.match,
+              human: true,
               game: body.game
             });
             reply.send({ info: 'ok' });
@@ -135,6 +139,7 @@ const eventsPlugin: FastifyPluginCallback = (server, options, done) => {
             await SendEvents.lose({
               player: body.player,
               match: body.match,
+              human: true,
               game: body.game
             });
             reply.send({ info: 'ok' });

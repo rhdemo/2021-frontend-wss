@@ -23,9 +23,11 @@ export type ShotEventData = {
   match: string;
   against: string;
   origin: `${number},${number}`;
+  human: boolean;
 };
 
 type WinLoseEventData = {
+  human: boolean;
   game: string;
   match: string;
   player: string;
