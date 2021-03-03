@@ -3,7 +3,7 @@ import log from '@app/log';
 import * as matchmaking from '@app/stores/matchmaking';
 import * as players from '@app/stores/players';
 import { GameState } from '@app/models/game.configuration';
-import * as ce from '@app/cloud-events';
+import * as ce from '@app/cloud-events/send';
 import { isGameOverForPlayer } from '@app/game';
 import { MessageHandler } from './common';
 import { AttackDataPayload } from '@app/payloads/incoming';

@@ -1,15 +1,17 @@
 import { FastifyPluginCallback, FastifyRequest } from 'fastify';
 import fp from 'fastify-plugin';
-import * as CE from '@app/cloud-events';
+import * as SendEvents from '@app/cloud-events/send';
+import * as RecvEvents from '@app/cloud-events/recv';
+import { ValidationError } from 'cloudevents';
 import { NODE_ENV } from '@app/config';
 import { ShipType } from '@app/game/types';
 import log from '@app/log';
 import { ManualEventSchema } from '@app/payloads/schemas';
 
 type PartialCloudEvent = {
-  [K in keyof CE.CloudEventBase]?: CE.CloudEventBase[K];
+  [K in keyof SendEvents.ShotEventData]?: SendEvents.ShotEventData[K];
 };
-type EventParams = { type: CE.CloudEventType };
+type EventParams = { type: SendEvents.EventType };
 type EventBody = PartialCloudEvent & { type?: string; player?: string };
 
 const eventsPlugin: FastifyPluginCallback = (server, options, done) => {
@@ -21,8 +23,32 @@ const eventsPlugin: FastifyPluginCallback = (server, options, done) => {
     method: 'POST',
     url: '/event/trigger',
     handler: (request, reply) => {
-      log.trace('received cloud event. body was: %j', request.body);
-      reply.send('ok');
+      try {
+        const evt = RecvEvents.parse(request.headers, request.body);
+
+        if (RecvEvents.isKnownEventType(evt)) {
+          reply.status(422).send({
+            info: `Cloud Event type "${evt.type}" is not known`
+          });
+        } else {
+          RecvEvents.processEvent(evt);
+        }
+      } catch (e) {
+        if (e instanceof ValidationError) {
+          log.warn('error parsing cloud event. event data: %j', {
+            body: request.body,
+            headers: request.headers
+          });
+          log.warn(e);
+
+          reply.status(400).send({
+            info: 'Cloud Event validation failed',
+            details: e.errors
+          });
+        } else {
+          reply.status(500).send('internal server error');
+        }
+      }
     }
   });
 
@@ -51,14 +77,14 @@ const eventsPlugin: FastifyPluginCallback = (server, options, done) => {
           return reply.status(400).send(result.error);
         }
 
-        const body = result.value as CE.CloudEventBase & {
+        const body = result.value as SendEvents.ShotEventData & {
           type: string;
           player: string;
         };
 
         switch (type) {
-          case CE.CloudEventType.Hit:
-            await CE.hit({
+          case SendEvents.EventType.Hit:
+            await SendEvents.hit({
               by: body.by,
               against: body.against,
               match: body.match,
@@ -70,8 +96,8 @@ const eventsPlugin: FastifyPluginCallback = (server, options, done) => {
             });
             reply.send({ info: 'ok' });
             break;
-          case CE.CloudEventType.Miss:
-            await CE.miss({
+          case SendEvents.EventType.Miss:
+            await SendEvents.miss({
               by: body.by,
               against: body.against,
               match: body.match,
@@ -82,8 +108,8 @@ const eventsPlugin: FastifyPluginCallback = (server, options, done) => {
             });
             reply.send({ info: 'ok' });
             break;
-          case CE.CloudEventType.Sink:
-            await CE.sink({
+          case SendEvents.EventType.Sink:
+            await SendEvents.sink({
               by: body.by,
               against: body.against,
               match: body.match,
@@ -95,16 +121,16 @@ const eventsPlugin: FastifyPluginCallback = (server, options, done) => {
             });
             reply.send({ info: 'ok' });
             break;
-          case CE.CloudEventType.Win:
-            await CE.win({
+          case SendEvents.EventType.Win:
+            await SendEvents.win({
               player: body.player,
               match: body.match,
               game: body.game
             });
             reply.send({ info: 'ok' });
             break;
-          case CE.CloudEventType.Lose:
-            await CE.lose({
+          case SendEvents.EventType.Lose:
+            await SendEvents.lose({
               player: body.player,
               match: body.match,
               game: body.game
