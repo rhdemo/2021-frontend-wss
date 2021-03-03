@@ -3,7 +3,7 @@ require('make-promises-safe');
 import * as game from '@app/stores/game';
 import startServer from '@app/server';
 import log from '@app/log';
-import { configureHeartbeat } from '@app/sockets';
+import { heartbeat } from '@app/sockets';
 import config, { NODE_ENV } from '@app/config';
 
 async function main() {
@@ -11,10 +11,9 @@ async function main() {
   log.trace('server config: %j', config);
 
   await game.POST();
+  await startServer();
 
-  const app = await startServer();
-
-  configureHeartbeat(app);
+  heartbeat();
 }
 
 main();

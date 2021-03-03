@@ -1,7 +1,6 @@
 import { FastifyPluginCallback } from 'fastify';
 import fp from 'fastify-plugin';
-import log from '@app/log';
-import processSocketMessage from '@app/sockets';
+import { configureSocket } from '@app/sockets';
 
 const gameRoutePlugin: FastifyPluginCallback = (server, options, done) => {
   // This is the WS endpoint, i.e ws://localhost:3000/game
@@ -14,10 +13,8 @@ const gameRoutePlugin: FastifyPluginCallback = (server, options, done) => {
     conn.on('close', () => {
       server.log.error(`client connection closed`);
     });
-    conn.socket.on('message', (message) => {
-      log.trace('incoming socket payload: %j', message);
-      processSocketMessage(conn.socket, message);
-    });
+
+    configureSocket(conn.socket);
   });
 
   done();

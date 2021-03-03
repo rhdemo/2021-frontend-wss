@@ -10,7 +10,10 @@ import {
   Orientation,
   CellArea
 } from './types';
-import { ShipsLockedPayloadSchema } from '@app/payloads/schemas';
+import {
+  DEFAULT_JOI_OPTS,
+  ShipsLockedPayloadSchema
+} from '@app/payloads/schemas';
 
 const EXPECTED_OCCUPIED_SQUARES: number = Object.values(ShipSize).reduce(
   (total, v) => {
@@ -48,10 +51,10 @@ export function getCellAreaWidthAndHeight(area: CellArea) {
 export function validateShipPlacement(
   placementData: unknown
 ): ShipPositionData {
-  const result = ShipsLockedPayloadSchema.validate(placementData, {
-    abortEarly: false,
-    stripUnknown: true
-  });
+  const result = ShipsLockedPayloadSchema.validate(
+    placementData,
+    DEFAULT_JOI_OPTS
+  );
 
   const errors = result.error || result.errors;
 

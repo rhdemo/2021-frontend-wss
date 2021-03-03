@@ -3,7 +3,6 @@ import getDataGridClientForCacheNamed from '@app/datagrid/client';
 import Player from '@app/models/player';
 import playerDataGridEventHandler from './datagrid.player.event';
 import log from '@app/log';
-import WebSocket from 'ws';
 import generateUserName from './username.generator';
 import { nanoid } from 'nanoid';
 import { ConnectionRequestPayload } from '@app/payloads/incoming';
@@ -14,17 +13,12 @@ const getClient = getDataGridClientForCacheNamed(
   DATAGRID_PLAYER_DATA_STORE,
   playerDataGridEventHandler
 );
-const playerSockets = new Map<WebSocket, Player>();
 
 /**
  * Initialises a Player entity based on an incoming "connection" event
- * @param ws
  * @param data
  */
-export async function initialisePlayer(
-  ws: WebSocket,
-  data: ConnectionRequestPayload
-) {
+export async function initialisePlayer(data: ConnectionRequestPayload) {
   let player: Player | undefined;
   const game = getGameConfiguration();
 
@@ -78,57 +72,7 @@ export async function initialisePlayer(
     await upsertPlayerInCache(player);
   }
 
-  // Keep a reference to the player's socket to facilitate communication by
-  // using their UUID for lookup
-  log.info(`adding player ${player.getUUID()} to sockets pool`);
-
-  const existingSocketForPlayer = getSocketForPlayer(player);
-  if (existingSocketForPlayer) {
-    // Player is connecting despite the fact they seem to be connected already.
-    // This is sus. Accept this new connection, but close the existing one.
-    existingSocketForPlayer.close();
-    playerSockets.delete(existingSocketForPlayer);
-  }
-
-  // Store a reference to this socket and player combination
-  playerSockets.set(ws, player);
-  const uuid = player.getUUID();
-  ws.on('close', (code) => {
-    log.debug(
-      `removing player ${uuid} from player sockets pool due to socket "close" event with code ${code}`
-    );
-    playerSockets.delete(ws);
-  });
-
   return player;
-}
-
-/**
- * Fetches a player associated with a given socket
- * @param sock
- */
-export function getPlayerAssociatedWithSocket(ws: WebSocket) {
-  return playerSockets.get(ws);
-}
-
-/**
- * Finds the WebSocket for a given Player.
- * @param player
- */
-export function getSocketForPlayer(player: Player): WebSocket | undefined {
-  const targetUUID = player.getUUID();
-  for (const entry of playerSockets) {
-    if (entry[1].getUUID() === targetUUID) {
-      return entry[0];
-    }
-  }
-}
-
-/**
- * Returns a Map of websockets and the associated Player object
- */
-export function getAllConnectedPlayers() {
-  return playerSockets;
 }
 
 /**

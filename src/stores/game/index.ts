@@ -4,10 +4,7 @@ import { ClientEvent, InfinispanClient } from 'infinispan';
 import delay from 'delay';
 import log from '@app/log';
 import GameConfiguration from '@app/models/game.configuration';
-import { getAllConnectedPlayers } from '@app/stores/players';
-import connectionHandler from '@app/sockets/handler.connection';
-import { ConnectionRequestPayload } from '@app/payloads/incoming';
-import { send } from '@app/sockets/common';
+import { getAllPlayerSocketDataContainers } from '@app/sockets/player.sockets';
 
 const getClient = getDataGridClientForCacheNamed(
   DATAGRID_GAME_DATA_STORE,
@@ -71,23 +68,12 @@ export default async function gameConfigurationDatagridEventHandler(
 
     if (isReset) {
       log.info(
-        'a game reset was detected. simulating initial connect/configuration event for all connected players'
+        'a game reset was detected, let players know their session has expired'
       );
     }
 
-    getAllConnectedPlayers().forEach(async (player, ws) => {
-      // Need to reuse existing player config if it's not a reset. If it is a
-      // reset, then we pass empty data to reset the state for the client
-      const args: ConnectionRequestPayload = isReset
-        ? {}
-        : {
-            playerId: player.getUUID(),
-            gameId: freshGameData.getUUID(),
-            username: player.getUsername()
-          };
-
-      const resp = await connectionHandler(ws, args);
-      send(ws, resp);
+    getAllPlayerSocketDataContainers().forEach(async () => {
+      // TODO send reset
     });
   } else {
     log.error(

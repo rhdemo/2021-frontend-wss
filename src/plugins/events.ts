@@ -1,12 +1,11 @@
 import { FastifyPluginCallback, FastifyRequest } from 'fastify';
 import fp from 'fastify-plugin';
-import * as SendEvents from '@app/cloud-events/send';
-import * as RecvEvents from '@app/cloud-events/recv';
+import { send as SendEvents, recv as RecvEvents } from '@app/cloud-events';
 import { ValidationError } from 'cloudevents';
 import { NODE_ENV } from '@app/config';
 import { ShipType } from '@app/game/types';
 import log from '@app/log';
-import { ManualEventSchema } from '@app/payloads/schemas';
+import { DEFAULT_JOI_OPTS, ManualEventSchema } from '@app/payloads/schemas';
 
 type PartialCloudEvent = {
   [K in keyof SendEvents.ShotEventData]?: SendEvents.ShotEventData[K];
@@ -71,7 +70,10 @@ const eventsPlugin: FastifyPluginCallback = (server, options, done) => {
           req.body
         );
 
-        const result = ManualEventSchema.validate(req.body || {});
+        const result = ManualEventSchema.validate(
+          req.body || {},
+          DEFAULT_JOI_OPTS
+        );
 
         if (result.error) {
           return reply.status(400).send(result.error);

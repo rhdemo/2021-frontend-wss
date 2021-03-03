@@ -1,5 +1,5 @@
 import { InfinispanClient, ClientEvent } from 'infinispan';
-import { getPlayerWithUUID, getSocketForPlayer } from '.';
+import { getPlayerWithUUID } from '.';
 import log from '@app/log';
 import { upsertMatchInCache } from '@app/stores/matchmaking';
 import GameConfiguration from '@app/models/game.configuration';
@@ -7,7 +7,8 @@ import MatchInstance from '@app/models/match.instance';
 import Player from '@app/models/player';
 import PlayerConfiguration from '@app/models/player.configuration';
 import { OutgoingMsgType } from '@app/payloads/outgoing';
-import { getPlayerSpecificData, send } from '@app/sockets/common';
+import { getPlayerSpecificData } from '@app/sockets/common';
+import { getSocketDataContainerByPlayerUUID } from '@app/sockets/player.sockets';
 
 export default async function playerDataGridEventHandler(
   client: InfinispanClient,
@@ -75,11 +76,11 @@ function updatePlayer(
   game: GameConfiguration,
   match: MatchInstance
 ) {
-  const sock = getSocketForPlayer(player);
+  const sock = getSocketDataContainerByPlayerUUID(player.getUUID());
 
   if (sock) {
     log.debug(`notify player ${player.getUUID()} that match.ready=true`);
-    send(sock, {
+    sock.send({
       type: OutgoingMsgType.Configuration,
       data: new PlayerConfiguration(game, player, match, opponent).toJSON()
     });

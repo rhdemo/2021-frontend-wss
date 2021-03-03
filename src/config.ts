@@ -12,6 +12,11 @@ const config = {
   // Reject web socket payloads greater than this many bytes (2KB by default)
   WS_MAX_PAYLOAD: get('WS_MAX_PAYLOAD').default(2048).asIntPositive(),
 
+  // Send a heartbeat to clients every so often to keep connections open
+  WS_HEARTBEAT_INTERVAL: get('WS_HEARTBEAT_INTERVAL')
+    .default('15000')
+    .asIntPositive(),
+
   // This is the grid size for the game, e.g "5" would produce a 5x5 grid
   GAME_GRID_SIZE: get('GAME_GRID_SIZE').default(5).asIntPositive(),
 

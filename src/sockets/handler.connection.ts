@@ -1,4 +1,3 @@
-import WebSocket from 'ws';
 import log from '@app/log';
 import PlayerConfiguration, {
   PlayerConfigurationData
@@ -7,18 +6,23 @@ import * as players from '@app/stores/players';
 import { OutgoingMsgType } from '@app/payloads/outgoing';
 import { ConnectionRequestPayload } from '@app/payloads/incoming';
 import { MessageHandler } from './common';
-import { getPlayerSpecificData, send } from './common';
+import { getPlayerSpecificData } from './common';
 import { AI_AGENT_SERVER_URL } from '@app/config';
 import Player from '@app/models/player';
 import { http } from '@app/utils';
+import { getSocketDataContainerByPlayerUUID } from './player.sockets';
+import PlayerSocketDataContainer from './player.socket.container';
 
 const connectionHandler: MessageHandler<
   ConnectionRequestPayload,
   PlayerConfigurationData
-> = async (ws: WebSocket, data: ConnectionRequestPayload) => {
+> = async (
+  container: PlayerSocketDataContainer,
+  data: ConnectionRequestPayload
+) => {
   log.debug('processing connection payload: %j', data);
 
-  const player = await players.initialisePlayer(ws, data);
+  const player = await players.initialisePlayer(data);
 
   const { opponent, match, game } = await getPlayerSpecificData(player);
 
@@ -29,6 +33,22 @@ const connectionHandler: MessageHandler<
       `failed to find match associated with player ${player.getUUID()}`
     );
   }
+
+  if (data.playerId === player.getUUID()) {
+    // If the player successfully reconnected, then we need to ensure their
+    // previous socket is closed to prevent any funny business or odd
+    // behaviour. The previous socket can be found closed their playerId
+    log.info(
+      'player reconnected. removing previous socket from pool if it exists'
+    );
+    getSocketDataContainerByPlayerUUID(data.playerId)?.close();
+  }
+
+  log.info(`adding player ${player.getUUID()} to their socket container`);
+  container.setPlayerInfo({
+    uuid: player.getUUID(),
+    username: player.getUsername()
+  });
 
   if (opponent && opponent.isAiPlayer()) {
     // Need to create the AI agent anytime the player connects/reconnects. This
@@ -46,8 +66,10 @@ const connectionHandler: MessageHandler<
     // that an opponent has been found. They might already be aware, but better
     // safe than sorry...or bored in their case since they could be left
     // sitting and waiting for this message if we don't make sure to send it
-    const sock = players.getSocketForPlayer(opponent);
-    if (!sock) {
+    const opponentConatiner = getSocketDataContainerByPlayerUUID(
+      opponent.getUUID()
+    );
+    if (!opponentConatiner) {
       log.warn(
         `unable to inform opponent (${opponent.getUUID()}) of player ${player.getUUID()} that an opponent was found, since their socket is missing. they must have disconnected. this is OK, since they'll get updated on reconnecting`
       );
@@ -55,7 +77,7 @@ const connectionHandler: MessageHandler<
       log.info(
         `sending configuration to opponent (${opponent.getUUID()}) of player ${player.getUUID()}`
       );
-      send(sock, {
+      opponentConatiner.send({
         type: OutgoingMsgType.Configuration,
         data: new PlayerConfiguration(game, opponent, match, player).toJSON()
       });
@@ -74,15 +96,25 @@ const connectionHandler: MessageHandler<
  * @param aiOpponent {Player}
  * @param gameId {String}
  */
-async function createAiOpponentAgent(aiOpponent: Player, gameId: string) {
-  await http(AI_AGENT_SERVER_URL, {
+function createAiOpponentAgent(aiOpponent: Player, gameId: string) {
+  http(AI_AGENT_SERVER_URL, {
     method: 'POST',
     json: {
       gameId,
       uuid: aiOpponent.getUUID(),
       username: aiOpponent.getUsername()
     }
-  });
+  })
+    .then(() => {
+      log.debug(`successfully created AI agent ${aiOpponent.getUUID()}`);
+    })
+    .catch((e) => {
+      log.error(
+        `error returned when creating AI Agent player: %j`,
+        aiOpponent.toJSON()
+      );
+      log.error(e);
+    });
 }
 
 export default connectionHandler;

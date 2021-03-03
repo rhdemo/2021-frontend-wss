@@ -1,4 +1,3 @@
-import WebSocket from 'ws';
 import log from '@app/log';
 import * as matchmaking from '@app/stores/matchmaking';
 import * as players from '@app/stores/players';
@@ -14,9 +13,11 @@ import {
 import PlayerConfiguration, {
   PlayerConfigurationData
 } from '@app/models/player.configuration';
-import { getPlayerSpecificData, send } from './common';
 import * as ml from '@app/ml';
 import { AttackResult } from '@app/payloads/common';
+import { getSocketDataContainerByPlayerUUID } from './player.sockets';
+import PlayerSocketDataContainer from './player.socket.container';
+import { getPlayerSpecificData } from './common';
 
 type AttackResponse = {
   // UUID of the player that performed the attack
@@ -29,16 +30,16 @@ type MergedAttackReponse = AttackResponse & PlayerConfigurationData;
 const attackHandler: MessageHandler<
   AttackDataPayload,
   MergedAttackReponse | ValidationErrorPayload
-> = async (ws: WebSocket, attack: AttackDataPayload) => {
-  const wsPlayer = players.getPlayerAssociatedWithSocket(ws);
+> = async (container: PlayerSocketDataContainer, attack: AttackDataPayload) => {
+  const info = container.getPlayerInfo();
 
-  if (!wsPlayer) {
+  if (!info) {
     throw new Error('failed to find player associated with this websocket');
   }
 
   // Despite the fact a player is associated with a socket, we always
   // use the cache as a source of truth. The socket is a lookup reference
-  const player = await players.getPlayerWithUUID(wsPlayer.getUUID());
+  const player = await players.getPlayerWithUUID(info.uuid);
   if (!player) {
     throw new Error('failed to find player data');
   }
@@ -178,9 +179,9 @@ const attackHandler: MessageHandler<
 
   // If the opponent is connected, update with attack results too
   // If they're not connected they'll get updated on reconnect
-  const opponentSocket = players.getSocketForPlayer(opponent);
+  const opponentSocket = getSocketDataContainerByPlayerUUID(opponent.getUUID());
   if (opponentSocket) {
-    send(opponentSocket, {
+    opponentSocket.send({
       type: OutgoingMsgType.AttackResult,
       data: {
         result: attackResult,

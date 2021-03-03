@@ -2,7 +2,7 @@ import { Server } from 'http';
 import { CellArea, CellPosition, Orientation } from '@app/game/types';
 import got, { OptionsOfTextResponseBody } from 'got';
 import { Agent } from 'http';
-import { getAllPossibleShipLayouts } from './game/layouts';
+import { getAllPossibleShipLayouts } from '@app/game/layouts';
 
 const DEFAULT_AGENTS: OptionsOfTextResponseBody['agent'] = {
   // TODO: maybe try the new undici http library?

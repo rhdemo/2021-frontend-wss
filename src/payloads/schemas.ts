@@ -3,6 +3,11 @@ import { GAME_GRID_SIZE } from '@app/config';
 import { ShipType, Orientation, CellArea } from '@app/game/types';
 import { nanoid } from 'nanoid';
 
+export const DEFAULT_JOI_OPTS: Joi.ValidationOptions = {
+  stripUnknown: true,
+  abortEarly: false
+};
+
 export const ManualEventSchema = Joi.object({
   ts: Joi.date()
     .timestamp('javascript')

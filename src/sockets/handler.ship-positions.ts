@@ -1,4 +1,3 @@
-import WebSocket from 'ws';
 import log from '@app/log';
 import { GameState } from '@app/models/game.configuration';
 import PlayerConfiguration, {
@@ -8,22 +7,30 @@ import * as players from '@app/stores/players';
 import { ShipPositionData } from '@app/game/types';
 import { validateShipPlacement } from '@app/game';
 import { OutgoingMsgType } from '@app/payloads/outgoing';
-import { MessageHandler, getPlayerSpecificData } from './common';
+import { getPlayerSpecificData } from './common';
+import PlayerSocketDataContainer from './player.socket.container';
+import { MessageHandler } from './common';
 
 const shipPositionHandler: MessageHandler<
   ShipPositionData,
   PlayerConfigurationData
-> = async (ws: WebSocket, data: ShipPositionData) => {
+> = async (container: PlayerSocketDataContainer, data: ShipPositionData) => {
   log.debug('processing ship-postion payload: %j', data);
   let validatedPlacementData: undefined | ShipPositionData;
 
-  const player = players.getPlayerAssociatedWithSocket(ws);
-  if (!player) {
+  const info = container.getPlayerInfo();
+  if (!info) {
     // TODO: Improve error handling. This could occur if a player disconnects
     // then reconnects, since we do not enforce a second connect sequence
     throw new Error(
       'failed to find player data associated with this websocket'
     );
+  }
+
+  const player = await players.getPlayerWithUUID(info.uuid);
+
+  if (!player) {
+    throw new Error(`failed to read player ${info.uuid} from cache`);
   }
 
   const { game, match } = await getPlayerSpecificData(player);
