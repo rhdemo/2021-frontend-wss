@@ -156,9 +156,11 @@ export default class PlayerSocketDataContainer {
   }
 
   close() {
-    // Close with a "normal" 1000 close code
-    this.ws.close(1000);
-    clearInterval(this.kickTimer)
+    if (this.ws.readyState in [WebSocket.OPEN, WebSocket.CONNECTING]) {
+      // Close with a "normal" 1000 close code
+      this.ws.close(1000);
+    }
+    clearInterval(this.kickTimer);
   }
 
   isLocked() {

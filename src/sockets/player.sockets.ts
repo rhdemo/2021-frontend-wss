@@ -5,6 +5,7 @@ import PlayerSocketDataContainer from './player.socket.container';
 const socks = new Map<WebSocket, PlayerSocketDataContainer>();
 
 export function deleteSocketDataContainer(ws: WebSocket) {
+  socks.get(ws)?.close();
   socks.delete(ws);
 }
 
