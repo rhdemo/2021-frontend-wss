@@ -303,7 +303,16 @@ export default class Player extends Model<PlayerData> {
 
     return {
       username: this.username,
-      attacks: this.attacks,
+      attacks: this.attacks.map((a) => {
+        const atk = {
+          ...a
+        };
+
+        // Remove prediction data from outgoing messages
+        delete a.attack.prediction;
+
+        return atk;
+      }),
       uuid: this.getUUID(),
       board
     };

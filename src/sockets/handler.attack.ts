@@ -85,6 +85,15 @@ const attackHandler: MessageHandler<
     };
   }
 
+  if (!player.isAiPlayer() && attack.prediction) {
+    return {
+      type: OutgoingMsgType.BadPayload,
+      data: {
+        info: `"prediction" key not allowed in data payload`
+      }
+    };
+  }
+
   log.info(
     `determine player ${player.getUUID()} attack hit/miss vs ${opponent.getUUID()}. Attack data %j`,
     attack

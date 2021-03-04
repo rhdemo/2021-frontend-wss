@@ -1,5 +1,13 @@
 import { CellArea, CellPosition, Orientation } from '@app/game/types';
 
+type ProbabilityMatrix = [
+  [number, number, number, number, number],
+  [number, number, number, number, number],
+  [number, number, number, number, number],
+  [number, number, number, number, number],
+  [number, number, number, number, number]
+];
+
 export enum IncomingMsgType {
   Connection = 'connection',
   ShipPositions = 'ship-positions',
@@ -23,4 +31,9 @@ export type AttackDataPayload = {
   type: CellArea;
   origin: CellPosition;
   orientation: Orientation;
+  prediction?: {
+    prob: ProbabilityMatrix;
+    x: number;
+    y: number;
+  };
 };

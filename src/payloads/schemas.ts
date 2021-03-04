@@ -3,6 +3,8 @@ import { GAME_GRID_SIZE } from '@app/config';
 import { ShipType, Orientation, CellArea } from '@app/game/types';
 import { nanoid } from 'nanoid';
 
+const MAX_CELL_NUMBER = GAME_GRID_SIZE - 1;
+
 export const DEFAULT_JOI_OPTS: Joi.ValidationOptions = {
   stripUnknown: true,
   abortEarly: false
@@ -37,11 +39,7 @@ export const ShipSchema = Joi.object({
   origin: Joi.array()
     .min(2)
     .max(2)
-    .items(
-      Joi.number()
-        .min(0)
-        .max(GAME_GRID_SIZE - 1)
-    )
+    .items(Joi.number().integer().min(0).max(MAX_CELL_NUMBER))
     .required(),
   orientation: Joi.string()
     .allow(Orientation.Vertical, Orientation.Horizontal)
@@ -64,14 +62,35 @@ export const ShipsLockedPayloadSchema = Joi.object({
 
 export const AttackPayloadSchema = Joi.object({
   type: Joi.string().valid(CellArea['1x1']).required(),
+
+  // This is used to determine if the human selected the attack. If this is
+  // set to false it means a player didn't choose a move quickly and the
+  // frontend JS chose a random attack for them instead. This keeps the game
+  // moving at a minimum pace
   human: Joi.boolean().default(true),
   origin: Joi.array()
     .min(2)
     .max(2)
-    .items(
-      Joi.number()
-        .min(0)
-        .max(GAME_GRID_SIZE - 1)
-    )
-    .required()
+    .items(Joi.number().integer().min(0).max(MAX_CELL_NUMBER))
+    .required(),
+
+  // The prediction associated with a score is only stored if the sender is an
+  // AI Agent player. A regular player could send it, but we'll ignore it
+  prediction: Joi.object({
+    // This is a matrix of probability scores for each cell on the board.
+    // For example, a 5x5 board might have a prediction matrix like so:
+    // [[8,11,12,11,8],[11,14,15,14,11],[12,15,16,15,12],[11,14,15,14,11],[8,11,12,11,8]]
+    prob: Joi.array()
+      .items(
+        Joi.array()
+          .items(Joi.number().integer())
+          .min(GAME_GRID_SIZE)
+          .max(GAME_GRID_SIZE)
+      )
+      .min(GAME_GRID_SIZE)
+      .max(GAME_GRID_SIZE)
+      .required(),
+    x: Joi.number().integer().min(0).max(MAX_CELL_NUMBER).required(),
+    y: Joi.number().integer().min(0).max(MAX_CELL_NUMBER).required()
+  })
 });
