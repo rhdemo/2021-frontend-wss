@@ -24,6 +24,8 @@ export type ShotEventData = {
   against: string;
   origin: `${number},${number}`;
   human: boolean;
+  consecutiveHitsCount: number;
+  shotCount: number;
 };
 
 type WinLoseEventData = {
@@ -31,6 +33,7 @@ type WinLoseEventData = {
   game: string;
   match: string;
   player: string;
+  shotCount: number;
 };
 
 /**
@@ -47,7 +50,6 @@ function sendEvent(type: EventType, data: unknown) {
       data
     })
   );
-
   log.debug('sending cloud event: %j', ce);
 
   return http(CLOUD_EVENT_BROKER_URL, {

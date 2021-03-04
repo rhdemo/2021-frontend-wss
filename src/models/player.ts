@@ -168,6 +168,38 @@ export default class Player extends Model<PlayerData> {
   }
 
   /**
+   * Return the number of shots that this player has fired so far.
+   */
+  getShotsFiredCount() {
+    return this.attacks.length;
+  }
+
+  /**
+   * Return the number of successive shots in a row that have been successful
+   * hits. This could be zero for most of the game if the player is unfortunate
+   * or unattentive.
+   */
+  getContinuousHitsCount() {
+    // Sort the attacks in order of most recent first
+    const attacksInTimeOrder = this.attacks
+      .slice()
+      .sort((a, b) => (a.ts > b.ts ? -1 : 1));
+
+    // Then increase the counter for each successful hit, then break the
+    // loop once a miss is detected
+    let count = 0;
+    for (const atk of attacksInTimeOrder) {
+      if (atk.result.hit) {
+        count++;
+      } else {
+        break;
+      }
+    }
+
+    return count;
+  }
+
+  /**
    * Returns the information for all cells occupied by this player's ships
    */
   private getAllShipCells(): Array<StoredShipDataCell> {

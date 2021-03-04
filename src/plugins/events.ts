@@ -92,6 +92,8 @@ const eventsPlugin: FastifyPluginCallback = (server, options, done) => {
               match: body.match,
               human: true,
               game: body.game,
+              consecutiveHitsCount: body.consecutiveHitsCount,
+              shotCount: body.shotCount,
               ts: body.ts || Date.now(),
               // This line causes a funky compiler error without the cast and as const...
               origin: (body.origin as any) || (`${0},${0}` as const),
@@ -105,6 +107,8 @@ const eventsPlugin: FastifyPluginCallback = (server, options, done) => {
               against: body.against,
               match: body.match,
               human: true,
+              consecutiveHitsCount: body.consecutiveHitsCount,
+              shotCount: body.shotCount,
               game: body.game,
               ts: body.ts || Date.now(),
               // This line causes a funky compiler error without the cast and as const...
@@ -119,6 +123,8 @@ const eventsPlugin: FastifyPluginCallback = (server, options, done) => {
               match: body.match,
               human: true,
               game: body.game,
+              consecutiveHitsCount: body.consecutiveHitsCount,
+              shotCount: body.shotCount,
               ts: body.ts || Date.now(),
               // This line causes a funky compiler error without the cast and as const...
               origin: (body.origin as any) || (`${0},${0}` as const),
@@ -130,6 +136,7 @@ const eventsPlugin: FastifyPluginCallback = (server, options, done) => {
             await SendEvents.win({
               player: body.player,
               match: body.match,
+              shotCount: body.shotCount,
               human: true,
               game: body.game
             });
@@ -139,6 +146,7 @@ const eventsPlugin: FastifyPluginCallback = (server, options, done) => {
             await SendEvents.lose({
               player: body.player,
               match: body.match,
+              shotCount: body.shotCount,
               human: true,
               game: body.game
             });

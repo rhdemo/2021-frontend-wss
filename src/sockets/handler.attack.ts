@@ -108,6 +108,8 @@ const attackHandler: MessageHandler<
       against: opponent.getUUID(),
       origin: `${attack.origin[0]},${attack.origin[1]}` as const,
       ts: Date.now(),
+      consecutiveHitsCount: player.getContinuousHitsCount(),
+      shotCount: player.getShotsFiredCount(),
       match: match.getUUID(),
       type: attackResult.type
     });
@@ -119,6 +121,8 @@ const attackHandler: MessageHandler<
         game: game.getUUID(),
         human: !player.isAiPlayer(),
         against: opponent.getUUID(),
+        consecutiveHitsCount: player.getContinuousHitsCount(),
+        shotCount: player.getShotsFiredCount(),
         ts: Date.now(),
         type: attackResult.type,
         match: match.getUUID(),
@@ -135,6 +139,8 @@ const attackHandler: MessageHandler<
       by: player.getUUID(),
       game: game.getUUID(),
       human: !player.isAiPlayer(),
+      consecutiveHitsCount: player.getContinuousHitsCount(),
+      shotCount: player.getShotsFiredCount(),
       against: opponent.getUUID(),
       origin: `${attack.origin[0]},${attack.origin[1]}` as const,
       ts: Date.now(),
@@ -165,13 +171,15 @@ const attackHandler: MessageHandler<
       game: game.getUUID(),
       match: match.getUUID(),
       human: isWinnerHuman,
-      player: player.getUUID()
+      player: player.getUUID(),
+      shotCount: player.getShotsFiredCount()
     });
     ce.lose({
       game: game.getUUID(),
       match: match.getUUID(),
       human: !isWinnerHuman,
-      player: opponent.getUUID()
+      player: opponent.getUUID(),
+      shotCount: opponent.getShotsFiredCount()
     });
 
     // Write payload to storage for analysis by ML services
