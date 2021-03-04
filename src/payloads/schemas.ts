@@ -16,6 +16,8 @@ export const ManualEventSchema = Joi.object({
   game: Joi.string().default(() => nanoid()),
   match: Joi.string().default(() => nanoid()),
   against: Joi.string().default(() => nanoid()),
+  consecutiveHitsCount: Joi.number().min(0).default(0),
+  shotCount: Joi.number().min(0).default(0),
   type: Joi.string().valid(
     ShipType.Battleship,
     ShipType.Carrier,
