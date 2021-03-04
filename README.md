@@ -22,15 +22,15 @@ git clone https://github.com/rhdemo/2021-ai-agent-server
 # Start the infinispan server and game websocket server
 cd 2021-frontend-wss
 ./scripts/infinispan/infinispan-docker-compose/infinispan.start.sh
-./scripts/node/node.start.sh
+./scripts/node.sh
 
 # Start the AI Agent service (in another terminal)
 cd 2021-ai-agent-server
-./scripts/node.start.sh
+./scripts/node.sh
 
 # Start the Admin HQ (in another terminal)
 cd 2021-admin-hq
-./scripts/node.start.sh
+./scripts/node.sh
 
 # Start the UI service (in another terminal)
 cd 2021-frontend-css-html
