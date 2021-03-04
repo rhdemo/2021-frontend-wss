@@ -40,7 +40,6 @@ export default class PlayerSocketDataContainer {
             this.playerInfo?.uuid || '*uninitialised*'
           }`
         );
-        clearInterval(this.kickTimer);
         this.close();
       } else {
         log.trace(
@@ -159,6 +158,7 @@ export default class PlayerSocketDataContainer {
   close() {
     // Close with a "normal" 1000 close code
     this.ws.close(1000);
+    clearInterval(this.kickTimer)
   }
 
   isLocked() {
