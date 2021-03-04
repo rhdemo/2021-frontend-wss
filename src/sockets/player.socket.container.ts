@@ -1,4 +1,4 @@
-import { NODE_ENV } from '@app/config';
+import { NODE_ENV, WS_ACTIVITY_TIMEOUT } from '@app/config';
 import log from '@app/log';
 import { WsPayload } from '@app/payloads/incoming';
 import { OutgoingMsgType } from '@app/payloads/outgoing';
@@ -18,11 +18,39 @@ import { HandlerNotFoundError, processSocketMessage } from './handlers';
 export default class PlayerSocketDataContainer {
   private locked = false;
   private sequence = 0;
+  private lastRecvTs!: number;
+  private kickTimer: NodeJS.Timeout;
   private playerInfo:
     | undefined
     | { uuid: string; username: string } = undefined;
 
-  constructor(private ws: WebSocket) {}
+  constructor(private ws: WebSocket) {
+    this.kickTimer = setInterval(() => {
+      // Check if this socket is still in active use. An active socket is one
+      // that has received a message from a client in the past 5 minutes.
+      // If a client has sent no payloads by the time the first interval is run
+      // we also kick them since they should initialise a session immediately.
+      const now = Date.now();
+      if (
+        this.lastRecvTs === undefined ||
+        now - this.lastRecvTs > WS_ACTIVITY_TIMEOUT
+      ) {
+        log.info(
+          `kicking inactive socket for player ${
+            this.playerInfo?.uuid || '*uninitialised*'
+          }`
+        );
+        clearInterval(this.kickTimer);
+        this.close();
+      } else {
+        log.trace(
+          `not kicking player/socket ${
+            this.playerInfo?.uuid || '*uninitialised*'
+          } since they\'ve been active`
+        );
+      }
+    }, 60 * 1000);
+  }
 
   send(response: MessageHandlerResponse) {
     try {
@@ -63,6 +91,10 @@ export default class PlayerSocketDataContainer {
       // Lock the socket mutex. Any new messages received from a client will be
       // ignored until we finish processing the current message.
       this.lock();
+
+      // Note the time that we received this message. This can be used to close
+      // inactive sockets that are hanging around
+      this.lastRecvTs = Date.now();
 
       try {
         const json = JSON.parse(data.toString());
@@ -125,7 +157,8 @@ export default class PlayerSocketDataContainer {
   }
 
   close() {
-    this.ws.close();
+    // Close with a "normal" 1000 close code
+    this.ws.close(1000);
   }
 
   isLocked() {

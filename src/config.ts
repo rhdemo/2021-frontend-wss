@@ -17,6 +17,11 @@ const config = {
     .default('15000')
     .asIntPositive(),
 
+  // If a player action is not received within this time we close their socket
+  WS_ACTIVITY_TIMEOUT: get('WS_ACTIVITY_TIMEOUT')
+    .default(5 * 60 * 1000)
+    .asIntPositive(),
+
   // This is the grid size for the game, e.g "5" would produce a 5x5 grid
   GAME_GRID_SIZE: get('GAME_GRID_SIZE').default(5).asIntPositive(),
 
