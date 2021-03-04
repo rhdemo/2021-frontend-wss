@@ -58,6 +58,9 @@ export function processEvent(evt: CloudEvent) {
     case EventType.MissProcessed:
       log.info(`received "${evt.type}" event`);
       break;
+    case EventType.SinkProcessed:
+      log.info(`received "${evt.type}" event`);
+      break;
     case EventType.BonusProcessed:
       log.info(`received "${evt.type}" event`);
       break;
