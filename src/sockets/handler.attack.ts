@@ -3,6 +3,7 @@ import * as matchmaking from '@app/stores/matchmaking';
 import * as players from '@app/stores/players';
 import { GameState } from '@app/models/game.configuration';
 import * as ce from '@app/cloud-events/send';
+import * as ceNew from '@app/cloud-events/send.new';
 import { isGameOverForPlayer } from '@app/game';
 import { MessageHandler } from './common';
 import { AttackDataPayload } from '@app/payloads/incoming';
@@ -99,7 +100,12 @@ const attackHandler: MessageHandler<
     attack
   );
 
+  // Apply the attack against the opponent to determine the hit vs. miss and
+  // if a ship has been destroyed as a result
   const attackResult: AttackResult = opponent.determineAttackResult(attack);
+
+  // Record the attack result in the attacking players state
+  player.recordAttackResult(attack, attackResult);
 
   if (attackResult.hit) {
     log.info(
@@ -121,6 +127,33 @@ const attackHandler: MessageHandler<
       shotCount: player.getShotsFiredCount(),
       match: match.getUUID(),
       type: attackResult.type
+    });
+
+    // Send the new cloud event type until we move away from the previous hit/miss/sink
+    ceNew.attack({
+      ts: Date.now(),
+      game: game.getUUID(),
+      hit: attackResult.hit,
+      match: match.getUUID(),
+      destroyed: attackResult.type,
+      origin: `${attack.origin[0]},${attack.origin[1]}` as const,
+      by: {
+        username: player.getUsername(),
+        uuid: player.getUUID(),
+        board: player.getShipPositionData(),
+        human: !player.isAiPlayer(),
+        shotCount: player.getShotsFiredCount(),
+        consecutiveHitsCount: player.getContinuousHitsCount(),
+        prediction: attack.prediction
+      },
+      against: {
+        username: opponent.getUsername(),
+        uuid: opponent.getUUID(),
+        board: opponent.getShipPositionData(),
+        human: !opponent.isAiPlayer(),
+        shotCount: opponent.getShotsFiredCount(),
+        consecutiveHitsCount: opponent.getContinuousHitsCount()
+      }
     });
 
     if (attackResult.destroyed) {
@@ -157,9 +190,6 @@ const attackHandler: MessageHandler<
     });
   }
 
-  // Record the attack result in the attacking players state
-  player.recordAttackResult(attack, attackResult);
-
   // Save both updated player objects to cache
   await Promise.all([
     players.upsertPlayerInCache(player),
@@ -189,6 +219,24 @@ const attackHandler: MessageHandler<
       human: !isWinnerHuman,
       player: opponent.getUUID(),
       shotCount: opponent.getShotsFiredCount()
+    });
+
+    ceNew.matchEnd({
+      ts: Date.now(),
+      game: game.getUUID(),
+      match: match.getUUID(),
+      winner: {
+        username: player.getUsername(),
+        uuid: player.getUUID(),
+        human: !player.isAiPlayer(),
+        board: player.getShipPositionData()
+      },
+      loser: {
+        username: opponent.getUsername(),
+        uuid: opponent.getUUID(),
+        human: !opponent.isAiPlayer(),
+        board: opponent.getShipPositionData()
+      }
     });
 
     // Write payload to storage for analysis by ML services

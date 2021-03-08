@@ -8,6 +8,12 @@ type ProbabilityMatrix = [
   [number, number, number, number, number]
 ];
 
+export type PredictionData = {
+  prob: ProbabilityMatrix;
+  x: number;
+  y: number;
+};
+
 export enum IncomingMsgType {
   Connection = 'connection',
   ShipPositions = 'ship-positions',
@@ -31,9 +37,5 @@ export type AttackDataPayload = {
   type: CellArea;
   origin: CellPosition;
   orientation: Orientation;
-  prediction?: {
-    prob: ProbabilityMatrix;
-    x: number;
-    y: number;
-  };
+  prediction?: PredictionData;
 };

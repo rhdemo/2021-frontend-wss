@@ -39,7 +39,7 @@ type StoredAttackData = {
  * The ship data that is stored includes the cells and their current state,
  * i.e if they have been hit by an attack
  */
-type StoredShipData = {
+export type StoredShipData = {
   type: ShipType;
   origin: CellPosition;
   orientation: Orientation;
@@ -49,7 +49,7 @@ type StoredShipData = {
 /**
  * Container type to store player ship position data.
  */
-type PlayerPositionData = {
+export type PlayerPositionData = {
   [key in ShipType]: StoredShipData;
 };
 

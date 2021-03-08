@@ -9,6 +9,7 @@ import PlayerConfiguration from '@app/models/player.configuration';
 import { OutgoingMsgType } from '@app/payloads/outgoing';
 import { getPlayerSpecificData } from '@app/sockets/common';
 import { getSocketDataContainerByPlayerUUID } from '@app/sockets/player.sockets';
+import * as newCe from '@app/cloud-events/send.new';
 
 export default async function playerDataGridEventHandler(
   client: InfinispanClient,
@@ -61,6 +62,24 @@ export default async function playerDataGridEventHandler(
           match.setMatchReady();
 
           await upsertMatchInCache(match);
+
+          newCe.matchStart({
+            ts: Date.now(),
+            game: game.getUUID(),
+            match: match.getUUID(),
+            playerA: {
+              uuid: player.getUUID(),
+              username: player.getUsername(),
+              board: player.getShipPositionData(),
+              human: !player.isAiPlayer()
+            },
+            playerB: {
+              uuid: opponent.getUUID(),
+              username: opponent.getUsername(),
+              board: opponent.getShipPositionData(),
+              human: !player.isAiPlayer()
+            }
+          });
 
           updatePlayer(player, opponent, game, match);
           updatePlayer(opponent, player, game, match);
