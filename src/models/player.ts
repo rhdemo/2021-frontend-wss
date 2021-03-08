@@ -12,7 +12,7 @@ import {
   ShipType
 } from '@app/game/types';
 import Model from './model';
-import { AttackResult } from '@app/payloads/common';
+import { AttackResult, AttackResultHitDestroy } from '@app/payloads/common';
 import log from '@app/log';
 
 /**
@@ -255,7 +255,7 @@ export default class Player extends Model<PlayerData> {
       return {
         ...hitCell,
         destroyed
-      };
+      } as AttackResultHitDestroy;
     } else {
       return {
         hit: false,

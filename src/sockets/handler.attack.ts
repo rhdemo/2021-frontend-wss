@@ -130,31 +130,14 @@ const attackHandler: MessageHandler<
     });
 
     // Send the new cloud event type until we move away from the previous hit/miss/sink
-    ceNew.attack({
-      ts: Date.now(),
-      game: game.getUUID(),
-      hit: attackResult.hit,
-      match: match.getUUID(),
-      destroyed: attackResult.type,
-      origin: `${attack.origin[0]},${attack.origin[1]}` as const,
-      by: {
-        username: player.getUsername(),
-        uuid: player.getUUID(),
-        board: player.getShipPositionData(),
-        human: !player.isAiPlayer(),
-        shotCount: player.getShotsFiredCount(),
-        consecutiveHitsCount: player.getContinuousHitsCount(),
-        prediction: attack.prediction
-      },
-      against: {
-        username: opponent.getUsername(),
-        uuid: opponent.getUUID(),
-        board: opponent.getShipPositionData(),
-        human: !opponent.isAiPlayer(),
-        shotCount: opponent.getShotsFiredCount(),
-        consecutiveHitsCount: opponent.getContinuousHitsCount()
-      }
-    });
+    ceNew.attack(
+      game,
+      match,
+      player,
+      opponent,
+      attackResult,
+      attack.prediction
+    );
 
     if (attackResult.destroyed) {
       // Send a sink cloud event when a ship has been destroyed
@@ -221,23 +204,7 @@ const attackHandler: MessageHandler<
       shotCount: opponent.getShotsFiredCount()
     });
 
-    ceNew.matchEnd({
-      ts: Date.now(),
-      game: game.getUUID(),
-      match: match.getUUID(),
-      winner: {
-        username: player.getUsername(),
-        uuid: player.getUUID(),
-        human: !player.isAiPlayer(),
-        board: player.getShipPositionData()
-      },
-      loser: {
-        username: opponent.getUsername(),
-        uuid: opponent.getUUID(),
-        human: !opponent.isAiPlayer(),
-        board: opponent.getShipPositionData()
-      }
-    });
+    ceNew.matchEnd(game, match, player, opponent);
 
     // Write payload to storage for analysis by ML services
     ml.writeGameRecord(player, opponent, match, game);

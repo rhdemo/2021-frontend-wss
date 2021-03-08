@@ -63,23 +63,7 @@ export default async function playerDataGridEventHandler(
 
           await upsertMatchInCache(match);
 
-          newCe.matchStart({
-            ts: Date.now(),
-            game: game.getUUID(),
-            match: match.getUUID(),
-            playerA: {
-              uuid: player.getUUID(),
-              username: player.getUsername(),
-              board: player.getShipPositionData(),
-              human: !player.isAiPlayer()
-            },
-            playerB: {
-              uuid: opponent.getUUID(),
-              username: opponent.getUsername(),
-              board: opponent.getShipPositionData(),
-              human: !opponent.isAiPlayer()
-            }
-          });
+          newCe.matchStart(game, match, player, opponent);
 
           updatePlayer(player, opponent, game, match);
           updatePlayer(opponent, player, game, match);

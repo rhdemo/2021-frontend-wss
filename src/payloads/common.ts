@@ -1,15 +1,27 @@
 import { CellPosition, ShipType } from '@app/game/types';
 
-export type AttackResultHit = {
+export type AttackResultBase = {
+  hit: boolean;
   origin: CellPosition;
-  hit: true;
-  destroyed: boolean;
-  type: ShipType;
 };
+
+export type AttackResultHit = {
+  hit: true;
+  destroyed: false;
+  type: ShipType;
+} & AttackResultBase;
+
+export type AttackResultHitDestroy = {
+  hit: true;
+  destroyed: true;
+  type: ShipType;
+} & AttackResultBase;
 
 export type AttackResultMiss = {
-  origin: CellPosition;
   hit: false;
-};
+} & AttackResultBase;
 
-export type AttackResult = AttackResultHit | AttackResultMiss;
+export type AttackResult =
+  | AttackResultHit
+  | AttackResultHitDestroy
+  | AttackResultMiss;
