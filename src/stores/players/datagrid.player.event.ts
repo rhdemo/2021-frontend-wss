@@ -77,7 +77,7 @@ export default async function playerDataGridEventHandler(
               uuid: opponent.getUUID(),
               username: opponent.getUsername(),
               board: opponent.getShipPositionData(),
-              human: !player.isAiPlayer()
+              human: !opponent.isAiPlayer()
             }
           });
 
