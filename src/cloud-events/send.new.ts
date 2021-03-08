@@ -69,7 +69,7 @@ function sendEvent(type: EventType, data: unknown) {
       data
     })
   );
-  console.log('xxx', ce.body);
+
   log.debug('sending cloud event: %j', ce);
 
   return http(CLOUD_EVENT_BROKER_URL, {

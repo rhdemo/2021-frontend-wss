@@ -27,8 +27,8 @@ export function parse(
   body: FastifyRequest['body']
 ): CloudEvent {
   log.trace('parsing cloud event. data: %j', {
-    body,
-    headers
+    headers,
+    body
   });
 
   return HTTP.toEvent({
@@ -42,6 +42,7 @@ export function parse(
  * @param evt
  */
 export function isKnownEventType(evt: CloudEvent): boolean {
+  log.trace(`checking if "${evt.type}" is in known types: %j`, ValidEvents);
   return evt.type in ValidEvents;
 }
 
