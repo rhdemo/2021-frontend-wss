@@ -1,17 +1,36 @@
 import { FastifyPluginCallback, FastifyRequest } from 'fastify';
 import fp from 'fastify-plugin';
 import { send as SendEvents, recv as RecvEvents } from '@app/cloud-events';
+import * as NewCE from '@app/cloud-events/send.new';
 import { ValidationError } from 'cloudevents';
 import { NODE_ENV } from '@app/config';
 import { ShipType } from '@app/game/types';
 import log from '@app/log';
 import { DEFAULT_JOI_OPTS, ManualEventSchema } from '@app/payloads/schemas';
+import GameConfiguration, { GameState } from '@app/models/game.configuration';
+import MatchInstance from '@app/models/match.instance';
+import Player from '@app/models/player';
+import { nanoid } from 'nanoid';
+import generateUserName from '@app/stores/players/username.generator';
+import Joi, { valid } from 'joi';
+import { AttackResult } from '@app/payloads/common';
 
 type PartialCloudEvent = {
   [K in keyof SendEvents.ShotEventData]?: SendEvents.ShotEventData[K];
 };
 type EventParams = { type: SendEvents.EventType };
 type EventBody = PartialCloudEvent & { type?: string; player?: string };
+
+type NewEventParams = { type: NewCE.EventType };
+type NewEventBody = {
+  game: { uuid: string };
+  match: {
+    uuid: string;
+    playerA: string;
+    playerB: string;
+  };
+  attack: AttackResult;
+};
 
 const eventsPlugin: FastifyPluginCallback = (server, options, done) => {
   /**
@@ -50,6 +69,112 @@ const eventsPlugin: FastifyPluginCallback = (server, options, done) => {
       }
     }
   });
+
+  if (NODE_ENV === 'dev') {
+    const GameSchema = Joi.object({
+      uuid: Joi.string()
+    }).default(() => {
+      return { uuid: nanoid() };
+    });
+    const MatchSchema = Joi.object({
+      uuid: Joi.string().default(() => nanoid()),
+      playerA: Joi.string().default(() => nanoid()),
+      playerB: Joi.string().default(() => nanoid())
+    }).default(() => {
+      return {
+        uuid: nanoid(),
+        playerA: nanoid(),
+        playerB: nanoid()
+      };
+    });
+    const AttackSchema = Joi.object({
+      destroyed: Joi.boolean(),
+      hit: Joi.boolean(),
+      origin: Joi.array().length(2).items(Joi.number().integer().max(4).min(0)),
+      type: Joi.string().valid(
+        ShipType.Carrier,
+        ShipType.Battleship,
+        ShipType.Destroyer,
+        ShipType.Submarine
+      )
+    }).default(() => {
+      return {
+        destroyed: false,
+        hit: true,
+        origin: [0, 0],
+        type: ShipType.Destroyer
+      };
+    });
+
+    const NewBody = Joi.object({
+      game: GameSchema,
+      match: MatchSchema,
+      attack: AttackSchema
+    });
+
+    server.route({
+      method: 'POST',
+      url: '/event/send/:type',
+      handler: async (
+        request: FastifyRequest<{ Params: NewEventParams }>,
+        reply
+      ) => {
+        const { params } = request;
+
+        const validation = NewBody.validate(
+          request.body || {},
+          DEFAULT_JOI_OPTS
+        );
+
+        if (validation.error) {
+          return reply.status(400).send(validation.error);
+        }
+
+        const body = validation.value as NewEventBody;
+        console.log('validated data', body);
+
+        log.info(
+          `received request to manually send "${params.type}" cloud event with body: %j`,
+          body
+        );
+
+        const game = new GameConfiguration(
+          body.game.uuid,
+          new Date().toISOString(),
+          GameState.Active
+        );
+        const match = new MatchInstance(
+          body.match.playerA,
+          body.match.playerB,
+          undefined,
+          true,
+          undefined,
+          body.match?.uuid
+        );
+        const player = new Player({
+          uuid: match.getPlayers().playerA,
+          username: generateUserName(),
+          isAi: false
+        });
+        player.setShipPositionData(player.getShipPositionData(), true);
+        const opponent = new Player({
+          uuid: match.getPlayers().playerB,
+          username: generateUserName(),
+          isAi: true
+        });
+        opponent.setShipPositionData(opponent.getShipPositionData(), true);
+
+        if (params.type === NewCE.EventType.Attack) {
+          try {
+            await NewCE.attack(game, match, player, opponent, body.attack);
+            return reply.send('OK');
+          } catch (e) {
+            return reply.status(500).send(e.toString());
+          }
+        }
+      }
+    });
+  }
 
   if (NODE_ENV === 'dev') {
     log.info(

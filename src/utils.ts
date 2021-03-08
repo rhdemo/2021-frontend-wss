@@ -12,6 +12,10 @@ const DEFAULT_AGENTS: OptionsOfTextResponseBody['agent'] = {
   })
 };
 
+export type AllFieldsAreOptional<T> = {
+  [K in keyof T]: T[K];
+};
+
 /**
  * Returns a random, but valid ship layout.
  */
