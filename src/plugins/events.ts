@@ -165,12 +165,16 @@ const eventsPlugin: FastifyPluginCallback = (server, options, done) => {
         opponent.setShipPositionData(opponent.getShipPositionData(), true);
 
         if (params.type === NewCE.EventType.Attack) {
-          try {
-            await NewCE.attack(game, match, player, opponent, body.attack);
-            return reply.send('OK');
-          } catch (e) {
-            return reply.status(500).send(e.toString());
-          }
+          await NewCE.attack(game, match, player, opponent, body.attack);
+          return `queued "${params.type}" cloud event`;
+        } else if (params.type === NewCE.EventType.MatchStart) {
+          await NewCE.matchStart(game, match, player, opponent);
+          return `queued "${params.type}" cloud event`;
+        } else if (params.type === NewCE.EventType.MatchEnd) {
+          await NewCE.matchEnd(game, match, player, opponent);
+          return `queued "${params.type}" cloud event`;
+        } else {
+          return reply.send(`unknown event type: "${params.type}"`);
         }
       }
     });
