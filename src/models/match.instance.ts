@@ -1,33 +1,59 @@
-import { assert } from 'console';
+import assert from 'assert';
 import log from '@app/log';
 import Model from './model';
 import Player from './player';
+import { ShipType } from '@app/game/types';
+
+type TurnState = {
+  phase: MatchPhase;
+
+  // The player whose UUID is set here is allowed to attack
+  activePlayer: string;
+  // If the bonus is set to a ship type then the client will
+  // trigger a bonus round attack against that ship
+  bonus?: ShipType;
+};
+
+export enum MatchPhase {
+  NotReady = 'not-ready',
+  Attack = 'attack',
+  Bonus = 'bonus',
+  Finished = 'finished'
+}
 
 export type MatchInstanceData = {
   uuid: string;
-  ready: boolean;
 
   // These for the player's "uuid" values, not their usernames
   playerA: string;
   playerB?: string;
 
-  // The player whose UUID is set here is active
-  activePlayer: string;
+  state: TurnState;
 
   // This will be set to the UUID of the winning player at some point
   winner?: string;
 };
 
 export default class MatchInstance extends Model<MatchInstanceData> {
+  private state: TurnState;
+
   constructor(
     private playerA: string,
     private playerB?: string,
-    private activePlayer = playerA,
-    private ready = false,
+    state?: TurnState,
     private winner?: string,
     uuid?: string
   ) {
     super(uuid);
+
+    if (!state) {
+      this.state = {
+        phase: MatchPhase.NotReady,
+        activePlayer: playerA
+      };
+    } else {
+      this.state = state;
+    }
   }
 
   static from(data: MatchInstanceData) {
@@ -35,8 +61,7 @@ export default class MatchInstance extends Model<MatchInstanceData> {
     return new MatchInstance(
       data.playerA,
       data.playerB,
-      data.activePlayer,
-      data.ready,
+      data.state,
       data.winner,
       data.uuid
     );
@@ -56,16 +81,20 @@ export default class MatchInstance extends Model<MatchInstanceData> {
     return this.playerB === undefined;
   }
 
+  isInPhase(p: MatchPhase) {
+    return this.state.phase === p;
+  }
+
   isPlayerTurn(player: Player) {
-    return this.activePlayer === player.getUUID();
+    return this.state.activePlayer === player.getUUID();
   }
 
   setMatchReady(ready = true) {
-    this.ready = ready;
+    this.state.phase = MatchPhase.Attack;
   }
 
-  isReady() {
-    return this.ready;
+  getMatchPhase() {
+    return this.state.phase;
   }
 
   setWinner(player: Player) {
@@ -74,25 +103,28 @@ export default class MatchInstance extends Model<MatchInstanceData> {
     this.winner = uuid;
   }
 
+  startBonusRound(type: ShipType) {
+    this.state.phase = MatchPhase.Bonus;
+    this.state.bonus = type;
+  }
+
   changeTurn() {
     if (!this.playerB) {
       assert('changeTurn() was called, but playerB is missing');
     }
 
-    if (!this.isReady()) {
+    if (this.getMatchPhase() === MatchPhase.NotReady) {
       assert('changeTurn() was called, but match is not yet ready');
     }
 
-    if (this.activePlayer === this.playerA && this.playerB) {
-      this.activePlayer = this.playerB;
+    if (this.state.activePlayer === this.playerA && this.playerB) {
+      this.state = { phase: MatchPhase.Attack, activePlayer: this.playerB };
     } else {
-      this.activePlayer = this.playerA;
+      this.state = { phase: MatchPhase.Attack, activePlayer: this.playerA };
     }
 
     log.trace(
-      `changed turn for match ${this.getUUID()}. active player is ${
-        this.activePlayer
-      }`
+      `changed turn for match ${this.getUUID()}. match state is ${this.state}`
     );
   }
 
@@ -123,10 +155,9 @@ export default class MatchInstance extends Model<MatchInstanceData> {
   toJSON(): MatchInstanceData {
     return {
       uuid: this.getUUID(),
-      ready: this.ready,
       playerA: this.playerA,
       playerB: this.playerB,
-      activePlayer: this.activePlayer,
+      state: this.state,
       winner: this.winner
     };
   }

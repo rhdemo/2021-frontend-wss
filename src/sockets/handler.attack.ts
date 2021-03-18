@@ -19,6 +19,7 @@ import { AttackResult } from '@app/payloads/common';
 import { getSocketDataContainerByPlayerUUID } from './player.sockets';
 import PlayerSocketDataContainer from './player.socket.container';
 import { getPlayerSpecificData } from './common';
+import { MatchPhase } from '@app/models/match.instance';
 
 type AttackResponse = {
   // UUID of the player that performed the attack
@@ -65,9 +66,9 @@ const attackHandler: MessageHandler<
     );
   }
 
-  if (!match.isReady()) {
+  if (!match.isInPhase(MatchPhase.Attack)) {
     throw new Error(
-      `player ${player.getUUID()} attempted an attack, but match instance is not ready`
+      `player ${player.getUUID()} attempted an attack, but match instance is not in attack state`
     );
   }
 
@@ -208,6 +209,9 @@ const attackHandler: MessageHandler<
 
     // Write payload to storage for analysis by ML services
     ml.writeGameRecord(player, opponent, match, game);
+  } else if (attackResult.hit && attackResult.destroyed) {
+    // The attack resulted in a ship sinking, start the bonus round
+    match.startBonusRound(attackResult.type);
   } else {
     // Change turns so the player that just received an attack can retaliate
     match.changeTurn();

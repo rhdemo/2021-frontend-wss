@@ -367,5 +367,3 @@ function createPositionDataWithCells(
     return updated;
   }, {} as PlayerPositionData);
 }
-
-module.exports = Player;

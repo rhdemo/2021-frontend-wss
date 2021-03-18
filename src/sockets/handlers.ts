@@ -3,6 +3,7 @@ import {
   ConnectionRequestPayloadSchema,
   ShipsLockedPayloadSchema,
   AttackPayloadSchema,
+  BonusPayloadSchema,
   DEFAULT_JOI_OPTS
 } from '@app/payloads/schemas';
 import log from '@app/log';
@@ -12,6 +13,7 @@ import attackHandler from './handler.attack';
 import connectionHandler from './handler.connection';
 import shipPositionHandler from './handler.ship-positions';
 import PlayerSocketDataContainer from './player.socket.container';
+import bonusHandler from './handler.bonus';
 
 type MessageHandlersContainer = {
   [key in IncomingMsgType]: {
@@ -32,6 +34,10 @@ const MessageHandlers: MessageHandlersContainer = {
   [IncomingMsgType.Attack]: {
     fn: attackHandler,
     schema: AttackPayloadSchema
+  },
+  [IncomingMsgType.Bonus]: {
+    fn: bonusHandler,
+    schema: BonusPayloadSchema
   }
 };
 

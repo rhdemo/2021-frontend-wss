@@ -1,5 +1,5 @@
 import Joi from 'joi';
-import { GAME_GRID_SIZE } from '@app/config';
+import { GAME_GRID_SIZE, GAME_MAX_BONUS_HITS } from '@app/config';
 import { ShipType, Orientation, CellArea } from '@app/game/types';
 import { nanoid } from 'nanoid';
 
@@ -93,4 +93,8 @@ export const AttackPayloadSchema = Joi.object({
     x: Joi.number().integer().min(0).max(MAX_CELL_NUMBER).required(),
     y: Joi.number().integer().min(0).max(MAX_CELL_NUMBER).required()
   })
+});
+
+export const BonusPayloadSchema = Joi.object({
+  hits: Joi.number().integer().min(0).max(GAME_MAX_BONUS_HITS).required()
 });

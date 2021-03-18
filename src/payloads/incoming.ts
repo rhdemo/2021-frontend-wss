@@ -17,7 +17,8 @@ export type PredictionData = {
 export enum IncomingMsgType {
   Connection = 'connection',
   ShipPositions = 'ship-positions',
-  Attack = 'attack'
+  Attack = 'attack',
+  Bonus = 'bonus'
 }
 
 export type WsPayload = {
@@ -38,4 +39,8 @@ export type AttackDataPayload = {
   origin: CellPosition;
   orientation: Orientation;
   prediction?: PredictionData;
+};
+
+export type BonusDataPayload = {
+  hits: number;
 };

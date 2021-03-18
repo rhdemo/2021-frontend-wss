@@ -1,10 +1,11 @@
-import { DATAGRID_GAME_DATA_KEY } from '@app/config';
+import { DATAGRID_GAME_DATA_KEY, GAME_BONUS_DURATION_MS } from '@app/config';
 import Model from './model';
 
 export type GameConfigurationData = {
   uuid: string;
   date: string;
   state: GameState;
+  bonusDuration: number;
 };
 
 export enum GameState {
@@ -39,7 +40,8 @@ export default class GameConfiguration extends Model<GameConfigurationData> {
     return {
       uuid: this.getUUID(),
       date: this.date,
-      state: this.state
+      state: this.state,
+      bonusDuration: GAME_BONUS_DURATION_MS
     };
   }
 }

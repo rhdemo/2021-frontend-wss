@@ -25,6 +25,14 @@ const config = {
   // This is the grid size for the game, e.g "5" would produce a 5x5 grid
   GAME_GRID_SIZE: get('GAME_GRID_SIZE').default(5).asIntPositive(),
 
+  // The duration of the bonus round in milliseconds
+  GAME_BONUS_DURATION_MS: get('GAME_BONUS_DURATION_MS')
+    .default(5000)
+    .asIntPositive(),
+
+  // Max number of hits a player can record in a bonus round
+  GAME_MAX_BONUS_HITS: get('GAME_MAX_BONUS_HITS').default(100).asIntPositive(),
+
   AI_AGENT_SERVER_URL: get('AI_AGENT_SERVER_URL')
     .default('http://ai-agent-server.ai.svc.cluster.local:8080/agent')
     .asUrlString(),
