@@ -118,7 +118,6 @@ export async function upsertPlayerInCache(player: Player) {
  * conflict with an existing player.
  */
 async function createNewPlayer(opts: { ai: boolean }): Promise<Player> {
-  log.info('creating a new player');
   const username = generateUserName();
   const uuid = nanoid();
 

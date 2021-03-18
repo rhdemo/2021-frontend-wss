@@ -39,12 +39,11 @@ const connectionHandler: MessageHandler<
     // previous socket is closed to prevent any funny business or odd
     // behaviour. The previous socket can be found closed their playerId
     log.info(
-      'player reconnected. removing previous socket from pool if it exists'
+      `player ${data.playerId} reconnected. removing previous socket from pool if it exists`
     );
     getSocketDataContainerByPlayerUUID(data.playerId)?.close();
   }
 
-  log.info(`adding player ${player.getUUID()} to their socket container`);
   container.setPlayerInfo({
     uuid: player.getUUID(),
     username: player.getUsername()
@@ -74,7 +73,7 @@ const connectionHandler: MessageHandler<
         `unable to inform opponent (${opponent.getUUID()}) of player ${player.getUUID()} that an opponent was found, since their socket is missing. they must have disconnected. this is OK, since they'll get updated on reconnecting`
       );
     } else {
-      log.info(
+      log.debug(
         `sending configuration to opponent (${opponent.getUUID()}) of player ${player.getUUID()}`
       );
       opponentConatiner.send({

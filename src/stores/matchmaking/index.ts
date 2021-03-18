@@ -17,7 +17,7 @@ async function createMatchInstanceWithPlayers(
   playerA: Player,
   playerB?: Player
 ): Promise<MatchInstance> {
-  log.info(
+  log.debug(
     `creating match instance for player(s) [${playerA.getUUID()}, ${playerB?.getUUID()}]`
   );
 
@@ -103,7 +103,7 @@ export async function matchMakeForPlayer(
   opponent?: Player
 ): Promise<MatchInstance> {
   if (opponent) {
-    log.info(
+    log.debug(
       `skipping matchmaking for player ${player.getUUID()} since they have an AI opponent ${opponent.getUUID()}`
     );
 

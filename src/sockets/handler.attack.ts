@@ -107,7 +107,7 @@ const attackHandler: MessageHandler<
   player.recordAttackResult(attack, attackResult);
 
   if (attackResult.hit) {
-    log.info(
+    log.debug(
       `player ${player.getUUID()} hit ${
         attackResult.type
       } of opponent ${opponent.getUUID()} at %j`,
@@ -117,7 +117,7 @@ const attackHandler: MessageHandler<
     // Send the new cloud event type until we move away from the previous hit/miss/sink
     ce.attack(game, match, player, opponent, attackResult, attack.prediction);
   } else {
-    log.info(
+    log.debug(
       `player ${player.getUUID()} attack %j did not hit opponent ${opponent.getUUID()} ships`,
       attack.origin
     );
@@ -131,7 +131,7 @@ const attackHandler: MessageHandler<
 
   if (isGameOverForPlayer(opponent)) {
     log.info(
-      `determined that player ${player.getUUID()} lost match ${match.getUUID}`
+      `determined that player ${opponent.getUUID()} lost match ${match.getUUID} against ${player.getMatchInstanceUUID()}`
     );
 
     // The opponent's ships have all been hit. This player is the winner!

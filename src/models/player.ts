@@ -219,11 +219,10 @@ export default class Player extends Model<PlayerData> {
    * @param valid
    */
   setShipPositionData(data: ShipPositionData, valid: boolean) {
-    log.info(
-      `setting ship position data (valid: ${valid}) for player ${this.getUUID()}`,
+    log.debug(
+      `setting ship position data (valid: ${valid}) for player ${this.getUUID()} to: %j`,
       data
     );
-    log.debug(`positions: %j`, data);
 
     this.board = {
       valid,
