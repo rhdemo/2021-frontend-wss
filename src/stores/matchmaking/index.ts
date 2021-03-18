@@ -4,12 +4,8 @@ import getDataGridClientForCacheNamed from '@app/datagrid/client';
 import log from '@app/log';
 import MatchInstance, { MatchInstanceData } from '@app/models/match.instance';
 import Player from '@app/models/player';
-import matchInstanceDatagridEventHandler from './datagrid.event-handler';
 
-const getClient = getDataGridClientForCacheNamed(
-  'match-instances',
-  matchInstanceDatagridEventHandler
-);
+const getClient = getDataGridClientForCacheNamed('match-instances');
 const limit = pLimit(1);
 const BATCH_SIZE = 50;
 

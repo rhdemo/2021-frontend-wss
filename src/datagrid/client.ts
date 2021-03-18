@@ -26,7 +26,7 @@ async function getClient(
 
 export default async function getDataGridClientForCacheNamed(
   cacheName: string,
-  eventHandler: DataGridEventHandle
+  eventHandler?: DataGridEventHandle
 ): Promise<InfinispanClient> {
   log.info(`creating infinispan client for cache named "${cacheName}"`);
 
@@ -39,20 +39,22 @@ export default async function getDataGridClientForCacheNamed(
 
   const client = await getClient(nodes, cacheName);
 
-  const listenerId = await client.addListener('create', (key) =>
-    eventHandler(client, 'create', key)
-  );
+  if (eventHandler) {
+    const listenerId = await client.addListener('create', (key) =>
+      eventHandler(client, 'create', key)
+    );
 
-  await client.addListener(
-    'modify',
-    (key) => eventHandler(client, 'modify', key),
-    { listenerId }
-  );
-  await client.addListener(
-    'remove',
-    (key) => eventHandler(client, 'remove', key),
-    { listenerId }
-  );
+    await client.addListener(
+      'modify',
+      (key) => eventHandler(client, 'modify', key),
+      { listenerId }
+    );
+    await client.addListener(
+      'remove',
+      (key) => eventHandler(client, 'remove', key),
+      { listenerId }
+    );
+  }
 
   return client;
 }
