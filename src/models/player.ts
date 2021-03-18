@@ -220,9 +220,10 @@ export default class Player extends Model<PlayerData> {
    */
   setShipPositionData(data: ShipPositionData, valid: boolean) {
     log.info(
-      `setting ship position data (valid: ${valid}) for player ${this.getUUID()} to: %j`,
+      `setting ship position data (valid: ${valid}) for player ${this.getUUID()}`,
       data
     );
+    log.debug(`positions: %j`, data);
 
     this.board = {
       valid,

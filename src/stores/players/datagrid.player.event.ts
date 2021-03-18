@@ -9,7 +9,7 @@ import PlayerConfiguration from '@app/models/player.configuration';
 import { OutgoingMsgType } from '@app/payloads/outgoing';
 import { getPlayerSpecificData } from '@app/sockets/common';
 import { getSocketDataContainerByPlayerUUID } from '@app/sockets/player.sockets';
-import * as newCe from '@app/cloud-events/send.new';
+import * as ce from '@app/cloud-events/send';
 
 export default async function playerDataGridEventHandler(
   client: InfinispanClient,
@@ -63,7 +63,7 @@ export default async function playerDataGridEventHandler(
 
           await upsertMatchInCache(match);
 
-          newCe.matchStart(game, match, player, opponent);
+          ce.matchStart(game, match, player, opponent);
 
           updatePlayer(player, opponent, game, match);
           updatePlayer(opponent, player, game, match);

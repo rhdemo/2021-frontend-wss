@@ -1,27 +1,20 @@
 import { FastifyPluginCallback, FastifyRequest } from 'fastify';
 import fp from 'fastify-plugin';
 import { send as SendEvents, recv as RecvEvents } from '@app/cloud-events';
-import * as NewCE from '@app/cloud-events/send.new';
 import { ValidationError } from 'cloudevents';
 import { NODE_ENV } from '@app/config';
 import { ShipType } from '@app/game/types';
 import log from '@app/log';
-import { DEFAULT_JOI_OPTS, ManualEventSchema } from '@app/payloads/schemas';
+import { DEFAULT_JOI_OPTS } from '@app/payloads/schemas';
 import GameConfiguration, { GameState } from '@app/models/game.configuration';
 import MatchInstance from '@app/models/match.instance';
 import Player from '@app/models/player';
 import { nanoid } from 'nanoid';
 import generateUserName from '@app/stores/players/username.generator';
-import Joi, { valid } from 'joi';
+import Joi from 'joi';
 import { AttackResult } from '@app/payloads/common';
 
-type PartialCloudEvent = {
-  [K in keyof SendEvents.ShotEventData]?: SendEvents.ShotEventData[K];
-};
-type EventParams = { type: SendEvents.EventType };
-type EventBody = PartialCloudEvent & { type?: string; player?: string };
-
-type NewEventParams = { type: NewCE.EventType };
+type NewEventParams = { type: SendEvents.EventType };
 type NewEventBody = {
   game: { uuid: string };
   match: {
@@ -164,135 +157,20 @@ const eventsPlugin: FastifyPluginCallback = (server, options, done) => {
         });
         opponent.setShipPositionData(opponent.getShipPositionData(), true);
 
-        if (params.type === NewCE.EventType.Attack) {
-          await NewCE.attack(game, match, player, opponent, body.attack);
+        if (params.type === SendEvents.EventType.Attack) {
+          await SendEvents.attack(game, match, player, opponent, body.attack);
           return `queued "${params.type}" cloud event`;
-        } else if (params.type === NewCE.EventType.MatchStart) {
-          await NewCE.matchStart(game, match, player, opponent);
+        } else if (params.type === SendEvents.EventType.MatchStart) {
+          await SendEvents.matchStart(game, match, player, opponent);
           return `queued "${params.type}" cloud event`;
-        } else if (params.type === NewCE.EventType.MatchEnd) {
-          await NewCE.matchEnd(game, match, player, opponent);
+        } else if (params.type === SendEvents.EventType.MatchEnd) {
+          await SendEvents.matchEnd(game, match, player, opponent);
           return `queued "${params.type}" cloud event`;
         } else {
           return reply.send(`unknown event type: "${params.type}"`);
         }
       }
     });
-  }
-
-  if (NODE_ENV === 'dev') {
-    log.info(
-      `mounting cloud event debug endpoint /event/:type since NODE_ENV=${NODE_ENV}`
-    );
-
-    server.route({
-      method: 'POST',
-      url: '/event/:type',
-      handler: async (
-        req: FastifyRequest<{ Params: EventParams; Body: EventBody }>,
-        reply
-      ) => {
-        const { type } = req.params;
-
-        log.info(
-          `received request to manually send "${type}" cloud event with body: %j`,
-          req.body
-        );
-
-        const result = ManualEventSchema.validate(
-          req.body || {},
-          DEFAULT_JOI_OPTS
-        );
-
-        if (result.error) {
-          return reply.status(400).send(result.error);
-        }
-
-        const body = result.value as SendEvents.ShotEventData & {
-          type: string;
-          player: string;
-        };
-
-        switch (type) {
-          case SendEvents.EventType.Hit:
-            await SendEvents.hit({
-              by: body.by,
-              against: body.against,
-              match: body.match,
-              human: true,
-              game: body.game,
-              consecutiveHitsCount: body.consecutiveHitsCount,
-              shotCount: body.shotCount,
-              ts: body.ts || Date.now(),
-              // This line causes a funky compiler error without the cast and as const...
-              origin: (body.origin as any) || (`${0},${0}` as const),
-              type: (body.type as ShipType) || ShipType.Carrier
-            });
-            reply.send({ info: 'ok' });
-            break;
-          case SendEvents.EventType.Miss:
-            await SendEvents.miss({
-              by: body.by,
-              against: body.against,
-              match: body.match,
-              human: true,
-              consecutiveHitsCount: body.consecutiveHitsCount,
-              shotCount: body.shotCount,
-              game: body.game,
-              ts: body.ts || Date.now(),
-              // This line causes a funky compiler error without the cast and as const...
-              origin: (body.origin as any) || (`${0},${0}` as const)
-            });
-            reply.send({ info: 'ok' });
-            break;
-          case SendEvents.EventType.Sink:
-            await SendEvents.sink({
-              by: body.by,
-              against: body.against,
-              match: body.match,
-              human: true,
-              game: body.game,
-              consecutiveHitsCount: body.consecutiveHitsCount,
-              shotCount: body.shotCount,
-              ts: body.ts || Date.now(),
-              // This line causes a funky compiler error without the cast and as const...
-              origin: (body.origin as any) || (`${0},${0}` as const),
-              type: (body.type as ShipType) || ShipType.Carrier
-            });
-            reply.send({ info: 'ok' });
-            break;
-          case SendEvents.EventType.Win:
-            await SendEvents.win({
-              player: body.player,
-              match: body.match,
-              shotCount: body.shotCount,
-              human: true,
-              game: body.game
-            });
-            reply.send({ info: 'ok' });
-            break;
-          case SendEvents.EventType.Lose:
-            await SendEvents.lose({
-              player: body.player,
-              match: body.match,
-              shotCount: body.shotCount,
-              human: true,
-              game: body.game
-            });
-            reply.send({ info: 'ok' });
-            break;
-          default:
-            reply.status(400).send({
-              info: `Event type "${type}" not recognised`
-            });
-            break;
-        }
-      }
-    });
-  } else {
-    log.info(
-      `not mounting cloud event debug endpoint /event/:type since NODE_ENV=${NODE_ENV}`
-    );
   }
 
   done();

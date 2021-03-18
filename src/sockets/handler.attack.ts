@@ -3,7 +3,6 @@ import * as matchmaking from '@app/stores/matchmaking';
 import * as players from '@app/stores/players';
 import { GameState } from '@app/models/game.configuration';
 import * as ce from '@app/cloud-events/send';
-import * as ceNew from '@app/cloud-events/send.new';
 import { isGameOverForPlayer } from '@app/game';
 import { MessageHandler } from './common';
 import { AttackDataPayload } from '@app/payloads/incoming';
@@ -95,7 +94,7 @@ const attackHandler: MessageHandler<
     };
   }
 
-  log.info(
+  log.debug(
     `determine player ${player.getUUID()} attack hit/miss vs ${opponent.getUUID()}. Attack data %j`,
     attack
   );
@@ -115,62 +114,13 @@ const attackHandler: MessageHandler<
       attack.origin
     );
 
-    // Send a hit cloud event
-    ce.hit({
-      by: player.getUUID(),
-      game: game.getUUID(),
-      human: !player.isAiPlayer(),
-      against: opponent.getUUID(),
-      origin: `${attack.origin[0]},${attack.origin[1]}` as const,
-      ts: Date.now(),
-      consecutiveHitsCount: player.getContinuousHitsCount(),
-      shotCount: player.getShotsFiredCount(),
-      match: match.getUUID(),
-      type: attackResult.type
-    });
-
     // Send the new cloud event type until we move away from the previous hit/miss/sink
-    ceNew.attack(
-      game,
-      match,
-      player,
-      opponent,
-      attackResult,
-      attack.prediction
-    );
-
-    if (attackResult.destroyed) {
-      // Send a sink cloud event when a ship has been destroyed
-      ce.sink({
-        by: player.getUUID(),
-        game: game.getUUID(),
-        human: !player.isAiPlayer(),
-        against: opponent.getUUID(),
-        consecutiveHitsCount: player.getContinuousHitsCount(),
-        shotCount: player.getShotsFiredCount(),
-        ts: Date.now(),
-        type: attackResult.type,
-        match: match.getUUID(),
-        origin: `${attack.origin[0]},${attack.origin[1]}` as const
-      });
-    }
+    ce.attack(game, match, player, opponent, attackResult, attack.prediction);
   } else {
     log.info(
       `player ${player.getUUID()} attack %j did not hit opponent ${opponent.getUUID()} ships`,
       attack.origin
     );
-
-    ce.miss({
-      by: player.getUUID(),
-      game: game.getUUID(),
-      human: !player.isAiPlayer(),
-      consecutiveHitsCount: player.getContinuousHitsCount(),
-      shotCount: player.getShotsFiredCount(),
-      against: opponent.getUUID(),
-      origin: `${attack.origin[0]},${attack.origin[1]}` as const,
-      ts: Date.now(),
-      match: match.getUUID()
-    });
   }
 
   // Save both updated player objects to cache
@@ -187,24 +137,7 @@ const attackHandler: MessageHandler<
     // The opponent's ships have all been hit. This player is the winner!
     match.setWinner(player);
 
-    // Send win and lose Cloud Events
-    const isWinnerHuman = !player.isAiPlayer();
-    ce.win({
-      game: game.getUUID(),
-      match: match.getUUID(),
-      human: isWinnerHuman,
-      player: player.getUUID(),
-      shotCount: player.getShotsFiredCount()
-    });
-    ce.lose({
-      game: game.getUUID(),
-      match: match.getUUID(),
-      human: !isWinnerHuman,
-      player: opponent.getUUID(),
-      shotCount: opponent.getShotsFiredCount()
-    });
-
-    ceNew.matchEnd(game, match, player, opponent);
+    ce.matchEnd(game, match, player, opponent);
 
     // Write payload to storage for analysis by ML services
     ml.writeGameRecord(player, opponent, match, game);

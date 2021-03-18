@@ -33,7 +33,7 @@ const shipPositionHandler: MessageHandler<
     throw new Error(`failed to read player ${info.uuid} from cache`);
   }
 
-  const { game, match, opponent } = await getPlayerSpecificData(player);
+  const { game, match } = await getPlayerSpecificData(player);
 
   if (!game.isInState(GameState.Active) && !game.isInState(GameState.Lobby)) {
     throw new Error(

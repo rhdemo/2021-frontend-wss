@@ -45,7 +45,7 @@ export default class PlayerSocketDataContainer {
         log.trace(
           `not kicking player/socket ${
             this.playerInfo?.uuid || '*uninitialised*'
-          } since they\'ve been active`
+          } since they've been active`
         );
       }
     }, 60 * 1000);

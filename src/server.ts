@@ -3,11 +3,11 @@
 import fastify, { FastifyInstance } from 'fastify';
 import { ServerOptions } from 'ws';
 import { WebsocketPluginOptions } from 'fastify-websocket';
-import { WS_MAX_PAYLOAD, HTTP_PORT } from '@app/config';
+import { WS_MAX_PAYLOAD, HTTP_PORT, NODE_ENV } from '@app/config';
 import { getWsAddressFromServer } from '@app/utils';
 
 const { version } = require('../package.json');
-const app = fastify({ logger: true });
+const app = fastify({ logger: NODE_ENV === 'dev' });
 
 // Provides a health endpoint to check
 app.register(require('./plugins/health'), {
@@ -25,9 +25,6 @@ app.register(require('fastify-websocket'), {
     maxPayload: WS_MAX_PAYLOAD,
     verifyClient: (info, next) => {
       // Can add optional verification logic into this block
-      const addr =
-        info.req.headers['x-forwarded-for'] || info.req.socket.remoteAddress;
-      app.log.info(`accepted connection from ${addr}`);
       next(true);
     }
   } as ServerOptions
