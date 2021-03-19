@@ -131,7 +131,7 @@ const attackHandler: MessageHandler<
 
   if (isGameOverForPlayer(opponent)) {
     log.info(
-      `determined that player ${opponent.getUUID()} lost match ${match.getUUID} against ${player.getMatchInstanceUUID()}`
+      `determined that player ${opponent.getUUID()} lost match ${match.getUUID()} against ${player.getMatchInstanceUUID()}`
     );
 
     // The opponent's ships have all been hit. This player is the winner!
