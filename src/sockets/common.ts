@@ -26,7 +26,7 @@ export async function getPlayerSpecificData(player: Player) {
     `fetching match, game, and opponent data for player ${player.getUUID()}`
   );
   const match = await getMatchAssociatedWithPlayer(player);
-  const opponentUUID = await match?.getPlayerOpponentUUID(player);
+  const opponentUUID = match?.getPlayerOpponentUUID(player);
   const opponent = opponentUUID
     ? await getPlayerWithUUID(opponentUUID)
     : undefined;
