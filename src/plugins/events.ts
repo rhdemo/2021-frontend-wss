@@ -124,7 +124,6 @@ const eventsPlugin: FastifyPluginCallback = (server, options, done) => {
         }
 
         const body = validation.value as NewEventBody;
-        console.log('validated data', body);
 
         log.info(
           `received request to manually send "${params.type}" cloud event with body: %j`,
