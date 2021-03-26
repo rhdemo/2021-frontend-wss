@@ -1,11 +1,4 @@
-const S3 = require('./s3')
-const Bucket = 'summit-game-records'
-
-function listObjects (params) {
-  return S3.listObjects({
-    Bucket
-  }).promise()
-}
+const { listObjects } = require('./lib')
 
 async function main () {
   const results = await listObjects()
