@@ -139,7 +139,6 @@ const eventsPlugin: FastifyPluginCallback = (server, options, done) => {
           body.match.playerA,
           body.match.playerB,
           undefined,
-          true,
           undefined,
           body.match?.uuid
         );

@@ -3,7 +3,7 @@ import { getPlayerWithUUID } from '.';
 import log from '@app/log';
 import { upsertMatchInCache } from '@app/stores/matchmaking';
 import GameConfiguration from '@app/models/game.configuration';
-import MatchInstance from '@app/models/match.instance';
+import MatchInstance, { MatchPhase } from '@app/models/match.instance';
 import Player from '@app/models/player';
 import PlayerConfiguration from '@app/models/player.configuration';
 import { OutgoingMsgType } from '@app/payloads/outgoing';
@@ -44,7 +44,7 @@ export default async function playerDataGridEventHandler(
       );
     }
 
-    if (!match.isReady()) {
+    if (match.isInPhase(MatchPhase.NotReady)) {
       log.debug(
         `determining if match ${match.getUUID()} should be set to ready as a result of a modify event for player ${player.getUUID()}`
       );
