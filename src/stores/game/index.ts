@@ -4,7 +4,8 @@ import { ClientEvent, InfinispanClient } from 'infinispan';
 import delay from 'delay';
 import log from '@app/log';
 import GameConfiguration from '@app/models/game.configuration';
-import { getAllPlayerSocketDataContainers } from '@app/sockets/player.sockets';
+import { sendMessageToAllConnectedPlayers } from '@app/sockets';
+import { OutgoingMsgType } from '@app/payloads/outgoing';
 
 const getClient = getDataGridClientForCacheNamed(
   DATAGRID_GAME_DATA_STORE,
@@ -37,6 +38,10 @@ export async function POST(): Promise<void> {
   }
 }
 
+/**
+ * Get the current game configuration object.
+ * @returns {GameConfiguration}
+ */
 export function getGameConfiguration() {
   return currentGameConfig;
 }
@@ -70,11 +75,14 @@ export default async function gameConfigurationDatagridEventHandler(
       log.info(
         'a game reset was detected, let players know their session has expired'
       );
+    } else {
+      sendMessageToAllConnectedPlayers({
+        type: OutgoingMsgType.GameState,
+        data: {
+          game: freshGameData
+        }
+      });
     }
-
-    getAllPlayerSocketDataContainers().forEach(async () => {
-      // TODO send reset
-    });
   } else {
     log.error(
       `detected a "${eventType}" for the game state. this shouldn't happen!`

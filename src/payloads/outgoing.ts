@@ -8,7 +8,8 @@ export enum OutgoingMsgType {
   Heartbeat = 'heartbeat',
   Configuration = 'configuration',
   BoardState = 'board-state',
-  PleaseWait = 'please-wait'
+  PleaseWait = 'please-wait',
+  GameState = 'game-state'
 }
 
 export type ValidationErrorPayload = {

@@ -89,7 +89,7 @@ export default class MatchInstance extends Model<MatchInstanceData> {
     return this.state.activePlayer === player.getUUID();
   }
 
-  setMatchReady(ready = true) {
+  setMatchReady() {
     this.state.phase = MatchPhase.Attack;
   }
 

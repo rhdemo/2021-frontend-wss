@@ -7,6 +7,7 @@ import {
   getAllPlayerSocketDataContainers,
   deleteSocketDataContainer
 } from './player.sockets';
+import { MessageHandlerResponse } from './common';
 
 /**
  * Start a heartbeat loop to keep connected sockets alive.
@@ -48,4 +49,16 @@ export function configureSocket(ws: WebSocket) {
   });
 
   return container;
+}
+
+/**
+ * Self-explanatory enough. Sends a message to all connected players.
+ * This is a blocking function...so be careful.
+ */
+export function sendMessageToAllConnectedPlayers(
+  data: MessageHandlerResponse<unknown>
+) {
+  getAllPlayerSocketDataContainers().forEach((container) =>
+    container.send(data)
+  );
 }
