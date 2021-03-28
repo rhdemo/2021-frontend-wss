@@ -20,20 +20,15 @@ const bonusHandler: MessageHandler<
   BonusDataPayload,
   PlayerConfigurationData | ValidationErrorPayload
 > = async (container: PlayerSocketDataContainer, bonus) => {
-  const info = container.getPlayerInfo();
+  const basePlayer = container.getPlayer();
 
-  if (!info) {
-    throw new Error('failed to find player associated with this websocket');
+  if (!basePlayer) {
+    throw new Error('no player associated with websocket for bonus');
   }
 
-  // Despite the fact a player is associated with a socket, we always
-  // use the cache as a source of truth. The socket is a lookup reference
-  const player = await players.getPlayerWithUUID(info.uuid);
-  if (!player) {
-    throw new Error('failed to find player data');
-  }
-
-  const { game, opponent, match } = await getPlayerSpecificData(player);
+  const { game, opponent, match, player } = await getPlayerSpecificData(
+    basePlayer
+  );
 
   if (!game.isInState(GameState.Active)) {
     throw new Error(
@@ -64,7 +59,9 @@ const bonusHandler: MessageHandler<
   }
 
   log.info(
-    `player ${info.uuid} recorded ${bonus.hits} hits in their bonus round`
+    `player ${player.getUUID()} recorded ${
+      bonus.hits
+    } hits in their bonus round`
   );
 
   match.changeTurn();
@@ -75,14 +72,14 @@ const bonusHandler: MessageHandler<
   if (opponentSocket) {
     opponentSocket.send({
       type: OutgoingMsgType.BonusResult,
-      data: new PlayerConfiguration(game, opponent, match, player).toJSON()
+      data: new PlayerConfiguration(game, opponent, match).toJSON()
     });
   }
 
   // Update the player with new game state information
   return {
     type: OutgoingMsgType.BonusResult,
-    data: new PlayerConfiguration(game, player, match, opponent).toJSON()
+    data: new PlayerConfiguration(game, player, match).toJSON()
   };
 };
 

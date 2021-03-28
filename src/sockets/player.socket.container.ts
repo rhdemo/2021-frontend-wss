@@ -1,5 +1,6 @@
 import { NODE_ENV, WS_ACTIVITY_TIMEOUT } from '@app/config';
 import log from '@app/log';
+import Player from '@app/models/player';
 import { WsPayload } from '@app/payloads/incoming';
 import { OutgoingMsgType } from '@app/payloads/outgoing';
 import { DEFAULT_JOI_OPTS, WsPayloadSchema } from '@app/payloads/schemas';
@@ -20,9 +21,7 @@ export default class PlayerSocketDataContainer {
   private sequence = 0;
   private lastRecvTs!: number;
   private kickTimer: NodeJS.Timeout;
-  private playerInfo:
-    | undefined
-    | { uuid: string; username: string } = undefined;
+  private player!: Player;
 
   constructor(private ws: WebSocket) {
     this.kickTimer = setInterval(() => {
@@ -37,14 +36,14 @@ export default class PlayerSocketDataContainer {
       ) {
         log.info(
           `kicking inactive socket for player ${
-            this.playerInfo?.uuid || '*uninitialised*'
+            this.player?.getUUID() || '*uninitialised*'
           }`
         );
         this.close();
       } else {
         log.trace(
           `not kicking player/socket ${
-            this.playerInfo?.uuid || '*uninitialised*'
+            this.player?.getUUID() || '*uninitialised*'
           } since they've been active`
         );
       }
@@ -64,7 +63,7 @@ export default class PlayerSocketDataContainer {
       } else {
         log.warn(
           'Attempted to send message on closed socket for player: %j',
-          this.playerInfo
+          this.player.getUUID()
         );
       }
     } catch (error) {
@@ -175,12 +174,12 @@ export default class PlayerSocketDataContainer {
     this.locked = false;
   }
 
-  setPlayerInfo(info: { uuid: string; username: string }) {
-    this.playerInfo = info;
+  setPlayer(player: Player) {
+    this.player = player;
   }
 
-  getPlayerInfo() {
-    return this.playerInfo;
+  getPlayer() {
+    return this.player;
   }
 
   getSequenceNumber() {

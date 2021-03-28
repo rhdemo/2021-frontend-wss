@@ -1,6 +1,6 @@
 import { GAME_GRID_SIZE } from '@app/config';
 import log from '@app/log';
-import Player from '@app/models/player';
+import MatchPlayer from '@app/models/match.player';
 import {
   ShipType,
   ShipSize,
@@ -148,7 +148,7 @@ function populateGridWithShipData(size: number, ship: ShipData, grid: Grid) {
  * cells have been hit, and thus all their ships are destroyed
  * @param {Player} player
  */
-export function isGameOverForPlayer(player: Player): boolean {
+export function isGameOverForPlayer(player: MatchPlayer): boolean {
   const shipPositions = player.getShipPositionData();
 
   log.trace(

@@ -49,11 +49,6 @@ export default async function getDataGridClientForCacheNamed(
       (key) => eventHandler(client, 'modify', key),
       { listenerId }
     );
-    await client.addListener(
-      'remove',
-      (key) => eventHandler(client, 'remove', key),
-      { listenerId }
-    );
   }
 
   return client;

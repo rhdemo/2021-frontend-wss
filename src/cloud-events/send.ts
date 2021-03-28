@@ -4,7 +4,7 @@ import log from '@app/log';
 import { ShipType } from '@app/game/types';
 import { http } from '@app/utils';
 import { HTTPError } from 'got';
-import Player, { PlayerPositionData } from '@app/models/player';
+import MatchPlayer, { PlayerPositionData } from '@app/models/match.player';
 import { PredictionData } from '@app/payloads/incoming';
 import GameConfiguration from '@app/models/game.configuration';
 import MatchInstance from '@app/models/match.instance';
@@ -115,8 +115,8 @@ async function sendEvent(
 export function matchStart(
   game: GameConfiguration,
   match: MatchInstance,
-  playerA: Player,
-  playerB: Player
+  playerA: MatchPlayer,
+  playerB: MatchPlayer
 ): Promise<void> {
   const evt: MatchStartEventData = {
     game: game.getUUID(),
@@ -131,8 +131,8 @@ export function matchStart(
 export function attack(
   game: GameConfiguration,
   match: MatchInstance,
-  by: Player,
-  against: Player,
+  by: MatchPlayer,
+  against: MatchPlayer,
   attackResult: AttackResult,
   prediction?: PredictionData
 ): Promise<void> {
@@ -155,7 +155,7 @@ export function attack(
 export function bonus(
   game: GameConfiguration,
   match: MatchInstance,
-  player: Player,
+  player: MatchPlayer,
   bonusHitsCount: number
 ): Promise<void> {
   const evt: BonusAttackEventData = {
@@ -171,8 +171,8 @@ export function bonus(
 export function matchEnd(
   game: GameConfiguration,
   match: MatchInstance,
-  winner: Player,
-  loser: Player
+  winner: MatchPlayer,
+  loser: MatchPlayer
 ): Promise<void> {
   const evt: MatchEndEventData = {
     game: game.getUUID(),
@@ -190,7 +190,7 @@ export function matchEnd(
  * @param prediction
  */
 function toAttackingPlayerData(
-  player: Player,
+  player: MatchPlayer,
   prediction?: PredictionData
 ): AttackingPlayerData {
   return {
@@ -205,7 +205,7 @@ function toAttackingPlayerData(
  * Utility function to create an BasePlayerData structured type.
  * @param player
  */
-function toBasePlayerData(player: Player): BasePlayerData {
+function toBasePlayerData(player: MatchPlayer): BasePlayerData {
   return {
     username: player.getUsername(),
     uuid: player.getUUID(),

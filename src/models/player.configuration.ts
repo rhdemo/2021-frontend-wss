@@ -1,28 +1,32 @@
 import GameConfiguration, { GameConfigurationData } from './game.configuration';
-import MatchInstance, { MatchInstanceData } from './match.instance';
-import Player, { OpponentData, PlayerData } from './player';
+import MatchInstance, { MatchInstanceFrontendData } from './match.instance';
+import MatchPlayer, {
+  MatchOpponentData,
+  MatchPlayerData
+} from './match.player';
 
 export type PlayerConfigurationData = {
   game: GameConfigurationData;
-  player: PlayerData;
-  match: MatchInstanceData;
-  opponent?: OpponentData;
+  player: MatchPlayerData;
+  match: MatchInstanceFrontendData;
+  opponent?: MatchOpponentData;
 };
 
 export default class PlayerConfiguration {
   constructor(
     private game: GameConfiguration,
-    private player: Player,
-    private match: MatchInstance,
-    private opponent?: Player
+    private player: MatchPlayer,
+    private match: MatchInstance
   ) {}
 
   toJSON(): PlayerConfigurationData {
+    const opponent = this.match.getPlayerOpponent(this.player);
+
     return {
-      opponent: this.opponent?.toOpponentJSON(),
+      opponent: opponent?.toOpponentJSON(),
       game: this.game.toJSON(),
       player: this.player.toJSON(),
-      match: this.match.toJSON()
+      match: this.match.toFrontendJsonForPlayer(this.player.getUUID())
     };
   }
 }
