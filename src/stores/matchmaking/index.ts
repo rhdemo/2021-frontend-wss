@@ -3,7 +3,7 @@ import pLimit from 'p-limit';
 import getDataGridClientForCacheNamed from '@app/datagrid/client';
 import log from '@app/log';
 import MatchInstance, { MatchInstanceData } from '@app/models/match.instance';
-import Player, { UnmatchedPlayerData, PlayerData } from '@app/models/player';
+import Player, { UnmatchedPlayerData } from '@app/models/player';
 import { DATAGRID_MATCH_DATA_STORE } from '@app/config';
 
 const getClient = getDataGridClientForCacheNamed(DATAGRID_MATCH_DATA_STORE);

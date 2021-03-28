@@ -3,7 +3,6 @@ import { GameState } from '@app/models/game.configuration';
 import PlayerConfiguration, {
   PlayerConfigurationData
 } from '@app/models/player.configuration';
-import * as players from '@app/stores/players';
 import { ShipPositionData } from '@app/game/types';
 import { validateShipPlacement } from '@app/game';
 import { OutgoingMsgType } from '@app/payloads/outgoing';

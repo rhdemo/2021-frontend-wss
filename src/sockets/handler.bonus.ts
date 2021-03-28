@@ -1,4 +1,3 @@
-import * as players from '@app/stores/players';
 import { GameState } from '@app/models/game.configuration';
 import { MessageHandler } from './common';
 import { BonusDataPayload } from '@app/payloads/incoming';

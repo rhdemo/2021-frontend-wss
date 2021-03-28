@@ -2,7 +2,7 @@ import assert from 'assert';
 import log from '@app/log';
 import Model from './model';
 import MatchPlayer, { MatchPlayerData } from './match.player';
-import Player, { UnmatchedPlayerData, PlayerData } from './player';
+import Player, { UnmatchedPlayerData } from './player';
 import { ShipType } from '@app/game/types';
 
 type Optional<T, K extends keyof T> = Pick<Partial<T>, K> & Omit<T, K>;
