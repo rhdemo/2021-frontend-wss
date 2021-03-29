@@ -21,7 +21,7 @@ export default class PlayerSocketDataContainer {
   private sequence = 0;
   private lastRecvTs!: number;
   private kickTimer: NodeJS.Timeout;
-  private player!: Player;
+  private player: Player | undefined;
 
   constructor(private ws: WebSocket) {
     this.kickTimer = setInterval(() => {
@@ -63,7 +63,7 @@ export default class PlayerSocketDataContainer {
       } else {
         log.warn(
           'Attempted to send message on closed socket for player: %j',
-          this.player.getUUID()
+          this.player?.getUUID()
         );
       }
     } catch (error) {
@@ -74,7 +74,7 @@ export default class PlayerSocketDataContainer {
   async processMessage(data: WebSocket.Data) {
     if (this.isLocked()) {
       log.warn(
-        "client sent a message, but we're already processing one on their behalf"
+        `cannot process message for ${this.getPlayer()?.getUUID()} (ai: ${this.getPlayer()?.isAiPlayer()}). We're already processing one on their behalf!`
       );
       this.send({
         type: OutgoingMsgType.PleaseWait,

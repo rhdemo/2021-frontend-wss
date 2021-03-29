@@ -128,7 +128,9 @@ export default class MatchInstance extends Model<MatchInstanceData> {
 
   setWinner(player: MatchPlayer) {
     const uuid = player.getUUID();
-    log.info(`setting ${uuid} as the winner for match ${this.getUUID()}`);
+    log.info(
+      `setting ${uuid} (ai: ${player.isAiPlayer()}) as the winner for match ${this.getUUID()}`
+    );
     this.winner = uuid;
   }
 
