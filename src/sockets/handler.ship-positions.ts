@@ -3,13 +3,13 @@ import { GameState } from '@app/models/game.configuration';
 import PlayerConfiguration, {
   PlayerConfigurationData
 } from '@app/models/player.configuration';
-import * as players from '@app/stores/players';
 import { ShipPositionData } from '@app/game/types';
 import { validateShipPlacement } from '@app/game';
 import { OutgoingMsgType } from '@app/payloads/outgoing';
 import { getPlayerSpecificData } from './common';
 import PlayerSocketDataContainer from './player.socket.container';
 import { MessageHandler } from './common';
+import { upsertMatchInCache } from '@app/stores/matchmaking';
 
 const shipPositionHandler: MessageHandler<
   ShipPositionData,
@@ -18,8 +18,8 @@ const shipPositionHandler: MessageHandler<
   log.debug('processing ship-postion payload: %j', data);
   let validatedPlacementData: undefined | ShipPositionData;
 
-  const info = container.getPlayerInfo();
-  if (!info) {
+  const basePlayer = container.getPlayer();
+  if (!basePlayer) {
     // TODO: Improve error handling. This could occur if a player disconnects
     // then reconnects, since we do not enforce a second connect sequence
     throw new Error(
@@ -27,13 +27,9 @@ const shipPositionHandler: MessageHandler<
     );
   }
 
-  const player = await players.getPlayerWithUUID(info.uuid);
-
-  if (!player) {
-    throw new Error(`failed to read player ${info.uuid} from cache`);
-  }
-
-  const { game, match } = await getPlayerSpecificData(player);
+  const { game, match, player, opponent } = await getPlayerSpecificData(
+    basePlayer
+  );
 
   if (!game.isInState(GameState.Active) && !game.isInState(GameState.Lobby)) {
     throw new Error(
@@ -47,7 +43,7 @@ const shipPositionHandler: MessageHandler<
     );
   }
 
-  if (player.hasLockedShipPositions()) {
+  if (player.hasLockedValidShipPositions()) {
     log.warn(
       `not allowing player ${player.getUUID()} to change already locked positions`
     );
@@ -73,7 +69,14 @@ const shipPositionHandler: MessageHandler<
     validatedPlacementData ? true : false
   );
 
-  await players.upsertPlayerInCache(player);
+  if (
+    player.hasLockedValidShipPositions() &&
+    opponent?.hasLockedValidShipPositions()
+  ) {
+    match.setMatchReady();
+  }
+
+  await upsertMatchInCache(match);
 
   return {
     type: OutgoingMsgType.Configuration,

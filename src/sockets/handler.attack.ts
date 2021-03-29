@@ -1,6 +1,5 @@
 import log from '@app/log';
 import * as matchmaking from '@app/stores/matchmaking';
-import * as players from '@app/stores/players';
 import { GameState } from '@app/models/game.configuration';
 import * as ce from '@app/cloud-events/send';
 import { isGameOverForPlayer } from '@app/game';
@@ -32,30 +31,19 @@ const attackHandler: MessageHandler<
   AttackDataPayload,
   MergedAttackReponse | ValidationErrorPayload
 > = async (container: PlayerSocketDataContainer, attack: AttackDataPayload) => {
-  const info = container.getPlayerInfo();
+  const basePlayer = container.getPlayer();
 
-  if (!info) {
+  if (!basePlayer) {
     throw new Error('failed to find player associated with this websocket');
   }
 
-  // Despite the fact a player is associated with a socket, we always
-  // use the cache as a source of truth. The socket is a lookup reference
-  const player = await players.getPlayerWithUUID(info.uuid);
-  if (!player) {
-    throw new Error('failed to find player data');
-  }
-
-  const { game, opponent, match } = await getPlayerSpecificData(player);
+  const { game, match, opponent, player } = await getPlayerSpecificData(
+    basePlayer
+  );
 
   if (!game.isInState(GameState.Active)) {
     throw new Error(
       `player ${player.getUUID()} cannot attack when game state is "${game.getGameState()}"`
-    );
-  }
-
-  if (!match) {
-    throw new Error(
-      `failed to find match associated with player ${player.getUUID()}`
     );
   }
 
@@ -124,12 +112,6 @@ const attackHandler: MessageHandler<
     );
   }
 
-  // Save both updated player objects to cache
-  await Promise.all([
-    players.upsertPlayerInCache(player),
-    players.upsertPlayerInCache(opponent)
-  ]);
-
   if (isGameOverForPlayer(opponent)) {
     log.info(
       `determined that player ${opponent.getUUID()} lost match ${match.getUUID()} against ${player.getMatchInstanceUUID()}`
@@ -161,7 +143,7 @@ const attackHandler: MessageHandler<
       data: {
         result: attackResult,
         attacker: player.getUUID(),
-        ...new PlayerConfiguration(game, opponent, match, player).toJSON()
+        ...new PlayerConfiguration(game, opponent, match).toJSON()
       }
     });
   }
@@ -172,7 +154,7 @@ const attackHandler: MessageHandler<
     data: {
       result: attackResult,
       attacker: player.getUUID(),
-      ...new PlayerConfiguration(game, player, match, opponent).toJSON()
+      ...new PlayerConfiguration(game, player, match).toJSON()
     }
   };
 };

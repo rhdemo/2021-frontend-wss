@@ -59,6 +59,9 @@ const config = {
   DATAGRID_PLAYER_DATA_STORE: get('DATAGRID_PLAYER_DATA_STORE')
     .default('players')
     .asString(),
+  DATAGRID_MATCH_DATA_STORE: get('DATAGRID_MATCH_DATA_STORE')
+    .default('match-instances')
+    .asString(),
   DATAGRID_HOST: get('DATAGRID_HOST').default('infinispan').asString(),
   DATAGRID_HOTROD_PORT: get('DATAGRID_HOTROD_PORT')
     .default(11222)

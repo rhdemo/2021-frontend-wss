@@ -4,7 +4,7 @@ import log from '@app/log';
 import { upsertMatchInCache } from '@app/stores/matchmaking';
 import GameConfiguration from '@app/models/game.configuration';
 import MatchInstance, { MatchPhase } from '@app/models/match.instance';
-import Player from '@app/models/player';
+import Player from '@app/models/match.player';
 import PlayerConfiguration from '@app/models/player.configuration';
 import { OutgoingMsgType } from '@app/payloads/outgoing';
 import { getPlayerSpecificData } from '@app/sockets/common';
@@ -19,15 +19,25 @@ export default async function playerDataGridEventHandler(
   log.trace(`"${event}" event detected for player "${key}"`);
 
   if (event === 'modify') {
-    const player = await getPlayerWithUUID(key);
+    const _player = await getPlayerWithUUID(key);
 
-    if (!player) {
+    if (!_player) {
       return log.error(
         `a modify event was detected for player ${key}, but the player could not be read back from datagrid`
       );
     }
 
-    log.debug('processing modify event for player: %j', player.toJSON());
+    log.debug('processing modify event for player: %j', _player.toJSON());
+
+    const { match, opponent, game, player } = await getPlayerSpecificData(
+      _player
+    );
+
+    if (!player) {
+      return log.error(
+        `a modify event was detected for player ${key}, but the player could not be read from their match`
+      );
+    }
 
     if (player.hasAttacked()) {
       log.trace(
@@ -35,8 +45,6 @@ export default async function playerDataGridEventHandler(
       );
       return;
     }
-
-    const { match, opponent, game } = await getPlayerSpecificData(player);
 
     if (!match) {
       return log.error(
@@ -51,8 +59,8 @@ export default async function playerDataGridEventHandler(
 
       if (match && opponent) {
         if (
-          player.hasLockedShipPositions() &&
-          opponent.hasLockedShipPositions()
+          player.hasLockedValidShipPositions() &&
+          opponent.hasLockedValidShipPositions()
         ) {
           log.info(
             `players ${player.getUUID()} and ${opponent.getUUID()} have locked positions. setting match.ready=true for ${match.getUUID()}`
@@ -85,7 +93,7 @@ function updatePlayer(
     log.debug(`notify player ${player.getUUID()} that match.ready=true`);
     sock.send({
       type: OutgoingMsgType.Configuration,
-      data: new PlayerConfiguration(game, player, match, opponent).toJSON()
+      data: new PlayerConfiguration(game, player, match).toJSON()
     });
   } else {
     log.warn(

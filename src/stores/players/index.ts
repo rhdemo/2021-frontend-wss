@@ -1,13 +1,17 @@
 import { DATAGRID_PLAYER_DATA_STORE, NODE_ENV } from '@app/config';
 import getDataGridClientForCacheNamed from '@app/datagrid/client';
-import Player from '@app/models/player';
+import Player, { UnmatchedPlayerData } from '@app/models/player';
 import playerDataGridEventHandler from './datagrid.player.event';
 import log from '@app/log';
 import generateUserName from './username.generator';
 import { nanoid } from 'nanoid';
 import { ConnectionRequestPayload } from '@app/payloads/incoming';
 import { getGameConfiguration } from '@app/stores/game';
-import { matchMakeForPlayer } from '@app/stores/matchmaking';
+import {
+  createMatchInstanceWithData,
+  matchMakeForPlayer
+} from '@app/stores/matchmaking';
+import MatchInstance from '@app/models/match.instance';
 
 const getClient = getDataGridClientForCacheNamed(
   DATAGRID_PLAYER_DATA_STORE,
@@ -15,62 +19,91 @@ const getClient = getDataGridClientForCacheNamed(
 );
 
 /**
- * Initialises a Player entity based on an incoming "connection" event
+ * Initialises a Player entity based on an incoming "connection" event.
+ *
+ * After this function has finished we'll have:
+ *
+ *  - A new player in DATAGRID_PLAYER_DATA_STORE.
+ *  - Possibly a new match in  DATAGRID_MATCH_DATA_STORE, or the player will
+ *    be assigned to an existing match.
+ *
  * @param data
  */
 export async function initialisePlayer(data: ConnectionRequestPayload) {
-  let player: Player | undefined;
-  const game = getGameConfiguration();
-
   log.debug('client connected with connection payload: %j', data);
 
-  if (data.playerId && game.getUUID() === data.gameId) {
-    // Client/Player is reconnecting with previous connection info
+  const game = getGameConfiguration();
+
+  if (data.playerId) {
     log.debug(
-      `player "${data.playerId}" is trying to reconnect for game "${data.gameId}"`
+      `player "${data.playerId}" is trying to reconnect for game "${
+        data.gameId
+      }", and current game is ${game.getUUID()}`
     );
-    player = await getPlayerWithUUID(data.playerId);
   }
 
-  if (!player || player.getUsername() !== data.username) {
-    // first time client is connecting, or they provided stale lookup data
-    // we compare the usernames as an extra layer of protection, though UUIDs
-    // should be enough realistically...
-    player = await createNewPlayer({ ai: false });
+  if (game.getUUID() === data.gameId) {
+    log.debug(`reading player ${data.playerId} for reconnect`);
+    const player = data.playerId
+      ? await getPlayerWithUUID(data.playerId)
+      : undefined;
 
-    log.info('created new player: %j', player.toJSON());
+    if (
+      !player ||
+      player.getUsername() !== data.username ||
+      game.getUUID() !== data.gameId
+    ) {
+      // First time this client is connecting, or they provided stale lookup data
+      // we compare the usernames as an extra layer of protection, though UUIDs
+      // should be enough realistically...
+      return setupNewPlayer(data);
+    } else {
+      log.info('retrieved existing player: %j', player.toJSON());
+
+      return player;
+    }
   } else {
-    log.info('retrieved existing player: %j', player.toJSON());
-  }
-
-  if (!player.getMatchInstanceUUID()) {
-    log.info(
-      `connecting player ${player.getUUID()} has not been assigned a match. Will matchmake now.`
+    log.warn(
+      `player ${data.playerId} attempted to reconnect for expired game ${data.gameId}`
     );
-
-    let opponent: Player | undefined;
-
-    if (NODE_ENV === 'prod' || (NODE_ENV === 'dev' && data.useAiOpponent)) {
-      // We default to using AI opponents, but this can be bypassed in dev env
-      opponent = await createNewPlayer({ ai: true });
-      log.info(
-        `created AI opponent in cache for player ${player.getUUID()}: %j`,
-        opponent.toJSON()
-      );
-    }
-
-    const instance = await matchMakeForPlayer(player, opponent);
-
-    // Update the player and opponent in infinispan with their match data
-    player.setMatchInstanceUUID(instance.getUUID());
-
-    if (opponent) {
-      opponent.setMatchInstanceUUID(instance.getUUID());
-      await upsertPlayerInCache(opponent);
-    }
-
-    await upsertPlayerInCache(player);
+    return setupNewPlayer(data);
   }
+}
+
+async function setupNewPlayer(data: ConnectionRequestPayload) {
+  const newPlayerData = await generateNewPlayerData({ ai: false });
+  let newOpponentData!: UnmatchedPlayerData;
+  let match: MatchInstance;
+
+  log.debug('setting up new player: %j', newPlayerData);
+
+  if (NODE_ENV === 'prod' || (NODE_ENV === 'dev' && data.useAiOpponent)) {
+    // We default to using AI opponents, but this can be bypassed in dev env
+    newOpponentData = await generateNewPlayerData({ ai: true });
+    log.info(`created AI opponent for player: %j`, newOpponentData);
+    match = await createMatchInstanceWithData(newPlayerData, newOpponentData);
+  } else {
+    log.info(
+      'Perform matchmake for player since they have opted to play vs human'
+    );
+    match = await matchMakeForPlayer(newPlayerData);
+  }
+
+  const player = new Player({
+    ...newPlayerData,
+    match: match.getUUID()
+  });
+
+  if (newOpponentData) {
+    const opponent = new Player({
+      ...newOpponentData,
+      match: match.getUUID()
+    });
+
+    await upsertPlayerInCache(opponent);
+  }
+
+  await upsertPlayerInCache(player);
 
   return player;
 }
@@ -117,21 +150,21 @@ export async function upsertPlayerInCache(player: Player) {
  * Creates a new player. Will be recursively called until there's no naming
  * conflict with an existing player.
  */
-async function createNewPlayer(opts: { ai: boolean }): Promise<Player> {
+async function generateNewPlayerData(opts: {
+  ai: boolean;
+}): Promise<UnmatchedPlayerData> {
   const username = generateUserName();
   const uuid = nanoid();
 
-  const player = new Player({ username, isAi: opts.ai, uuid });
+  const player = { username, isAi: opts.ai, uuid };
   const existingPlayerWithSameUsername = await getPlayerWithUUID(username);
 
   if (existingPlayerWithSameUsername) {
     log.warn(
       `a player with the username "${username}" already exists. retrying player create to obtain a unique username`
     );
-    return createNewPlayer(opts);
+    return generateNewPlayerData(opts);
   } else {
-    await upsertPlayerInCache(player);
-
     return player;
   }
 }

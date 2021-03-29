@@ -8,7 +8,7 @@ import { ConnectionRequestPayload } from '@app/payloads/incoming';
 import { MessageHandler } from './common';
 import { getPlayerSpecificData } from './common';
 import { AI_AGENT_SERVER_URL } from '@app/config';
-import Player from '@app/models/player';
+import Player from '@app/models/match.player';
 import { http } from '@app/utils';
 import { getSocketDataContainerByPlayerUUID } from './player.sockets';
 import PlayerSocketDataContainer from './player.socket.container';
@@ -22,17 +22,14 @@ const connectionHandler: MessageHandler<
 ) => {
   log.debug('processing connection payload: %j', data);
 
-  const player = await players.initialisePlayer(data);
+  // This will either return an existing player, or create a new one. If the
+  // given data param contains valid "uuid" and "username" strings then a
+  // existing player is returned, otherwise a new player is created.
+  const basePlayer = await players.initialisePlayer(data);
 
-  const { opponent, match, game } = await getPlayerSpecificData(player);
-
-  if (!match) {
-    // A match should always be found. A player is added to a match during
-    // the execution of the initialisePlayer function
-    throw new Error(
-      `failed to find match associated with player ${player.getUUID()}`
-    );
-  }
+  const { match, game, opponent, player } = await getPlayerSpecificData(
+    basePlayer
+  );
 
   if (data.playerId === player.getUUID()) {
     // If the player successfully reconnected, then we need to ensure their
@@ -44,10 +41,7 @@ const connectionHandler: MessageHandler<
     getSocketDataContainerByPlayerUUID(data.playerId)?.close();
   }
 
-  container.setPlayerInfo({
-    uuid: player.getUUID(),
-    username: player.getUsername()
-  });
+  container.setPlayer(basePlayer);
 
   if (opponent && opponent.isAiPlayer()) {
     // Need to create the AI agent anytime the player connects/reconnects. This
@@ -61,7 +55,7 @@ const connectionHandler: MessageHandler<
   }
 
   if (opponent && !opponent.isAiPlayer()) {
-    // If matched with a non-AI opponent we need to let that opponent know
+    // If matched with a non-AI opponent we need to let that person know
     // that an opponent has been found. They might already be aware, but better
     // safe than sorry...or bored in their case since they could be left
     // sitting and waiting for this message if we don't make sure to send it
@@ -78,14 +72,14 @@ const connectionHandler: MessageHandler<
       );
       opponentConatiner.send({
         type: OutgoingMsgType.Configuration,
-        data: new PlayerConfiguration(game, opponent, match, player).toJSON()
+        data: new PlayerConfiguration(game, opponent, match).toJSON()
       });
     }
   }
 
   return {
     type: OutgoingMsgType.Configuration,
-    data: new PlayerConfiguration(game, player, match, opponent).toJSON()
+    data: new PlayerConfiguration(game, player, match).toJSON()
   };
 };
 

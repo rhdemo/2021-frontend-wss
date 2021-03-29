@@ -3,7 +3,6 @@ import Player from '@app/models/player';
 import { OutgoingMsgType } from '@app/payloads/outgoing';
 import { getGameConfiguration } from '@app/stores/game';
 import { getMatchAssociatedWithPlayer } from '@app/stores/matchmaking';
-import { getPlayerWithUUID } from '@app/stores/players';
 import PlayerSocketDataContainer from './player.socket.container';
 
 export type MessageHandlerResponse<T = unknown> = {
@@ -22,19 +21,31 @@ export type MessageHandler<IncomingType, ResponseType> = (
  * @param {Player} player
  */
 export async function getPlayerSpecificData(player: Player) {
-  log.debug(
-    `fetching match, game, and opponent data for player ${player.getUUID()}`
-  );
-  const match = await getMatchAssociatedWithPlayer(player);
-  const opponentUUID = match?.getPlayerOpponentUUID(player);
-  const opponent = opponentUUID
-    ? await getPlayerWithUUID(opponentUUID)
-    : undefined;
+  const playerUUID = player.getUUID();
+  log.debug(`fetching match, game, and opponent data for player ${playerUUID}`);
+
   const game = getGameConfiguration();
+  const match = await getMatchAssociatedWithPlayer(player);
+
+  if (!match) {
+    throw new Error(
+      `failed to find match (${player.getMatchInstanceUUID()}) associated with player ${player.getUUID()}`
+    );
+  }
+
+  const matchPlayer = match.getMatchPlayerInstanceByUUID(player.getUUID());
+  const opponent = match.getPlayerOpponent(player);
+
+  if (!matchPlayer) {
+    throw new Error(
+      `failed to read MatchPlayer for player ${player.getUUID()} from match`
+    );
+  }
 
   return {
-    opponent,
     match,
+    opponent,
+    player: matchPlayer,
     game
   };
 }

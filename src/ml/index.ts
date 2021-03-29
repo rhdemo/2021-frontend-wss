@@ -2,13 +2,13 @@ import { NODE_ENV } from '@app/config';
 import log from '@app/log';
 import GameConfiguration from '@app/models/game.configuration';
 import MatchInstance from '@app/models/match.instance';
-import Player from '@app/models/player';
+import MatchPlayer from '@app/models/match.player';
 import { AWS_BUCKET_NAME } from '@app/config';
 import { getStorageInstance } from './s3';
 
 export function writeGameRecord(
-  winner: Player,
-  loser: Player,
+  winner: MatchPlayer,
+  loser: MatchPlayer,
   match: MatchInstance,
   game: GameConfiguration
 ) {

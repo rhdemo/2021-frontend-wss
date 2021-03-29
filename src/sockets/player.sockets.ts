@@ -32,8 +32,8 @@ export function getSocketDataContainer(ws: WebSocket) {
  * Retrieve the player data associated with a given WebSocket
  * @param ws
  */
-export function getPlayerDataAssociatedWithSocket(ws: WebSocket) {
-  return socks.get(ws)?.getPlayerInfo();
+export function getPlayerAssociatedWithSocket(ws: WebSocket) {
+  return socks.get(ws)?.getPlayer();
 }
 
 /**
@@ -53,7 +53,7 @@ export function getSocketDataContainerByPlayerUUID(
 ): PlayerSocketDataContainer | undefined {
   log.trace(`starting socket lookup for player ${uuid}`);
   for (const entry of socks) {
-    if (entry[1].getPlayerInfo()?.uuid === uuid) {
+    if (entry[1].getPlayer()?.getUUID() === uuid) {
       log.trace(`socket lookup success for player ${uuid}`);
       return entry[1];
     }
