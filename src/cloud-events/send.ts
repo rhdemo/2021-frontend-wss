@@ -54,8 +54,8 @@ type AttackEventData = EventBase & {
 };
 
 type BonusAttackEventData = EventBase & {
-  by: string;
-  bonusHitsCount: number;
+  by: Omit<BasePlayerData, 'board'>;
+  shots: number;
 };
 
 /**
@@ -156,16 +156,20 @@ export function bonus(
   game: GameConfiguration,
   match: MatchInstance,
   player: MatchPlayer,
-  bonusHitsCount: number
+  shots: number
 ): Promise<void> {
   const evt: BonusAttackEventData = {
     game: game.getUUID(),
     match: match.getUUID(),
-    by: player.getUUID(),
-    bonusHitsCount
+    by: {
+      username: player.getUsername(),
+      uuid: player.getUUID(),
+      human: !player.isAiPlayer()
+    },
+    shots
   };
 
-  return sendEvent(EventType.Attack, evt);
+  return sendEvent(EventType.Bonus, evt);
 }
 
 export function matchEnd(
