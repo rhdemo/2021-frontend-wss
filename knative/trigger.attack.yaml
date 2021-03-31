@@ -1,9 +1,12 @@
 apiVersion: eventing.knative.dev/v1
 kind: Trigger
 metadata:
-  name: score-events-consumer
+  name: game-server-attack-score
   namespace: battleships-backend
 spec:
   broker: default
+  filter:
+    attributes:
+      type: attack
   subscriber:
     uri: http://game-server.frontend.svc.cluster.local:8080/event/trigger

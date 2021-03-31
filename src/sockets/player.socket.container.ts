@@ -1,4 +1,4 @@
-import { NODE_ENV, WS_ACTIVITY_TIMEOUT } from '@app/config';
+import { NODE_ENV, WS_ACTIVITY_TIMEOUT_MS } from '@app/config';
 import log from '@app/log';
 import Player from '@app/models/player';
 import { WsPayload } from '@app/payloads/incoming';
@@ -32,7 +32,7 @@ export default class PlayerSocketDataContainer {
       const now = Date.now();
       if (
         this.lastRecvTs === undefined ||
-        now - this.lastRecvTs > WS_ACTIVITY_TIMEOUT
+        now - this.lastRecvTs > WS_ACTIVITY_TIMEOUT_MS
       ) {
         log.info(
           `kicking inactive socket for player ${

@@ -3,11 +3,7 @@ import { CloudEvent, HTTP } from 'cloudevents';
 import { FastifyRequest } from 'fastify';
 
 enum EventType {
-  HitProcessed = 'hitprocessed',
-  MissProcessed = 'missprocessed',
-  SinkProcessed = 'sinkprocessed',
-  WinProcessed = 'winprocessed',
-  LoseProcessed = 'loseprocessed',
+  AttackProcessed = 'attackprocessed',
   BonusProcessed = 'bonusprocessed'
 }
 
@@ -53,26 +49,13 @@ export function isKnownEventType(evt: CloudEvent): boolean {
  */
 export function processEvent(evt: CloudEvent) {
   switch (evt.type) {
-    case EventType.HitProcessed:
-      log.info(`received "${evt.type}" event`);
-      break;
-    case EventType.MissProcessed:
-      log.info(`received "${evt.type}" event`);
-      break;
-    case EventType.SinkProcessed:
-      log.info(`received "${evt.type}" event`);
+    case EventType.AttackProcessed:
+      log.trace(`received "${evt.type}" event: %j`, evt.data);
       break;
     case EventType.BonusProcessed:
-      log.info(`received "${evt.type}" event`);
-      break;
-    case EventType.WinProcessed:
-      log.info(`received "${evt.type}" event`);
-      break;
-    case EventType.LoseProcessed:
-      log.info(`received "${evt.type}" event`);
+      log.trace(`received "${evt.type}" event: %j`, evt.data);
       break;
     default:
       throw new Error(`Unknown Cloud Event type: "${evt.type}"`);
-      break;
   }
 }

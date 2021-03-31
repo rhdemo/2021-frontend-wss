@@ -18,7 +18,7 @@ const config = {
     .asIntPositive(),
 
   // If a player action is not received within this time we close their socket
-  WS_ACTIVITY_TIMEOUT: get('WS_ACTIVITY_TIMEOUT')
+  WS_ACTIVITY_TIMEOUT_MS: get('WS_ACTIVITY_TIMEOUT_MS')
     .default(5 * 60 * 1000)
     .asIntPositive(),
 
