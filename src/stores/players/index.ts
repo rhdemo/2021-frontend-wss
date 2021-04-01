@@ -59,8 +59,9 @@ export async function initialisePlayer(data: ConnectionRequestPayload) {
       return player;
     }
   } else {
-    log.warn(
-      `player ${data.playerId} attempted to reconnect for expired game ${data.gameId}`
+    log.info(
+      'setting up connection attempt with data %j as a new player',
+      data
     );
     return setupNewPlayer(data);
   }
