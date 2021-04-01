@@ -1,5 +1,6 @@
 import log from '@app/log';
 import { GameState } from '@app/models/game.configuration';
+import * as ce from '@app/cloud-events/send';
 import PlayerConfiguration, {
   PlayerConfigurationData
 } from '@app/models/player.configuration';
@@ -74,6 +75,7 @@ const shipPositionHandler: MessageHandler<
     opponent?.hasLockedValidShipPositions()
   ) {
     match.setMatchReady();
+    ce.matchStart(game, match, player, opponent);
   }
 
   await upsertMatchInCache(match);
