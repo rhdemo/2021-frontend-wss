@@ -1,4 +1,6 @@
 import log from '@app/log';
+import { OutgoingMsgType } from '@app/payloads/outgoing';
+import { getSocketDataContainerByPlayerUUID } from '@app/sockets/player.sockets';
 import { CloudEvent, HTTP } from 'cloudevents';
 import { FastifyRequest } from 'fastify';
 
@@ -6,6 +8,15 @@ enum EventType {
   AttackProcessed = 'attackprocessed',
   BonusProcessed = 'bonusprocessed'
 }
+
+type AttackProcessed = {
+  game: string;
+  match: string;
+  uuid: string;
+  ts: number;
+  delta: number;
+  human: boolean;
+};
 
 const ValidEvents = Object.values(EventType);
 
@@ -51,11 +62,32 @@ export function processEvent(evt: CloudEvent) {
   switch (evt.type) {
     case EventType.AttackProcessed:
       log.trace(`received "${evt.type}" event: %j`, evt.data);
+      processAttackEvent(evt.data as AttackProcessed);
       break;
     case EventType.BonusProcessed:
       log.trace(`received "${evt.type}" event: %j`, evt.data);
       break;
     default:
       throw new Error(`Unknown Cloud Event type: "${evt.type}"`);
+  }
+}
+
+/**
+ * Processes an "attackprocessed" payload.
+ * This will send a player a score value if they had a hit.
+ * @param payload
+ */
+function processAttackEvent(payload: AttackProcessed) {
+  if (payload.delta && payload.delta >= 0) {
+    const container = getSocketDataContainerByPlayerUUID(payload.uuid);
+
+    if (container) {
+      container.send({
+        type: OutgoingMsgType.ScoreUpdate,
+        data: {
+          delta: payload.delta
+        }
+      });
+    }
   }
 }

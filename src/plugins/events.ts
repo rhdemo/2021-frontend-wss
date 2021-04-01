@@ -57,6 +57,8 @@ const eventsPlugin: FastifyPluginCallback = (server, options, done) => {
             details: e.errors
           });
         } else {
+          log.error('error processing cloud event');
+          log.error(e);
           reply.status(500).send('internal server error');
         }
       }
