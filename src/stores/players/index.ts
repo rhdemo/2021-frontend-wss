@@ -1,7 +1,6 @@
 import { DATAGRID_PLAYER_DATA_STORE, NODE_ENV } from '@app/config';
 import getDataGridClientForCacheNamed from '@app/datagrid/client';
 import Player, { UnmatchedPlayerData } from '@app/models/player';
-import playerDataGridEventHandler from './datagrid.player.event';
 import log from '@app/log';
 import generateUserName from './username.generator';
 import { nanoid } from 'nanoid';
@@ -13,10 +12,7 @@ import {
 } from '@app/stores/matchmaking';
 import MatchInstance from '@app/models/match.instance';
 
-const getClient = getDataGridClientForCacheNamed(
-  DATAGRID_PLAYER_DATA_STORE,
-  playerDataGridEventHandler
-);
+const getClient = getDataGridClientForCacheNamed(DATAGRID_PLAYER_DATA_STORE);
 
 /**
  * Initialises a Player entity based on an incoming "connection" event.
