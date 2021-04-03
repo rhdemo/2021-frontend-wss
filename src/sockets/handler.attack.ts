@@ -55,7 +55,7 @@ const attackHandler: MessageHandler<
 
   if (!match.isInPhase(MatchPhase.Attack)) {
     throw new Error(
-      `player ${player.getUUID()} attempted an attack, but match instance is not in attack state`
+      `player ${player.getUUID()} attempted an attack, but match instance is in "${match.getMatchPhase()}" phase`
     );
   }
 
