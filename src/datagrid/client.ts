@@ -15,10 +15,10 @@ async function getClient(
 ): Promise<InfinispanClient> {
   const client = await infinispan.client(nodes, {
     cacheName,
-    dataFormat: {
-      keyType: 'text/plain',
-      valueType: 'application/json',
-    }
+    // dataFormat: {
+    //   keyType: 'text/plain',
+    //   valueType: 'application/json',
+    // }
   });
   log.info(`connected to infinispan for "${cacheName}" cache`);
 

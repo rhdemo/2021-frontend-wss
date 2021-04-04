@@ -21,7 +21,7 @@ let currentGameConfig: GameConfiguration;
 export async function POST(): Promise<void> {
   const client = await getClient;
 
-  const gameData = await client.get<GameConfigurationData>(DATAGRID_GAME_DATA_KEY);
+  const gameData = await client.get(DATAGRID_GAME_DATA_KEY);
 
   if (!gameData) {
     log.warn(
@@ -30,7 +30,7 @@ export async function POST(): Promise<void> {
 
     return delay(5000).then(() => POST());
   } else {
-    currentGameConfig = GameConfiguration.from(gameData);
+    currentGameConfig = GameConfiguration.from(JSON.parse(gameData));
     log.info(
       `${DATAGRID_GAME_DATA_STORE}/${DATAGRID_GAME_DATA_KEY} value is: %j`,
       currentGameConfig.toJSON()
@@ -48,10 +48,10 @@ export function getGameConfiguration() {
 
 async function getGameConfigurationFromCache() {
   const client = await getClient;
-  const data = await client.get<GameConfigurationData>(DATAGRID_GAME_DATA_KEY);
+  const data = await client.get(DATAGRID_GAME_DATA_KEY);
 
   if (data) {
-    return GameConfiguration.from(data);
+    return GameConfiguration.from(JSON.parse(data));
   } else {
     throw new Error(
       `${DATAGRID_GAME_DATA_STORE}/${DATAGRID_GAME_DATA_KEY} was missing!`

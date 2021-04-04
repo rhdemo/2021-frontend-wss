@@ -125,11 +125,11 @@ async function getPlayerWithUUID(
 ): Promise<Player | undefined> {
   log.trace(`reading data for player ${uuid}`);
   const client = await getClient;
-  const data = await client.get<PlayerData>(uuid);
+  const data = await client.get(uuid);
 
   if (data) {
     try {
-      return Player.from(data);
+      return Player.from(JSON.parse(data));
     } catch {
       log.warn(
         `found player data for "${uuid}", but failed to parse to JSON: %j`,
@@ -150,7 +150,7 @@ async function upsertPlayerInCache(player: Player) {
   const data = player.toJSON();
   const client = await getClient;
   log.trace(`writing player to cache: %j`, data);
-  return client.put(player.getUUID(), data);
+  return client.put(player.getUUID(), JSON.stringify(data));
 }
 
 /**

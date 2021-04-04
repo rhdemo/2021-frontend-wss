@@ -77,7 +77,7 @@ declare module 'infinispan' {
     disconnect(): Promise<InfinispanClient>;
 
     stats(): Promise<unknown[]>;
-    get<T>(key: string): Promise<T | undefined>;
+    get(key: string): Promise<string | undefined>;
     put(
       key: string,
       value: string|object,
