@@ -64,7 +64,7 @@ export default async function gameConfigurationDatagridEventHandler(
   eventType: ClientEvent
 ) {
   log.debug(`detected game data "${eventType}" event`);
-  if (eventType === 'modify') {
+  if (eventType === 'modify' || eventType === 'create') {
     const freshGameData = await getGameConfigurationFromCache();
     const isReset = freshGameData.getUUID() !== currentGameConfig.getUUID();
 
