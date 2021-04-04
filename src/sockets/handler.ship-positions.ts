@@ -11,6 +11,7 @@ import { getPlayerSpecificData } from './common';
 import PlayerSocketDataContainer from './player.socket.container';
 import { MessageHandler } from './common';
 import { upsertMatchInCache } from '@app/stores/matchmaking';
+import { getSocketDataContainerByPlayerUUID } from './player.sockets';
 
 const shipPositionHandler: MessageHandler<
   ShipPositionData,
@@ -79,6 +80,14 @@ const shipPositionHandler: MessageHandler<
   }
 
   await upsertMatchInCache(match);
+
+  if (opponent) {
+    const opponentSocket = getSocketDataContainerByPlayerUUID(opponent.getUUID())
+    opponentSocket?.send({
+      type: OutgoingMsgType.Configuration,
+      data: new PlayerConfiguration(game, opponent, match).toJSON()
+    })
+  }
 
   return {
     type: OutgoingMsgType.Configuration,

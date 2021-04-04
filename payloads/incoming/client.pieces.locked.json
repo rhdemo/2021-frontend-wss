@@ -1,26 +1,33 @@
 {
   "type": "ship-positions",
   "data": {
-    "Submarine": {
+    "Carrier": {
       "origin": [
         0,
-        0
-      ],
-      "orientation": "horizontal"
-    },
-    "Destroyer": {
-      "origin": [
-        2,
-        1
+        2
       ],
       "orientation": "horizontal"
     },
     "Battleship": {
       "origin": [
-        0,
-        1
+        1,
+        0
       ],
-      "orientation": "vertical"
+      "orientation": "horizontal"
+    },
+    "Submarine": {
+      "origin": [
+        0,
+        4
+      ],
+      "orientation": "horizontal"
+    },
+    "Destroyer": {
+      "origin": [
+        0,
+        3
+      ],
+      "orientation": "horizontal"
     }
   }
 }

@@ -3,10 +3,16 @@ import WebSocket from 'ws';
 import PlayerSocketDataContainer from './player.socket.container';
 
 const socks = new Map<WebSocket, PlayerSocketDataContainer>();
+const socksLookupCache = new Map<string, PlayerSocketDataContainer>();
 
-export function deleteSocketDataContainer(ws: WebSocket) {
+export function cleanupSocketLookups(ws: WebSocket, uuid?: string) {
   socks.get(ws)?.close();
   socks.delete(ws);
+
+  if (uuid) {
+    // UUID might be undefined if the player did not correctly start a session
+    socksLookupCache.delete(uuid)
+  }
 }
 
 /**
@@ -45,16 +51,29 @@ export function getAllPlayerSocketDataContainers() {
 }
 
 /**
- * Retrieve a container using a player's UUID
+ * Retrieve a socket container using a player's UUID.
+ * Initial lookups require searching the entire Map, but secondary lookups
+ *
  * @param uuid
  */
 export function getSocketDataContainerByPlayerUUID(
   uuid: string
 ): PlayerSocketDataContainer | undefined {
   log.trace(`starting socket lookup for player ${uuid}`);
+
+  const fromCache = socksLookupCache.get(uuid)
+
+  if (fromCache) {
+    log.trace(`returning cached socket lookup for player ${uuid}`)
+    return fromCache
+  }
+
   for (const entry of socks) {
     if (entry[1].getPlayer()?.getUUID() === uuid) {
-      log.trace(`socket lookup success for player ${uuid}`);
+      log.trace(`socket lookup success for player ${uuid}. place in cache and return`);
+
+      socksLookupCache.set(uuid, entry[1])
+
       return entry[1];
     }
   }

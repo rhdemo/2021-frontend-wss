@@ -37,10 +37,10 @@ export async function getMatchByUUID(
   uuid: string
 ): Promise<MatchInstance | undefined> {
   const client = await getClient;
-  const data = await client.get(uuid);
+  const data = await client.get<MatchInstanceData>(uuid);
   log.trace(`read match with UUID: ${uuid}`);
   if (data) {
-    return MatchInstance.from(JSON.parse(data));
+    return MatchInstance.from(data);
   } else {
     return undefined;
   }
@@ -61,11 +61,11 @@ export async function getMatchAssociatedWithPlayer(
   }
 
   const client = await getClient;
-  const data = await client.get(uuid);
+  const data = await client.get<MatchInstanceData>(uuid);
 
   if (data) {
     log.trace(`found match for player ${uuid}`);
-    return MatchInstance.from(JSON.parse(data));
+    return MatchInstance.from(data);
   } else {
     log.trace(
       `found no match for ${uuid} for player ${player.getMatchInstanceUUID()}`
@@ -83,7 +83,7 @@ export async function upsertMatchInCache(match: MatchInstance) {
 
   log.trace('writing match to cache: %j', data);
 
-  await client.put(match.getUUID(), JSON.stringify(data));
+  await client.put(match.getUUID(), data);
 
   return match;
 }

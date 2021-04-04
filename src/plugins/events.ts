@@ -5,7 +5,6 @@ import { ValidationError } from 'cloudevents';
 import { NODE_ENV } from '@app/config';
 import { ShipType } from '@app/game/types';
 import log from '@app/log';
-import { DEFAULT_JOI_OPTS } from '@app/payloads/schemas';
 import GameConfiguration, { GameState } from '@app/models/game.configuration';
 import MatchInstance from '@app/models/match.instance';
 import { nanoid } from 'nanoid';
@@ -33,6 +32,29 @@ const eventsPlugin: FastifyPluginCallback = (server, options, done) => {
   server.route({
     method: 'POST',
     url: '/event/trigger',
+    schema: {
+      response: {
+        200: {
+          type: 'string'
+        },
+        400: {
+          type: 'object',
+          properties: {
+            info: { type: 'string' },
+            details: { type: 'string' }
+          }
+        },
+        422: {
+          type: 'object',
+          properties: {
+            info: { type: 'string' }
+          }
+        },
+        500: {
+          type: 'string'
+        }
+      }
+    },
     handler: (request, reply) => {
       try {
         const evt = RecvEvents.parse(request.headers, request.body);
@@ -43,6 +65,7 @@ const eventsPlugin: FastifyPluginCallback = (server, options, done) => {
           });
         } else {
           RecvEvents.processEvent(evt);
+          reply.send('ok')
         }
       } catch (e) {
         if (e instanceof ValidationError) {
@@ -54,7 +77,7 @@ const eventsPlugin: FastifyPluginCallback = (server, options, done) => {
 
           reply.status(400).send({
             info: 'Cloud Event validation failed',
-            details: e.errors
+            details: e.message
           });
         } else {
           log.error('error processing cloud event');
@@ -118,7 +141,10 @@ const eventsPlugin: FastifyPluginCallback = (server, options, done) => {
 
         const validation = NewBody.validate(
           request.body || {},
-          DEFAULT_JOI_OPTS
+          {
+            stripUnknown: true,
+            abortEarly: false
+          }
         );
 
         if (validation.error) {

@@ -1,0 +1,20 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema",
+  "type": "object",
+  "examples": [
+    {
+      "hits": 12
+    }
+  ],
+  "required": [
+    "hits"
+  ],
+  "properties": {
+    "hits": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 100
+    }
+  },
+  "additionalProperties": false
+}

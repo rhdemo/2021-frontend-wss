@@ -132,6 +132,7 @@ export default class MatchInstance extends Model<MatchInstanceData> {
       `setting ${uuid} (ai: ${player.isAiPlayer()}) as the winner for match ${this.getUUID()}`
     );
     this.winner = uuid;
+    this.state.phase = MatchPhase.Finished;
   }
 
   startBonusRound(type: ShipType) {

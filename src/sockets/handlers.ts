@@ -1,23 +1,19 @@
 import { IncomingMsgType, WsPayload } from '@app/payloads/incoming';
-import {
-  ConnectionRequestPayloadSchema,
-  ShipsLockedPayloadSchema,
-  AttackPayloadSchema,
-  BonusPayloadSchema,
-  DEFAULT_JOI_OPTS
-} from '@app/payloads/schemas';
+import { validators } from '@app/payloads/jsonschema'
 import log from '@app/log';
-import Joi from 'joi';
 import { MessageHandler } from './common';
 import attackHandler from './handler.attack';
 import connectionHandler from './handler.connection';
 import shipPositionHandler from './handler.ship-positions';
 import PlayerSocketDataContainer from './player.socket.container';
 import bonusHandler from './handler.bonus';
+import { ValidateFunction } from 'ajv';
+import ValidationError from 'ajv/dist/runtime/validation_error';
+
 
 type MessageHandlersContainer = {
   [key in IncomingMsgType]: {
-    schema: Joi.Schema;
+    schema: ValidateFunction;
     fn: MessageHandler<any, any>;
   };
 };
@@ -25,19 +21,19 @@ type MessageHandlersContainer = {
 const MessageHandlers: MessageHandlersContainer = {
   [IncomingMsgType.Connection]: {
     fn: connectionHandler,
-    schema: ConnectionRequestPayloadSchema
+    schema: validators.connection
   },
   [IncomingMsgType.ShipPositions]: {
     fn: shipPositionHandler,
-    schema: ShipsLockedPayloadSchema
+    schema: validators['ship-positions']
   },
   [IncomingMsgType.Attack]: {
     fn: attackHandler,
-    schema: AttackPayloadSchema
+    schema: validators.attack
   },
   [IncomingMsgType.Bonus]: {
     fn: bonusHandler,
-    schema: BonusPayloadSchema
+    schema: validators.bonus
   }
 };
 
@@ -57,12 +53,17 @@ export async function processSocketMessage(
   const handler = MessageHandlers[payload.type];
 
   if (handler) {
-    const validation = handler.schema.validate(payload.data, DEFAULT_JOI_OPTS);
+    const valid = handler.schema(payload.data);
 
-    if (validation.error) {
-      throw validation.error;
+    if (!valid) {
+      if (handler.schema.errors) {
+        throw new ValidationError(handler.schema.errors);
+      }
+
+      throw new Error(`Ajv validation failed with an unknown error for "${payload.type}" payload.`)
     } else {
-      return handler.fn(container, validation.value);
+      log.trace(`invoking "${payload.type}" handler with data: %j`, payload.data)
+      return handler.fn(container, payload.data);
     }
   } else {
     throw new HandlerNotFoundError(payload.type);

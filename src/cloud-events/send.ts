@@ -9,6 +9,8 @@ import { PredictionData } from '@app/payloads/incoming';
 import GameConfiguration from '@app/models/game.configuration';
 import MatchInstance from '@app/models/match.instance';
 import { AttackResult } from '@app/payloads/common';
+import Ajv, { JTDSchemaType } from "ajv/dist/jtd"
+const ajv = new Ajv()
 
 const source = 'battleship-wss';
 
