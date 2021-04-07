@@ -41,7 +41,7 @@ export type MatchInstanceData = {
 export type MatchInstanceFrontendData = {
   uuid: string;
   winner?: string;
-  state: Optional<TurnState, 'activePlayer'>;
+  state: TurnState
 };
 
 export default class MatchInstance extends Model<MatchInstanceData> {
@@ -241,7 +241,7 @@ export default class MatchInstance extends Model<MatchInstanceData> {
     };
 
     if (data.state.activePlayer !== player) {
-      delete data.state.activePlayer;
+      data.state.activePlayer = '';
     }
 
     return data;
