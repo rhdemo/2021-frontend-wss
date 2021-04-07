@@ -117,9 +117,14 @@ const attackHandler: MessageHandler<
       `determined that player ${opponent.getUUID()} lost match ${match.getUUID()} against ${player.getMatchInstanceUUID()}`
     );
 
+    // We need to change turns anyways...
+    // (technically we don't but our load test relies on this!)
+    match.changeTurn();
+
     // The opponent's ships have all been hit. This player is the winner!
     match.setWinner(player);
 
+    // Record the game end event
     ce.matchEnd(game, match, player, opponent);
 
     // Write payload to storage for analysis by ML services
