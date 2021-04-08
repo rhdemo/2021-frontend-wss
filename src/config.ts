@@ -18,8 +18,9 @@ const config = {
     .asIntPositive(),
 
   // If a player action is not received within this time we close their socket
+  // Defaults to 30 minutes. We need sufficient time during demos to chat etc.
   WS_ACTIVITY_TIMEOUT_MS: get('WS_ACTIVITY_TIMEOUT_MS')
-    .default(5 * 60 * 1000)
+    .default(30 * 60 * 1000)
     .asIntPositive(),
 
   // This is the grid size for the game, e.g "5" would produce a 5x5 grid
