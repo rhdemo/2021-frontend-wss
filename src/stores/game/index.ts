@@ -73,16 +73,20 @@ export default async function gameConfigurationDatagridEventHandler(
 
     if (isReset) {
       log.info(
-        'a game reset was detected, let players know their session has expired'
+        'a game reset was detected, let players know their session has expired. new state: %j',
+        freshGameData
       );
     } else {
-      sendMessageToAllConnectedPlayers({
-        type: OutgoingMsgType.GameState,
-        data: {
-          game: freshGameData
-        }
-      });
+      log.info('changing game state to: %j', freshGameData)
     }
+
+    sendMessageToAllConnectedPlayers({
+      type: OutgoingMsgType.GameState,
+      data: {
+        game: freshGameData
+      }
+    });
+
   } else {
     log.error(
       `detected a "${eventType}" for the game state. this shouldn't happen!`
