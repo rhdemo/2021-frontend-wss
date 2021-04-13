@@ -82,6 +82,7 @@ function processAttackEvent(payload: AttackProcessed) {
     const container = getSocketDataContainerByPlayerUUID(payload.uuid);
 
     if (container) {
+      log.debug(`sending score update to player ${container.getPlayer()?.getUUID()}`)
       container.send({
         type: OutgoingMsgType.ScoreUpdate,
         data: {
