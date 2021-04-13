@@ -7,7 +7,12 @@ import { OutgoingMsgType } from '@app/payloads/outgoing';
 import { ConnectionRequestPayload } from '@app/payloads/incoming';
 import { MessageHandler } from './common';
 import { getPlayerSpecificData } from './common';
-import { AI_AGENT_SERVER_URL } from '@app/config';
+import {
+  AI_AGENT_SERVER_URL,
+  HOSTNAME,
+  HTTP_PORT,
+  NAMESPACE
+} from '@app/config';
 import Player from '@app/models/match.player';
 import { http } from '@app/utils';
 import { getSocketDataContainerByPlayerUUID } from './player.sockets';
@@ -84,6 +89,24 @@ const connectionHandler: MessageHandler<
 };
 
 /**
+ * Generates a URL for AI agents to connect to this specific instance.
+ *
+ * We need this since the application is run using a StatefulSet and it's
+ * vital that the AI agent and human player connect to the same Pod.
+ * @returns {string}
+ */
+function getWsUrl(): string {
+  if (NAMESPACE && HOSTNAME !== 'localhost') {
+    // Create a resolvable URL to the OpenShift service, e.g:
+    // ws://game-server-0.frontend.svc.cluster.local:8080/game
+    return `ws://${HOSTNAME}.${NAMESPACE}.svc.cluster.local:${HTTP_PORT}/game`;
+  } else {
+    // Running in local development within docker
+    return `ws://${HOSTNAME}:${HTTP_PORT}/game`;
+  }
+}
+
+/**
  * Send a request to the AI agent server to create an AI player instance
  * for the given UUID and Username
  * @param aiOpponent {Player}
@@ -93,6 +116,7 @@ function createAiOpponentAgent(aiOpponent: Player, gameId: string) {
   http(AI_AGENT_SERVER_URL, {
     method: 'POST',
     json: {
+      wsUrl: getWsUrl(),
       gameId,
       uuid: aiOpponent.getUUID(),
       username: aiOpponent.getUsername()
