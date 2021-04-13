@@ -1,5 +1,5 @@
 import { HTTP, CloudEvent } from 'cloudevents';
-import { CLOUD_EVENT_BROKER_URL, CLOUD_EVENT_DISABLED } from '@app/config';
+import { CLOUD_EVENT_BROKER_URL, CLOUD_EVENT_DISABLED, HOSTNAME } from '@app/config';
 import log from '@app/log';
 import { ShipType } from '@app/game/types';
 import { http } from '@app/utils';
@@ -49,6 +49,7 @@ type MatchEndEventData = EventBase & {
 
 type AttackEventData = EventBase & {
   hit: boolean;
+  hostname: string;
   by: AttackingPlayerData;
   against: Omit<AttackingPlayerData, 'prediction'>;
   destroyed?: ShipType;
@@ -144,7 +145,8 @@ export function attack(
     origin: `${attackResult.origin[0]},${attackResult.origin[1]}` as const,
     match: match.getUUID(),
     by: toAttackingPlayerData(by, prediction),
-    against: toAttackingPlayerData(against, prediction)
+    against: toAttackingPlayerData(against, prediction),
+    hostname: HOSTNAME
   };
 
   if (attackResult.hit && attackResult.destroyed) {
