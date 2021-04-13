@@ -10,6 +10,7 @@
       ],
       "type": "object",
       "properties": {
+        "additionalProperties": false,
         "orientation": {
           "enum": [
             "horizontal",
@@ -20,6 +21,11 @@
           "type": "array",
           "minItems": 2,
           "maxItems": 2,
+          "items": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 4
+          },
           "examples": [
             [
               0,
