@@ -41,7 +41,7 @@ export type MatchInstanceData = {
 export type MatchInstanceFrontendData = {
   uuid: string;
   winner?: string;
-  state: TurnState
+  state: TurnState;
 };
 
 export default class MatchInstance extends Model<MatchInstanceData> {
@@ -101,7 +101,7 @@ export default class MatchInstance extends Model<MatchInstanceData> {
       );
     }
 
-    log.info(`adding player ${player.uuid} to match ${this.getUUID()}`);
+    log.debug(`adding player ${player.uuid} to match ${this.getUUID()}`);
 
     this.playerB = createMatchPlayerFromPlayerAndMatch(player, this);
   }

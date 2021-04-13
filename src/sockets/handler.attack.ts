@@ -96,7 +96,7 @@ const attackHandler: MessageHandler<
   player.recordAttackResult(attack, attackResult);
 
   if (attackResult.hit) {
-    log.info(
+    log.debug(
       `player ${player.getUUID()} hit ${
         attackResult.type
       } of opponent ${opponent.getUUID()} at %j`,

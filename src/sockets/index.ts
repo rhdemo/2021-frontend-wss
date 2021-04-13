@@ -17,7 +17,7 @@ export function heartbeat() {
   const clients = getAllPlayerSocketDataContainers();
 
   if (clients.size > 0) {
-    log.info(`sending heartbeat to ${clients.size} client(s)`);
+    log.debug(`sending heartbeat to ${clients.size} client(s)`);
 
     clients.forEach((client) => {
       client.send({
@@ -26,7 +26,7 @@ export function heartbeat() {
       });
     });
 
-    log.info(`finished heartbeat send for ${clients.size} client(s)`);
+    log.debug(`finished heartbeat send for ${clients.size} client(s)`);
   }
 
   setTimeout(() => heartbeat(), WS_HEARTBEAT_INTERVAL);

@@ -52,24 +52,27 @@ export async function initialisePlayer(data: ConnectionRequestPayload) {
       // First time this client is connecting, or they provided stale lookup data
       // we compare the usernames as an extra layer of protection, though UUIDs
       // should be enough realistically...
-      log.trace(`player ${data.playerId} attempted reconnect for game ${data.gameId}, but failed. assigning them a new identity. comparison was: %j`, {
-        incoming: {
-          gameId: data.gameId,
-          username: data.playerId
-        },
-        server: {
-          gameId: game.getUUID(),
-          username: player?.getUsername()
+      log.trace(
+        `player ${data.playerId} attempted reconnect for game ${data.gameId}, but failed. assigning them a new identity. comparison was: %j`,
+        {
+          incoming: {
+            gameId: data.gameId,
+            username: data.playerId
+          },
+          server: {
+            gameId: game.getUUID(),
+            username: player?.getUsername()
+          }
         }
-      })
+      );
       return setupNewPlayer(data);
     } else {
-      log.info('retrieved existing player: %j', player.toJSON());
+      log.debug('retrieved existing player: %j', player.toJSON());
 
       return player;
     }
   } else {
-    log.info(
+    log.debug(
       'setting up connection attempt with data %j as a new player',
       data
     );
@@ -87,7 +90,7 @@ async function setupNewPlayer(data: ConnectionRequestPayload) {
   if (NODE_ENV === 'prod' || (NODE_ENV === 'dev' && data.useAiOpponent)) {
     // We default to using AI opponents, but this can be bypassed in dev env
     newOpponentData = generateNewPlayerData({ ai: true });
-    log.info(`created AI opponent for player: %j`, newOpponentData);
+    log.debug(`created AI opponent for player: %j`, newOpponentData);
     match = await createMatchInstanceWithData(newPlayerData, newOpponentData);
   } else {
     log.info(
@@ -120,9 +123,7 @@ async function setupNewPlayer(data: ConnectionRequestPayload) {
  * was not found in the cache
  * @param uuid
  */
-async function getPlayerWithUUID(
-  uuid: string
-): Promise<Player | undefined> {
+async function getPlayerWithUUID(uuid: string): Promise<Player | undefined> {
   log.trace(`reading data for player ${uuid}`);
   const client = await getClient;
   const data = await client.get(uuid);
@@ -157,9 +158,7 @@ async function upsertPlayerInCache(player: Player) {
  * Creates a new player.
  * TODO: verify that the generated username has not been used yet
  */
-function generateNewPlayerData(opts: {
-  ai: boolean;
-}) {
+function generateNewPlayerData(opts: { ai: boolean }) {
   const username = generateUserName();
   const uuid = nanoid();
 

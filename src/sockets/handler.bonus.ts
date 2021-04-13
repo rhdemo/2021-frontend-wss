@@ -58,14 +58,14 @@ const bonusHandler: MessageHandler<
     );
   }
 
-  log.info(
+  log.debug(
     `player ${player.getUUID()} recorded ${
       bonus.hits
     } hits in their bonus round`
   );
 
   // Bonus is a fire and forget event. It doesn't throw errors either.
-  CE.bonus(game, match, player, bonus.hits)
+  CE.bonus(game, match, player, bonus.hits);
 
   match.changeTurn();
   await upsertMatchInCache(match);
