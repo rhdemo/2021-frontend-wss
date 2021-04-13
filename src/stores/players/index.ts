@@ -1,6 +1,6 @@
 import { DATAGRID_PLAYER_DATA_STORE, NODE_ENV } from '@app/config';
 import getDataGridClientForCacheNamed from '@app/datagrid/client';
-import Player, { UnmatchedPlayerData } from '@app/models/player';
+import Player, { PlayerData, UnmatchedPlayerData } from '@app/models/player';
 import log from '@app/log';
 import generateUserName from './username.generator';
 import { nanoid } from 'nanoid';
@@ -34,7 +34,7 @@ export async function initialisePlayer(data: ConnectionRequestPayload) {
     log.debug(
       `player "${data.playerId}" is trying to reconnect for game "${
         data.gameId
-      }", and current game is ${game.getUUID()}`
+      }", and current game is "${game.getUUID()}"`
     );
   }
 
@@ -52,6 +52,16 @@ export async function initialisePlayer(data: ConnectionRequestPayload) {
       // First time this client is connecting, or they provided stale lookup data
       // we compare the usernames as an extra layer of protection, though UUIDs
       // should be enough realistically...
+      log.trace(`player ${data.playerId} attempted reconnect for game ${data.gameId}, but failed. assigning them a new identity. comparison was: %j`, {
+        incoming: {
+          gameId: data.gameId,
+          username: data.playerId
+        },
+        server: {
+          gameId: game.getUUID(),
+          username: player?.getUsername()
+        }
+      })
       return setupNewPlayer(data);
     } else {
       log.info('retrieved existing player: %j', player.toJSON());
@@ -68,7 +78,7 @@ export async function initialisePlayer(data: ConnectionRequestPayload) {
 }
 
 async function setupNewPlayer(data: ConnectionRequestPayload) {
-  const newPlayerData = await generateNewPlayerData({ ai: false });
+  const newPlayerData = generateNewPlayerData({ ai: false });
   let newOpponentData!: UnmatchedPlayerData;
   let match: MatchInstance;
 
@@ -76,7 +86,7 @@ async function setupNewPlayer(data: ConnectionRequestPayload) {
 
   if (NODE_ENV === 'prod' || (NODE_ENV === 'dev' && data.useAiOpponent)) {
     // We default to using AI opponents, but this can be bypassed in dev env
-    newOpponentData = await generateNewPlayerData({ ai: true });
+    newOpponentData = generateNewPlayerData({ ai: true });
     log.info(`created AI opponent for player: %j`, newOpponentData);
     match = await createMatchInstanceWithData(newPlayerData, newOpponentData);
   } else {
@@ -110,7 +120,7 @@ async function setupNewPlayer(data: ConnectionRequestPayload) {
  * was not found in the cache
  * @param uuid
  */
-export async function getPlayerWithUUID(
+async function getPlayerWithUUID(
   uuid: string
 ): Promise<Player | undefined> {
   log.trace(`reading data for player ${uuid}`);
@@ -136,7 +146,7 @@ export async function getPlayerWithUUID(
  * Insert/Update the player entry in the cache
  * @param player
  */
-export async function upsertPlayerInCache(player: Player) {
+async function upsertPlayerInCache(player: Player) {
   const data = player.toJSON();
   const client = await getClient;
   log.trace(`writing player to cache: %j`, data);
@@ -144,24 +154,14 @@ export async function upsertPlayerInCache(player: Player) {
 }
 
 /**
- * Creates a new player. Will be recursively called until there's no naming
- * conflict with an existing player.
+ * Creates a new player.
+ * TODO: verify that the generated username has not been used yet
  */
-async function generateNewPlayerData(opts: {
+function generateNewPlayerData(opts: {
   ai: boolean;
-}): Promise<UnmatchedPlayerData> {
+}) {
   const username = generateUserName();
   const uuid = nanoid();
 
-  const player = { username, isAi: opts.ai, uuid };
-  const existingPlayerWithSameUsername = await getPlayerWithUUID(username);
-
-  if (existingPlayerWithSameUsername) {
-    log.warn(
-      `a player with the username "${username}" already exists. retrying player create to obtain a unique username`
-    );
-    return generateNewPlayerData(opts);
-  } else {
-    return player;
-  }
+  return { username, isAi: opts.ai, uuid };
 }

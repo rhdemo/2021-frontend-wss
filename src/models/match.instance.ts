@@ -41,7 +41,7 @@ export type MatchInstanceData = {
 export type MatchInstanceFrontendData = {
   uuid: string;
   winner?: string;
-  state: Optional<TurnState, 'activePlayer'>;
+  state: TurnState
 };
 
 export default class MatchInstance extends Model<MatchInstanceData> {
@@ -132,6 +132,7 @@ export default class MatchInstance extends Model<MatchInstanceData> {
       `setting ${uuid} (ai: ${player.isAiPlayer()}) as the winner for match ${this.getUUID()}`
     );
     this.winner = uuid;
+    this.state.phase = MatchPhase.Finished;
   }
 
   startBonusRound(type: ShipType) {
@@ -240,7 +241,7 @@ export default class MatchInstance extends Model<MatchInstanceData> {
     };
 
     if (data.state.activePlayer !== player) {
-      delete data.state.activePlayer;
+      data.state.activePlayer = '';
     }
 
     return data;

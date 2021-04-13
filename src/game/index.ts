@@ -10,10 +10,8 @@ import {
   Orientation,
   CellArea
 } from './types';
-import {
-  DEFAULT_JOI_OPTS,
-  ShipsLockedPayloadSchema
-} from '@app/payloads/schemas';
+import { validators } from '@app/payloads/jsonschema'
+import ValidationError from 'ajv/dist/runtime/validation_error';
 
 const EXPECTED_OCCUPIED_SQUARES: number = Object.values(ShipSize).reduce(
   (total, v) => {
@@ -51,15 +49,10 @@ export function getCellAreaWidthAndHeight(area: CellArea) {
 export function validateShipPlacement(
   placementData: unknown
 ): ShipPositionData {
-  const result = ShipsLockedPayloadSchema.validate(
-    placementData,
-    DEFAULT_JOI_OPTS
-  );
+  const valid = validators['ship-positions'](placementData);
 
-  const errors = result.error || result.errors;
-
-  if (errors) {
-    throw errors;
+  if (!valid) {
+    throw new ValidationError(validators['ship-positions'].errors || []);
   }
 
   // Cast the data to the correct type now that Joi validated it, then use it
@@ -149,20 +142,17 @@ function populateGridWithShipData(size: number, ship: ShipData, grid: Grid) {
  * @param {Player} player
  */
 export function isGameOverForPlayer(player: MatchPlayer): boolean {
-  const shipPositions = player.getShipPositionData();
+  const positions = player.getShipPositionData();
 
   log.trace(
     `checking if player ${player.getUUID()} lost match. ships: %j`,
-    shipPositions
+    positions
   );
 
-  if (!shipPositions) {
+  if (!positions) {
     return false;
   } else {
-    return Object.values(shipPositions)
-      .map((s) => s.cells)
-      .flat()
-      .every((c) => c.hit === true);
+    return Object.values(positions).every((s) => s.sunk === true);
   }
 }
 

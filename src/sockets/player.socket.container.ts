@@ -3,11 +3,13 @@ import log from '@app/log';
 import Player from '@app/models/player';
 import { WsPayload } from '@app/payloads/incoming';
 import { OutgoingMsgType } from '@app/payloads/outgoing';
-import { DEFAULT_JOI_OPTS, WsPayloadSchema } from '@app/payloads/schemas';
-import Joi from 'joi';
+import { validators } from '@app/payloads/jsonschema'
 import WebSocket from 'ws';
 import { MessageHandlerResponse } from './common';
 import { HandlerNotFoundError, processSocketMessage } from './handlers';
+import ValidationError from 'ajv/dist/runtime/validation_error';
+import { stringifiers } from '@app/payloads/jsonschema'
+
 
 /**
  * This class is used as a WebSocket wrapper to:
@@ -51,9 +53,11 @@ export default class PlayerSocketDataContainer {
   }
 
   send(response: MessageHandlerResponse) {
+    const serialiser = stringifiers[response.type] || JSON.stringify
+
     try {
       if (this.ws.readyState === WebSocket.OPEN) {
-        const outgoingJson = JSON.stringify({
+        const outgoingJson = serialiser({
           type: response.type,
           data: response.data,
           sequence: this.getSequenceNumber()
@@ -96,13 +100,17 @@ export default class PlayerSocketDataContainer {
 
       try {
         const json = JSON.parse(data.toString());
-        const valid = WsPayloadSchema.validate(json, DEFAULT_JOI_OPTS);
+        const valid = validators.validatePayload(json)
 
-        if (valid.error) {
-          throw valid.error;
+        if (!valid) {
+          if (validators.validatePayload.errors) {
+            throw new ValidationError(validators.validatePayload.errors)
+          } else {
+            throw new Error('Ajv validation failed, but no errors are available to display.')
+          }
         }
 
-        this.send(await processSocketMessage(this, valid.value as WsPayload));
+        this.send(await processSocketMessage(this, json as WsPayload));
       } catch (e) {
         if (e instanceof SyntaxError) {
           log.error(
@@ -115,16 +123,16 @@ export default class PlayerSocketDataContainer {
               info: 'Your JSON payload was a bit iffy. K thx bye.'
             }
           });
-        } else if (e instanceof Joi.ValidationError) {
+        } else if (e instanceof ValidationError) {
           log.warn(
             `message failed schema validation with reason "${
-              e.message
-            }": ${data.toString()}`
+              e.errors.map(e => `${e.instancePath}: ${e.message}`).join(', ')
+            }" for data: ${data.toString()}`
           );
           this.send({
             type: OutgoingMsgType.BadPayload,
             data: {
-              info: e.message
+              info: e.errors
             }
           });
         } else if (e instanceof HandlerNotFoundError) {

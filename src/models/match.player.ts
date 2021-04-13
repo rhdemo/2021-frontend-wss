@@ -40,6 +40,7 @@ type StoredAttackData = {
  * i.e if they have been hit by an attack
  */
 export type StoredShipData = {
+  sunk: boolean;
   type: ShipType;
   origin: CellPosition;
   orientation: Orientation;
@@ -58,7 +59,10 @@ export type PlayerPositionData = {
  * only revealed after the particular ship has been completely destroyed
  */
 type OpponentPositionData = {
-  [key in ShipType]?: StoredShipData;
+  valid: boolean,
+  positions: {
+    [key in ShipType]?: StoredShipData;
+  }
 };
 
 /**
@@ -199,19 +203,6 @@ export default class MatchPlayer extends Model<MatchPlayerData> {
   }
 
   /**
-   * Returns the information for all cells occupied by this player's ships
-   */
-  private getAllShipCells(): Array<StoredShipDataCell> {
-    return Object.keys(this.board.positions).reduce((agg, key) => {
-      const shipData = this.board.positions[key as ShipType];
-
-      shipData.cells.forEach((c) => agg.push(c));
-
-      return agg;
-    }, [] as Array<StoredShipDataCell>);
-  }
-
-  /**
    * Take a validated set on incoming ship positions, initialise them for game
    * logic, and store on this player instance.
    * @param data
@@ -236,31 +227,38 @@ export default class MatchPlayer extends Model<MatchPlayerData> {
    * This is called if this player is the recipient of an attack.
    */
   determineAttackResult({ origin }: AttackDataPayload): AttackResult {
-    const cells = this.getAllShipCells();
+    const { positions } = this.board
 
-    const hitCell = cells.find((c) => isSameOrigin(c.origin, origin));
+    for (const key in positions) {
+      const ship = positions[key as ShipType]
 
-    if (hitCell) {
-      // Mark cell as hit since we need to keep track of this!
-      hitCell.hit = true;
+      if (!ship.sunk) {
+        const hitCell = ship.cells.find(c => isSameOrigin(c.origin, origin))
 
-      // Determine if this hit was the final one required to sink the ship
-      const destroyed = cells
-        .filter((c) => c.type === hitCell.type)
-        .reduce((_destroyed: boolean, v) => {
-          return _destroyed && v.hit;
-        }, true);
+        if (hitCell) {
+          hitCell.hit = true
 
-      return {
-        ...hitCell,
-        destroyed
-      } as AttackResultHitDestroy;
-    } else {
-      return {
-        hit: false,
-        origin
-      };
+          const destroyed = ship.cells.reduce((_destroyed: boolean, v) => {
+            return _destroyed && v.hit;
+          }, true);
+
+          if (destroyed) {
+            log.trace(`marking ${ship.type} as sunk for ${this.getUUID()}`)
+            ship.sunk = true
+          }
+
+          return {
+            ...hitCell,
+            destroyed
+          } as AttackResultHitDestroy;
+        }
+      }
     }
+
+    return {
+      hit: false,
+      origin
+    };
   }
 
   /**
@@ -281,25 +279,21 @@ export default class MatchPlayer extends Model<MatchPlayerData> {
    * opponent, but we don't want to expose ship locations and other data
    */
   toOpponentJSON(): MatchOpponentData {
-    const board: OpponentPositionData = {};
+    const board: OpponentPositionData = {
+      valid: this.board.valid,
+      positions: {}
+    };
     const positions = this.board.positions;
 
     if (positions) {
-      Object.keys(positions).forEach((_ship) => {
-        const type = _ship as ShipType;
-        const ship = positions[type];
-        const sunk = ship.cells.reduce(
-          (result, cell) => result && cell.hit,
-          true
-        );
-
-        if (sunk) {
-          // If the ship has been sunk expose it in returned data
-          board[type] = ship;
+      Object.values(positions).forEach((ship) => {
+        if (ship.sunk) {
+          // Ship is only revealed if sunk
+          board.positions[ship.type] = ship;
         }
       });
     }
-
+    log.trace(`revealing ships for player ${this.getUUID()}: %j`, board)
     return {
       username: this.username,
       attacks: this.attacks.map((a) => {
@@ -351,6 +345,7 @@ function createPositionDataWithCells(
     );
 
     updated[type] = {
+      sunk: false,
       ...shipData,
       type,
       cells: cells.map((origin) => {

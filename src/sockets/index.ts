@@ -5,7 +5,7 @@ import { WS_HEARTBEAT_INTERVAL } from '@app/config';
 import {
   getSocketDataContainer,
   getAllPlayerSocketDataContainers,
-  deleteSocketDataContainer
+  cleanupSocketLookups
 } from './player.sockets';
 import { MessageHandlerResponse } from './common';
 
@@ -45,7 +45,7 @@ export function configureSocket(ws: WebSocket) {
     log.trace(
       'removing player socket and data container from map due to socket closure'
     );
-    deleteSocketDataContainer(ws);
+    cleanupSocketLookups(ws, container.getPlayer()?.getUUID());
   });
 
   return container;

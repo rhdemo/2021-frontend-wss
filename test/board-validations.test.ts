@@ -29,7 +29,7 @@ test('successfully validates, and returns an object that matches the original in
   t.end();
 });
 
-test('throws an error for invalid payload data due to missing orientation and position', (t) => {
+test('throws an error for invalid payload data due to missing orientation', (t) => {
   const placement = getValidShipPlacement();
 
   delete placement[ShipType.Battleship].origin;
@@ -39,8 +39,21 @@ test('throws an error for invalid payload data due to missing orientation and po
     validateShipPlacement(placement);
     t.fail();
   } catch (e) {
-    t.match(e.toString(), /\"Battleship.origin\" is required/gi);
-    t.match(e.toString(), /\"Battleship.orientation\" is required/gi);
+    t.match(e.errors[0].message, /must have required property 'orientation'/gi);
+    t.end();
+  }
+});
+
+test('throws an error for invalid payload data due to missing origin', (t) => {
+  const placement = getValidShipPlacement();
+
+  delete placement[ShipType.Battleship].origin;
+
+  try {
+    validateShipPlacement(placement);
+    t.fail();
+  } catch (e) {
+    t.match(e.errors[0].message, /must have required property 'origin'/gi);
     t.end();
   }
 });
@@ -55,10 +68,10 @@ test('throws an error for invalid payload data with an extra/unknown piece/key',
 
   try {
     validateShipPlacement(placement);
-    t.fail();
-  } catch (e) {
-    t.match(e.toString(), /\"5\" is not allowed/gi);
+    t.assert(!placement['5'], 'Invalid key of "5" should have been removed');
     t.end();
+  } catch (e) {
+    t.fail(e);
   }
 });
 
@@ -71,7 +84,7 @@ test('throws an error since a piece/key is missing', (t) => {
     validateShipPlacement(placement);
     t.fail();
   } catch (e) {
-    t.match(e.toString(), /\"Destroyer\" is required/gi);
+    t.match(e.errors[0].message, /must have required property \'Destroyer\'/gi);
     t.end();
   }
 });
@@ -79,16 +92,13 @@ test('throws an error since a piece/key is missing', (t) => {
 test('throws an error since a piece/key has negative a co-ordinate', (t) => {
   const placement = getValidShipPlacement();
 
-  placement[ShipType.Destroyer].origin = [-1, 2];
+  placement[ShipType.Carrier].origin = [-1, -1];
 
   try {
     validateShipPlacement(placement);
     t.fail();
   } catch (e) {
-    t.match(
-      e.toString(),
-      /"Destroyer.origin\[0\]" must be greater than or equal to 0/gi
-    );
+    t.match(e.errors[0].message, /must be >= 0/gi);
     t.end();
   }
 });
@@ -96,20 +106,13 @@ test('throws an error since a piece/key has negative a co-ordinate', (t) => {
 test('throws an error since a piece/key has a co-ordinate(s) greater than grid size', (t) => {
   const placement = getValidShipPlacement();
 
-  placement[ShipType.Destroyer].origin = [5, 6];
+  placement[ShipType.Carrier].origin = [5, 6];
 
   try {
     validateShipPlacement(placement);
     t.fail();
   } catch (e) {
-    t.match(
-      e.toString(),
-      /"Destroyer.origin\[0\]" must be less than or equal to 4/gi
-    );
-    t.match(
-      e.toString(),
-      /"Destroyer.origin\[1\]" must be less than or equal to 4/gi
-    );
+    t.match(e.errors[0].message, /must be <= 4/gi);
     t.end();
   }
 });

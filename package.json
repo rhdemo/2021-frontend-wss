@@ -6,9 +6,9 @@
   "private": true,
   "scripts": {
     "build": "tsc",
-    "dev": "NODE_ENV=dev AI_AGENT_SERVER_URL=http://summit-ai-agent-server:3003/agent LOG_LEVEL=trace nodemon -e ts -x ts-node -r tsconfig-paths/register src/index.ts | pino-pretty -t",
+    "dev": "NODE_ENV=dev AI_AGENT_SERVER_URL=http://summit-ai-agent-server:3003/agent LOG_LEVEL=trace nodemon -e ts,js -x ts-node -r tsconfig-paths/register src/index.ts | pino-pretty -t",
     "lint": "eslint 'src/**/*.ts'",
-    "test": "ts-node -r tsconfig-paths/register node_modules/tape/bin/tape test/*.test.ts",
+    "test": "ts-node -r tsconfig-paths/register node_modules/tape/bin/tape test/*.test.ts test/**/*.test.ts",
     "start": "node -r module-alias/register build/index.js"
   },
   "repository": {
@@ -34,10 +34,12 @@
   },
   "homepage": "https://github.com/rhdemo/2021-frontend-wss#readme",
   "dependencies": {
+    "ajv": "^8.0.5",
     "aws-sdk": "^2.843.0",
     "cloudevents": "^4.0.0",
     "delay": "~4.4.0",
     "env-var": "~7.0.0",
+    "fast-json-stringify": "^2.5.3",
     "fastify": "~3.9.2",
     "fastify-plugin": "~3.0.0",
     "fastify-websocket": "~2.0.11",

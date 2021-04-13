@@ -1,4 +1,4 @@
-import { CellArea, CellPosition, Orientation } from '@app/game/types';
+import { CellPosition } from '@app/game/types';
 
 type ProbabilityMatrix = [
   [number, number, number, number, number],
@@ -35,9 +35,7 @@ export type ConnectionRequestPayload = {
 
 export type AttackDataPayload = {
   human: boolean;
-  type: CellArea;
   origin: CellPosition;
-  orientation: Orientation;
   prediction?: PredictionData;
 };
 

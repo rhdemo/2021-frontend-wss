@@ -1,0 +1,28 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema",
+  "type": "object",
+  "examples": [
+    {
+      "username": "Sunshine Ray",
+      "gameId": "hapDB0tWkysZ3HNL1HCo",
+      "playerId": "983v4cu9pCPNuK4ofoSh5",
+      "useAiOpponent": true
+    }
+  ],
+  "properties": {
+    "username": {
+      "type": "string"
+    },
+    "gameId": {
+      "type": "string"
+    },
+    "playerId": {
+      "type": "string"
+    },
+    "useAiOpponent": {
+      "type": "boolean",
+      "default": true
+    }
+  },
+  "additionalProperties": false
+}

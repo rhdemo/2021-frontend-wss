@@ -3,7 +3,7 @@ import getDataGridClientForCacheNamed from '@app/datagrid/client';
 import { ClientEvent, InfinispanClient } from 'infinispan';
 import delay from 'delay';
 import log from '@app/log';
-import GameConfiguration from '@app/models/game.configuration';
+import GameConfiguration, { GameConfigurationData } from '@app/models/game.configuration';
 import { sendMessageToAllConnectedPlayers } from '@app/sockets';
 import { OutgoingMsgType } from '@app/payloads/outgoing';
 
@@ -64,7 +64,7 @@ export default async function gameConfigurationDatagridEventHandler(
   eventType: ClientEvent
 ) {
   log.debug(`detected game data "${eventType}" event`);
-  if (eventType === 'modify') {
+  if (eventType === 'modify' || eventType === 'create') {
     const freshGameData = await getGameConfigurationFromCache();
     const isReset = freshGameData.getUUID() !== currentGameConfig.getUUID();
 
@@ -73,16 +73,20 @@ export default async function gameConfigurationDatagridEventHandler(
 
     if (isReset) {
       log.info(
-        'a game reset was detected, let players know their session has expired'
+        'a game reset was detected, let players know their session has expired. new state: %j',
+        freshGameData
       );
     } else {
-      sendMessageToAllConnectedPlayers({
-        type: OutgoingMsgType.GameState,
-        data: {
-          game: freshGameData
-        }
-      });
+      log.info('changing game state to: %j', freshGameData)
     }
+
+    sendMessageToAllConnectedPlayers({
+      type: OutgoingMsgType.GameState,
+      data: {
+        game: freshGameData
+      }
+    });
+
   } else {
     log.error(
       `detected a "${eventType}" for the game state. this shouldn't happen!`
