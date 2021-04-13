@@ -61,11 +61,11 @@ export function isKnownEventType(evt: CloudEvent): boolean {
 export function processEvent(evt: CloudEvent) {
   switch (evt.type) {
     case EventType.AttackProcessed:
-      log.trace(`received "${evt.type}" event: %j`, evt.data);
+      log.debug(`received "${evt.type}" event: %j`, evt.data);
       processAttackEvent(evt.data as AttackProcessed);
       break;
     case EventType.BonusProcessed:
-      log.trace(`received "${evt.type}" event: %j`, evt.data);
+      log.debug(`received "${evt.type}" event: %j`, evt.data);
       break;
     default:
       throw new Error(`Unknown Cloud Event type: "${evt.type}"`);
