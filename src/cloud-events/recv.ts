@@ -1,11 +1,12 @@
+import { HOSTNAME } from '@app/config';
 import log from '@app/log';
 import { OutgoingMsgType } from '@app/payloads/outgoing';
 import { getSocketDataContainerByPlayerUUID } from '@app/sockets/player.sockets';
 import { CloudEvent, HTTP } from 'cloudevents';
 import { FastifyRequest } from 'fastify';
 
-enum EventType {
-  AttackProcessed = 'attackprocessed',
+enum EventTypePrefix {
+  AttackProcessed = `attackprocessed`,
   BonusProcessed = 'bonusprocessed'
 }
 
@@ -18,7 +19,16 @@ type AttackProcessed = {
   human: boolean;
 };
 
-const ValidEvents = Object.values(EventType);
+type BonusProcessed = {
+  game: string;
+  match: string;
+  uuid: string;
+  ts: number;
+  human: boolean;
+  delta: number;
+};
+
+const ValidEvents = Object.values(EventTypePrefix);
 
 /**
  * Parses incoming HTTP headers and body to a Cloud Event and returns the
@@ -60,12 +70,13 @@ export function isKnownEventType(evt: CloudEvent): boolean {
  */
 export function processEvent(evt: CloudEvent) {
   switch (evt.type) {
-    case EventType.AttackProcessed:
+    case `${EventTypePrefix.AttackProcessed}-${HOSTNAME}`:
       log.debug(`received "${evt.type}" event: %j`, evt.data);
-      processAttackEvent(evt.data as AttackProcessed);
+      processScoreEvent(evt.data as AttackProcessed);
       break;
-    case EventType.BonusProcessed:
+    case `${EventTypePrefix.BonusProcessed}-${HOSTNAME}`:
       log.debug(`received "${evt.type}" event: %j`, evt.data);
+      processScoreEvent(evt.data as BonusProcessed);
       break;
     default:
       throw new Error(`Unknown Cloud Event type: "${evt.type}"`);
@@ -73,16 +84,21 @@ export function processEvent(evt: CloudEvent) {
 }
 
 /**
- * Processes an "attackprocessed" payload.
- * This will send a player a score value if they had a hit.
+ * Processes attack and bonus processed payloads.
+ *
+ * This will send a player a score update. This contains the points scored
+ * specifically for that action - this is not their total score.
+ *
  * @param payload
  */
-function processAttackEvent(payload: AttackProcessed) {
+function processScoreEvent(payload: AttackProcessed | BonusProcessed) {
   if (payload.delta && payload.delta >= 0) {
     const container = getSocketDataContainerByPlayerUUID(payload.uuid);
 
     if (container) {
-      log.debug(`sending score update to player ${container.getPlayer()?.getUUID()}`)
+      log.debug(
+        `sending score update to player ${container.getPlayer()?.getUUID()}`
+      );
       container.send({
         type: OutgoingMsgType.ScoreUpdate,
         data: {
