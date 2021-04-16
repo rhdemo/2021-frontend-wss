@@ -1,5 +1,10 @@
 import { HTTP, CloudEvent } from 'cloudevents';
-import { CLOUD_EVENT_BROKER_URL, CLOUD_EVENT_DISABLED, HOSTNAME } from '@app/config';
+import {
+  CLOUD_EVENT_BROKER_URL,
+  CLOUD_EVENT_DISABLED,
+  HOSTNAME,
+  CLOUD_EVENT_WARN_THRESHOLD
+} from '@app/config';
 import log from '@app/log';
 import { ShipType } from '@app/game/types';
 import { http } from '@app/utils';
@@ -9,8 +14,6 @@ import { PredictionData } from '@app/payloads/incoming';
 import GameConfiguration from '@app/models/game.configuration';
 import MatchInstance from '@app/models/match.instance';
 import { AttackResult } from '@app/payloads/common';
-import Ajv, { JTDSchemaType } from "ajv/dist/jtd"
-const ajv = new Ajv()
 
 const source = 'battleship-wss';
 
@@ -96,6 +99,7 @@ async function sendEvent(
     });
 
     try {
+      const start = Date.now();
       const res = await http(CLOUD_EVENT_BROKER_URL, {
         method: 'POST',
         headers: ce.headers,
@@ -104,6 +108,13 @@ async function sendEvent(
       log.debug(
         `sent cloud event and received HTTP ${res.statusCode} response`
       );
+      const reqTime = Date.now() - start;
+
+      if (reqTime >= CLOUD_EVENT_WARN_THRESHOLD) {
+        log.warn(
+          `sending a "${type}" to the cloud event broker took ${reqTime}ms`
+        );
+      }
     } catch (e) {
       log.error('error sending cloud event:');
       log.error(e);

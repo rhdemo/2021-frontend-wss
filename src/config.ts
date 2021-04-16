@@ -38,6 +38,9 @@ const config = {
     .default('http://ai-agent-server.ai.svc.cluster.local:8080/agent')
     .asUrlString(),
 
+  CLOUD_EVENT_WARN_THRESHOLD: get('CLOUD_EVENT_WARN_THRESHOLD')
+    .default('100')
+    .asIntPositive(),
   CLOUD_EVENT_DISABLED: get('CLOUD_EVENT_DISABLED').default('false').asBool(),
   CLOUD_EVENT_BROKER_URL: get('CLOUD_EVENT_BROKER_URL')
     .default(
