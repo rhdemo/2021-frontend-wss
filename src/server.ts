@@ -3,11 +3,16 @@
 import fastify, { FastifyInstance } from 'fastify';
 import { ServerOptions } from 'ws';
 import { WebsocketPluginOptions } from 'fastify-websocket';
-import { WS_MAX_PAYLOAD, HTTP_PORT, NODE_ENV } from '@app/config';
+import {
+  WS_MAX_PAYLOAD,
+  HTTP_PORT,
+  NODE_ENV,
+  FASTIFY_LOG_ENABLED
+} from '@app/config';
 import { getWsAddressFromServer } from '@app/utils';
 
 const { version } = require('../package.json');
-const app = fastify({ logger: NODE_ENV === 'dev' });
+const app = fastify({ logger: NODE_ENV === 'dev' || FASTIFY_LOG_ENABLED });
 
 // Provides a health endpoint to check
 app.register(require('./plugins/health'), {
