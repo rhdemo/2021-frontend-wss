@@ -30,6 +30,12 @@ type BonusProcessed = {
 
 const ValidEvents = Object.values(EventTypePrefix);
 
+export class UnknownCloudEventError extends Error {
+  constructor(type: string) {
+    super(`cloud event type "${type}" is not processable by this server`);
+  }
+}
+
 /**
  * Parses incoming HTTP headers and body to a Cloud Event and returns the
  * CloudEvent instance.
@@ -55,15 +61,6 @@ export function parse(
 }
 
 /**
- * Determines if a given Cloud Event has a known "type" field.
- * @param evt
- */
-export function isKnownEventType(evt: CloudEvent): boolean {
-  log.trace(`checking if "${evt.type}" is in known types: %j`, ValidEvents);
-  return evt.type in ValidEvents;
-}
-
-/**
  * Processes events emitted
  * @param headers
  * @param body
@@ -79,7 +76,7 @@ export function processEvent(evt: CloudEvent) {
       processScoreEvent(evt.data as BonusProcessed);
       break;
     default:
-      throw new Error(`Unknown Cloud Event type: "${evt.type}"`);
+      throw new UnknownCloudEventError(evt.type);
   }
 }
 

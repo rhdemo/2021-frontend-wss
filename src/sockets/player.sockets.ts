@@ -11,7 +11,7 @@ export function cleanupSocketLookups(ws: WebSocket, uuid?: string) {
 
   if (uuid) {
     // UUID might be undefined if the player did not correctly start a session
-    socksLookupCache.delete(uuid)
+    socksLookupCache.delete(uuid);
   }
 }
 
@@ -61,22 +61,24 @@ export function getSocketDataContainerByPlayerUUID(
 ): PlayerSocketDataContainer | undefined {
   log.trace(`starting socket lookup for player ${uuid}`);
 
-  const fromCache = socksLookupCache.get(uuid)
+  const fromCache = socksLookupCache.get(uuid);
 
   if (fromCache) {
-    log.trace(`returning cached socket lookup for player ${uuid}`)
-    return fromCache
+    log.trace(`returning cached socket lookup for player ${uuid}`);
+    return fromCache;
   }
 
   for (const entry of socks) {
     if (entry[1].getPlayer()?.getUUID() === uuid) {
-      log.trace(`socket lookup success for player ${uuid}. place in cache and return`);
+      log.trace(
+        `socket lookup success for player ${uuid}. place in cache and return`
+      );
 
-      socksLookupCache.set(uuid, entry[1])
+      socksLookupCache.set(uuid, entry[1]);
 
       return entry[1];
     }
   }
 
-  log.trace(`socket lookup for fail for player ${uuid}`);
+  log.warn(`socket lookup for failed for player ${uuid}`);
 }

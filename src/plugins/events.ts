@@ -12,6 +12,7 @@ import generateUserName from '@app/stores/players/username.generator';
 import Joi from 'joi';
 import { AttackResult } from '@app/payloads/common';
 import MatchPlayer from '@app/models/match.player';
+import { UnknownCloudEventError } from '@app/cloud-events/recv';
 
 type NewEventParams = { type: SendEvents.EventType };
 type NewEventBody = {
@@ -58,15 +59,8 @@ const eventsPlugin: FastifyPluginCallback = (server, options, done) => {
     handler: (request, reply) => {
       try {
         const evt = RecvEvents.parse(request.headers, request.body);
-
-        if (RecvEvents.isKnownEventType(evt)) {
-          reply.status(422).send({
-            info: `Cloud Event type "${evt.type}" is not known`
-          });
-        } else {
-          RecvEvents.processEvent(evt);
-          reply.send('ok')
-        }
+        RecvEvents.processEvent(evt);
+        reply.send('ok');
       } catch (e) {
         if (e instanceof ValidationError) {
           log.warn('error parsing cloud event. event data: %j', {
@@ -79,6 +73,10 @@ const eventsPlugin: FastifyPluginCallback = (server, options, done) => {
             info: 'Cloud Event validation failed',
             details: e.message
           });
+        } else if (e instanceof UnknownCloudEventError) {
+          log.error('received unknown cloud event type');
+          log.error(e);
+          reply.status(202).send('ok');
         } else {
           log.error('error processing cloud event');
           log.error(e);
@@ -139,13 +137,10 @@ const eventsPlugin: FastifyPluginCallback = (server, options, done) => {
       ) => {
         const { params } = request;
 
-        const validation = NewBody.validate(
-          request.body || {},
-          {
-            stripUnknown: true,
-            abortEarly: false
-          }
-        );
+        const validation = NewBody.validate(request.body || {}, {
+          stripUnknown: true,
+          abortEarly: false
+        });
 
         if (validation.error) {
           return reply.status(400).send(validation.error);
