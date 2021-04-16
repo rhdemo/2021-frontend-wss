@@ -102,15 +102,15 @@ const attackHandler: MessageHandler<
       } of opponent ${opponent.getUUID()} at %j`,
       attack.origin
     );
-
-    // Send the new cloud event type until we move away from the previous hit/miss/sink
-    ce.attack(game, match, player, opponent, attackResult, attack.prediction);
   } else {
     log.debug(
       `player ${player.getUUID()} attack %j did not hit opponent ${opponent.getUUID()} ships`,
       attack.origin
     );
   }
+
+  // Send the new cloud event type until we move away from the previous hit/miss/sink
+  ce.attack(game, match, player, opponent, attackResult, attack.prediction);
 
   if (isGameOverForPlayer(opponent)) {
     log.info(
