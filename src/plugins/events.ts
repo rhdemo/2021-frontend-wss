@@ -35,20 +35,11 @@ const eventsPlugin: FastifyPluginCallback = (server, options, done) => {
     url: '/event/trigger',
     schema: {
       response: {
-        200: {
-          type: 'string'
-        },
         400: {
           type: 'object',
           properties: {
             info: { type: 'string' },
             details: { type: 'string' }
-          }
-        },
-        422: {
-          type: 'object',
-          properties: {
-            info: { type: 'string' }
           }
         },
         500: {
@@ -60,7 +51,7 @@ const eventsPlugin: FastifyPluginCallback = (server, options, done) => {
       try {
         const evt = RecvEvents.parse(request.headers, request.body);
         RecvEvents.processEvent(evt);
-        reply.send('ok');
+        reply.send();
       } catch (e) {
         if (e instanceof ValidationError) {
           log.warn('error parsing cloud event. event data: %j', {
@@ -76,7 +67,7 @@ const eventsPlugin: FastifyPluginCallback = (server, options, done) => {
         } else if (e instanceof UnknownCloudEventError) {
           log.error('received unknown cloud event type');
           log.error(e);
-          reply.status(202).send('ok');
+          reply.send();
         } else {
           log.error('error processing cloud event');
           log.error(e);
