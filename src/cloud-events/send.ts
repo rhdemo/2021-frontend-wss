@@ -81,6 +81,7 @@ async function sendEvent(
   const ts = Date.now();
   const ce = HTTP.binary(
     new CloudEvent({
+      id: `${data.game}:${data.match}`,
       type,
       source,
       data: { ...data, ts }
