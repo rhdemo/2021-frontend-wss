@@ -37,35 +37,26 @@ export class UnknownCloudEventError extends Error {
 }
 
 /**
- * Parses incoming HTTP headers and body to a Cloud Event and returns the
- * CloudEvent instance.
- *
+ * Parses incoming HTTP headers and body to a Cloud Event and process it.
  * Can throw an error if the request is not correctly formatted.
  *
  * @param headers
  * @param body
  */
-export function parse(
+export function processEvent(
   headers: FastifyRequest['headers'],
   body: FastifyRequest['body']
-): CloudEvent {
+) {
   log.trace('parsing cloud event. data: %j', {
     headers,
     body
   });
 
-  return HTTP.toEvent({
+  const evt = HTTP.toEvent({
     headers,
     body
   });
-}
 
-/**
- * Processes events emitted
- * @param headers
- * @param body
- */
-export function processEvent(evt: CloudEvent) {
   switch (evt.type) {
     case `${EventTypePrefix.AttackProcessed}-${HOSTNAME}`:
       log.debug(`received "${evt.type}" event: %j`, evt.data);
