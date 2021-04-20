@@ -1,8 +1,9 @@
-import { HOSTNAME } from '@app/config';
+import { HOSTNAME, SCORING_SERVICE_URL } from '@app/config';
 import log from '@app/log';
 import { OutgoingMsgType } from '@app/payloads/outgoing';
 import { getSocketDataContainerByPlayerUUID } from '@app/sockets/player.sockets';
-import { CloudEvent, HTTP } from 'cloudevents';
+import { http } from '@app/utils';
+import { HTTP } from 'cloudevents';
 import { FastifyRequest } from 'fastify';
 
 enum EventTypePrefix {
@@ -27,8 +28,6 @@ type BonusProcessed = {
   human: boolean;
   delta: number;
 };
-
-const ValidEvents = Object.values(EventTypePrefix);
 
 export class UnknownCloudEventError extends Error {
   constructor(type: string) {
@@ -79,7 +78,7 @@ export function processEvent(
  *
  * @param payload
  */
-function processScoreEvent(payload: AttackProcessed | BonusProcessed) {
+async function processScoreEvent(payload: AttackProcessed | BonusProcessed) {
   if (payload.delta && payload.delta >= 0) {
     const container = getSocketDataContainerByPlayerUUID(payload.uuid);
 
@@ -87,12 +86,35 @@ function processScoreEvent(payload: AttackProcessed | BonusProcessed) {
       log.debug(
         `sending score update to player ${container.getPlayer()?.getUUID()}`
       );
+
+      const total = await getUserScoreTotal(payload);
+
       container.send({
         type: OutgoingMsgType.ScoreUpdate,
         data: {
-          delta: payload.delta
+          delta: payload.delta,
+          total
         }
       });
     }
   }
+}
+
+/**
+ * Fetch the user's score total from the scoring service.
+ * If the lookup fails, then log the error and return undefined
+ * @param payload
+ * @returns
+ */
+function getUserScoreTotal(
+  payload: AttackProcessed | BonusProcessed
+): Promise<number | void> {
+  const path = `/scoring/${payload.game}/${payload.match}/${payload.uuid}/score`;
+
+  return http(new URL(path, SCORING_SERVICE_URL).toString(), { method: 'GET' })
+    .then((res) => 0)
+    .catch((e) => {
+      log.error(`failed to fetch score total for path ${path}. error:`);
+      log.error(e);
+    });
 }

@@ -3,15 +3,19 @@ import { CellArea, CellPosition, Orientation } from '@app/game/types';
 import got, { OptionsOfTextResponseBody } from 'got';
 import { Agent } from 'http';
 import { getAllPossibleShipLayouts } from '@app/game/layouts';
+import { MAX_HTTP_AGENT_SOCKETS } from './config';
+import log from './log';
+
+log.info(`http keep-alive agent will use ${MAX_HTTP_AGENT_SOCKETS} per origin`);
 
 const DEFAULT_AGENTS: OptionsOfTextResponseBody['agent'] = {
   // TODO: maybe try the new undici http library?
   // Using keep-alive agents can massively improve performance/throughput
   http: new Agent({
-    keepAlive: true
+    keepAlive: true,
+    maxSockets: MAX_HTTP_AGENT_SOCKETS
   })
 };
-
 
 /**
  * Returns a random, but valid ship layout.

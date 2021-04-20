@@ -10,6 +10,12 @@ const config = {
   // HTTP and WebSocket traffic both use this port
   HTTP_PORT: get('HTTP_PORT').default(3000).asPortNumber(),
 
+  // Maximum number of connections to use when making http requests to
+  // a given origin. This does not affect incoming requests to this server
+  MAX_HTTP_AGENT_SOCKETS: get('MAX_HTTP_AGENT_SOCKETS')
+    .default(100)
+    .asIntPositive(),
+
   // Reject web socket payloads greater than this many bytes (2KB by default)
   WS_MAX_PAYLOAD: get('WS_MAX_PAYLOAD').default(2048).asIntPositive(),
 
@@ -37,6 +43,12 @@ const config = {
 
   AI_AGENT_SERVER_URL: get('AI_AGENT_SERVER_URL')
     .default('http://ai-agent-server.ai.svc.cluster.local:8080/agent')
+    .asUrlString(),
+
+  SCORING_SERVICE_URL: get('SCORING_SERVICE_URL')
+    .default(
+      'http://scoring-service.battleships-scoring.svc.cluster.local:8080/'
+    )
     .asUrlString(),
 
   CLOUD_EVENT_WARN_THRESHOLD: get('CLOUD_EVENT_WARN_THRESHOLD')
