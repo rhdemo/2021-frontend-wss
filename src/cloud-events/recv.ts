@@ -112,7 +112,15 @@ function getUserScoreTotal(
   const path = `/scoring/${payload.game}/${payload.match}/${payload.uuid}/score`;
 
   return http(new URL(path, SCORING_SERVICE_URL).toString(), { method: 'GET' })
-    .then((res) => 0)
+    .then((res) => {
+      try {
+        return JSON.parse(res.body).score;
+      } catch (e) {
+        log.error('failed to parse score server response: %s', res.body);
+        log.error(e);
+        return;
+      }
+    })
     .catch((e) => {
       log.error(`failed to fetch score total for path ${path}. error:`);
       log.error(e);
