@@ -1,6 +1,9 @@
 export = {
   type: 'object',
   properties: {
+    cluster: {
+      type: 'string'
+    },
     uuid: {
       type: 'string'
     },
@@ -14,4 +17,4 @@ export = {
       type: 'string'
     }
   }
-}
+};

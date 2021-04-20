@@ -1,4 +1,8 @@
-import { DATAGRID_GAME_DATA_KEY, GAME_BONUS_DURATION_MS } from '@app/config';
+import {
+  CLUSTER_NAME,
+  DATAGRID_GAME_DATA_KEY,
+  GAME_BONUS_DURATION_MS
+} from '@app/config';
 import Model from './model';
 
 export type GameConfigurationData = {
@@ -6,6 +10,7 @@ export type GameConfigurationData = {
   date: string;
   state: GameState;
   bonusDuration: number;
+  cluster: string;
 };
 
 export enum GameState {
@@ -38,6 +43,7 @@ export default class GameConfiguration extends Model<GameConfigurationData> {
 
   toJSON(): GameConfigurationData {
     return {
+      cluster: CLUSTER_NAME,
       uuid: this.getUUID(),
       date: this.date,
       state: this.state,
