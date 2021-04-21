@@ -30,7 +30,7 @@ type BasePlayerData = {
   uuid: string;
   username: string;
   human: boolean;
-  board: PlayerPositionData;
+  // board: PlayerPositionData;
 };
 
 type AttackingPlayerData = BasePlayerData & {
@@ -52,7 +52,6 @@ type MatchEndEventData = EventBase & {
 
 type AttackEventData = EventBase & {
   hit: boolean;
-  hostname: string;
   by: AttackingPlayerData;
   against: Omit<AttackingPlayerData, 'prediction'>;
   destroyed?: ShipType;
@@ -84,7 +83,7 @@ async function sendEvent(
       type,
       partitionkey: `${data.game}:${data.match}`,
       source,
-      data: { ...data, ts }
+      data: { ...data, ts, hostname: HOSTNAME }
     })
   );
 
@@ -157,8 +156,7 @@ export function attack(
     origin: `${attackResult.origin[0]},${attackResult.origin[1]}` as const,
     match: match.getUUID(),
     by: toAttackingPlayerData(by, prediction),
-    against: toAttackingPlayerData(against, prediction),
-    hostname: HOSTNAME
+    against: toAttackingPlayerData(against, prediction)
   };
 
   if (attackResult.hit && attackResult.destroyed) {
@@ -229,7 +227,7 @@ function toBasePlayerData(player: MatchPlayer): BasePlayerData {
   return {
     username: player.getUsername(),
     uuid: player.getUUID(),
-    human: !player.isAiPlayer(),
-    board: player.getShipPositionData()
+    human: !player.isAiPlayer()
+    // board: player.getShipPositionData()
   };
 }

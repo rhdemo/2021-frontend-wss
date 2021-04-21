@@ -52,9 +52,13 @@ const config = {
     )
     .asUrlString(),
 
+  // This is the millisecond threshold at which warnings will print when the
+  // cloud event broker is too slow in responding. Under heavy load it's common
+  // to be over 1000-1500 milliseconds
   CLOUD_EVENT_WARN_THRESHOLD: get('CLOUD_EVENT_WARN_THRESHOLD')
-    .default('100')
+    .default('1500')
     .asIntPositive(),
+
   CLOUD_EVENT_DISABLED: get('CLOUD_EVENT_DISABLED').default('false').asBool(),
   CLOUD_EVENT_BROKER_URL: get('CLOUD_EVENT_BROKER_URL')
     .default(
