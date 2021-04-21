@@ -146,6 +146,10 @@ const attackHandler: MessageHandler<
         ...new PlayerConfiguration(game, opponent, match).toJSON()
       }
     });
+  } else {
+    log.warn(
+      'cannot inform opponent of attack result. opponent socket not found'
+    );
   }
 
   // Return the attack result to the player

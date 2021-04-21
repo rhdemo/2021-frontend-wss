@@ -79,6 +79,4 @@ export function getSocketDataContainerByPlayerUUID(
       return entry[1];
     }
   }
-
-  log.warn(`socket lookup for failed for player ${uuid}`);
 }

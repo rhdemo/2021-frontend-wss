@@ -77,6 +77,10 @@ const bonusHandler: MessageHandler<
       type: OutgoingMsgType.BonusResult,
       data: new PlayerConfiguration(game, opponent, match).toJSON()
     });
+  } else {
+    log.warn(
+      'cannot inform opponent of bonus result. opponent socket not found'
+    );
   }
 
   // Update the player with new game state information
