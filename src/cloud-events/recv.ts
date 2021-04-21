@@ -96,6 +96,10 @@ async function processScoreEvent(payload: AttackProcessed | BonusProcessed) {
           total
         }
       });
+    } else {
+      log.warn(
+        `not sending score update. failed to find socket for player ${payload.uuid}`
+      );
     }
   }
 }
