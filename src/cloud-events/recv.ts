@@ -97,7 +97,9 @@ async function processScoreEvent(payload: AttackProcessed | BonusProcessed) {
         }
       });
     } else {
-      log.warn(
+      // This can happen if score processing is delayed. The match may have
+      // ended by the time the backlog has caught up to notify the player
+      log.debug(
         `not sending score update. failed to find socket for player ${payload.uuid}`
       );
     }

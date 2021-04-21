@@ -33,8 +33,8 @@ const connectionHandler: MessageHandler<
     // If the player successfully reconnected, then we need to ensure their
     // previous socket is closed to prevent any funny business or odd
     // behaviour. The previous socket can be found closed their playerId
-    log.info(
-      `player ${data.playerId} reconnected. removing previous socket from pool if it exists`
+    log.debug(
+      `player ${data.playerId} connected with existing ID. removing previous socket from pool if it exists`
     );
     getSocketDataContainerByPlayerUUID(data.playerId)?.close();
   }
