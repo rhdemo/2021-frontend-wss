@@ -1,4 +1,4 @@
-import { HOSTNAME, SCORING_SERVICE_URL } from '@app/config';
+import { HOSTNAME, SCORING_SERVICE_URL, CLOUD_EVENT_WARN_THRESHOLD } from '@app/config';
 import log from '@app/log';
 import { OutgoingMsgType } from '@app/payloads/outgoing';
 import { getSocketDataContainerByPlayerUUID } from '@app/sockets/player.sockets';
@@ -116,9 +116,16 @@ function getUserScoreTotal(
   payload: AttackProcessed | BonusProcessed
 ): Promise<number | void> {
   const path = `/scoring/${payload.game}/${payload.match}/${payload.uuid}/score`;
+  const startTs = Date.now()
 
   return http(new URL(path, SCORING_SERVICE_URL).toString(), { method: 'GET' })
     .then((res) => {
+      const reqTime = Date.now() - startTs
+
+      if (reqTime > CLOUD_EVENT_WARN_THRESHOLD) {
+        log.warn(`score service took ${reqTime}ms to respond to score query`)
+      }
+
       try {
         return JSON.parse(res.body).score;
       } catch (e) {
