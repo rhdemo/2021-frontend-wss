@@ -14,7 +14,7 @@ const config = {
   // Maximum number of connections to use when making http requests to
   // a given origin. This does not affect incoming requests to this server
   MAX_HTTP_AGENT_SOCKETS: get('MAX_HTTP_AGENT_SOCKETS')
-    .default(100)
+    .default(250)
     .asIntPositive(),
 
   // Reject web socket payloads greater than this many bytes (2KB by default)
