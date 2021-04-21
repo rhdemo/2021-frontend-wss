@@ -17,9 +17,9 @@ import { createAiOpponentAgent } from '@app/utils';
 import { getGameConfiguration } from '@app/stores/game';
 
 const newMatchHandler: MessageHandler<
-  {},
+  Record<string, unknown>,
   PlayerConfigurationData | ValidationErrorPayload
-> = async (container: PlayerSocketDataContainer, bonus) => {
+> = async (container: PlayerSocketDataContainer) => {
   const player = container.getPlayer();
   const game = getGameConfiguration();
   if (!player) {

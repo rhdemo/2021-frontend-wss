@@ -11,7 +11,6 @@ import {
   HTTP_PORT
 } from './config';
 import log from './log';
-import MatchPlayer from '@app/models/match.player';
 
 // Generates a URL for AI agents to connect to this specific instance.
 // We need this since the application is run using a StatefulSet and it's

@@ -3,7 +3,7 @@ import getDataGridClientForCacheNamed from '@app/datagrid/client';
 import { ClientEvent, InfinispanClient } from 'infinispan';
 import delay from 'delay';
 import log from '@app/log';
-import GameConfiguration, { GameConfigurationData } from '@app/models/game.configuration';
+import GameConfiguration from '@app/models/game.configuration';
 import { sendMessageToAllConnectedPlayers } from '@app/sockets';
 import { OutgoingMsgType } from '@app/payloads/outgoing';
 
@@ -77,7 +77,7 @@ export default async function gameConfigurationDatagridEventHandler(
         freshGameData
       );
     } else {
-      log.info('changing game state to: %j', freshGameData)
+      log.info('changing game state to: %j', freshGameData);
     }
 
     sendMessageToAllConnectedPlayers({
@@ -86,7 +86,6 @@ export default async function gameConfigurationDatagridEventHandler(
         game: freshGameData
       }
     });
-
   } else {
     log.error(
       `detected a "${eventType}" for the game state. this shouldn't happen!`

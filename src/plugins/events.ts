@@ -1,4 +1,4 @@
-import { FastifyPluginCallback, FastifyRequest } from 'fastify';
+import { FastifyPluginCallback } from 'fastify';
 import fp from 'fastify-plugin';
 import { recv as RecvEvents } from '@app/cloud-events';
 import { ValidationError } from 'cloudevents';

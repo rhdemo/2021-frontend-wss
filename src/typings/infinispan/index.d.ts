@@ -80,7 +80,7 @@ declare module 'infinispan' {
     get(key: string): Promise<string | undefined>;
     put(
       key: string,
-      value: string|object,
+      value: string | Array | Record<string, unknown>,
       opts?: StoreOptions
     ): Promise<string | undefined>;
     remove(key: string): Promise<boolean>;

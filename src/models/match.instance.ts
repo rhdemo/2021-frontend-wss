@@ -5,8 +5,6 @@ import MatchPlayer, { MatchPlayerData } from './match.player';
 import Player, { UnmatchedPlayerData } from './player';
 import { ShipType } from '@app/game/types';
 
-type Optional<T, K extends keyof T> = Pick<Partial<T>, K> & Omit<T, K>;
-
 type TurnState = {
   phase: MatchPhase;
 
