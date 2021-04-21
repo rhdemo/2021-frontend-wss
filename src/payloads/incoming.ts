@@ -18,7 +18,8 @@ export enum IncomingMsgType {
   Connection = 'connection',
   ShipPositions = 'ship-positions',
   Attack = 'attack',
-  Bonus = 'bonus'
+  Bonus = 'bonus',
+  NewMatch = 'new-match'
 }
 
 export type WsPayload = {

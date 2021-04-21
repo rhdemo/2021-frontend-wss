@@ -7,32 +7,9 @@ import { OutgoingMsgType } from '@app/payloads/outgoing';
 import { ConnectionRequestPayload } from '@app/payloads/incoming';
 import { MessageHandler } from './common';
 import { getPlayerSpecificData } from './common';
-import {
-  AI_AGENT_SERVER_URL,
-  HOSTNAME,
-  HTTP_PORT,
-  NAMESPACE
-} from '@app/config';
-import Player from '@app/models/match.player';
-import { http } from '@app/utils';
 import { getSocketDataContainerByPlayerUUID } from './player.sockets';
 import PlayerSocketDataContainer from './player.socket.container';
-
-
-// Generates a URL for AI agents to connect to this specific instance.
-// We need this since the application is run using a StatefulSet and it's
-// vital that the AI agent and human player connect to the same Pod.
-let wsUrl!:string
-if (NAMESPACE && HOSTNAME !== 'localhost') {
-  // Create a resolvable URL to the OpenShift service, e.g:
-  // ws://game-server-0.frontend.svc.cluster.local:8080/game
-  wsUrl = `ws://${HOSTNAME}.${NAMESPACE}.svc.cluster.local:${HTTP_PORT}/game`;
-} else {
-  // Running in local development within docker
-  wsUrl = `ws://${HOSTNAME}:${HTTP_PORT}/game`;
-}
-
-log.info('Will send the following URL for AI agents to connect to: %s', wsUrl)
+import { createAiOpponentAgent } from '@app/utils';
 
 const connectionHandler: MessageHandler<
   ConnectionRequestPayload,
@@ -62,6 +39,8 @@ const connectionHandler: MessageHandler<
     getSocketDataContainerByPlayerUUID(data.playerId)?.close();
   }
 
+  // Important! Associate the Player object with the socket container. This is
+  // used for lookups to notify the player of game/match events!
   container.setPlayer(basePlayer);
 
   if (opponent && opponent.isAiPlayer()) {
@@ -72,7 +51,10 @@ const connectionHandler: MessageHandler<
     //
     // It's fine if the AI agent already exists since the AI agent server can
     // gracefully handle a follow-up creation request and return a 200 OK.
-    createAiOpponentAgent(opponent, game.getUUID());
+    createAiOpponentAgent(
+      { uuid: opponent.getUUID(), username: opponent.getUsername() },
+      game.getUUID()
+    );
   }
 
   if (opponent && !opponent.isAiPlayer()) {
@@ -103,33 +85,5 @@ const connectionHandler: MessageHandler<
     data: new PlayerConfiguration(game, player, match).toJSON()
   };
 };
-
-/**
- * Send a request to the AI agent server to create an AI player instance
- * for the given UUID and Username
- * @param aiOpponent {Player}
- * @param gameId {String}
- */
-function createAiOpponentAgent(aiOpponent: Player, gameId: string) {
-  http(AI_AGENT_SERVER_URL, {
-    method: 'POST',
-    json: {
-      wsUrl,
-      gameId,
-      uuid: aiOpponent.getUUID(),
-      username: aiOpponent.getUsername()
-    }
-  })
-    .then(() => {
-      log.debug(`successfully created AI agent ${aiOpponent.getUUID()}`);
-    })
-    .catch((e) => {
-      log.error(
-        `error returned when creating AI Agent player: %j`,
-        aiOpponent.toJSON()
-      );
-      log.error(e);
-    });
-}
 
 export default connectionHandler;

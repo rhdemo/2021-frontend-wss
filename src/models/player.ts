@@ -46,6 +46,10 @@ export default class Player extends Model<PlayerData> {
     return this.match;
   }
 
+  setMatchInstanceUUID(uuid: string) {
+    this.match = uuid;
+  }
+
   /**
    * Returns a JSON object that is used to serialise this Player instance for
    * storage in the infinispan cache, or to be sent via WebSocket

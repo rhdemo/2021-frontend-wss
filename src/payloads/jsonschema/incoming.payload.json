@@ -16,7 +16,7 @@
   "properties": {
     "type": {
       "type": "string",
-      "enum": ["connection", "ship-positions", "attack", "bonus"]
+      "enum": ["connection", "ship-positions", "attack", "bonus", "new-match"]
     },
     "data": {
       "type": "object"

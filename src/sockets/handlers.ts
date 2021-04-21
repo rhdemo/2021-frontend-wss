@@ -1,5 +1,5 @@
 import { IncomingMsgType, WsPayload } from '@app/payloads/incoming';
-import { validators } from '@app/payloads/jsonschema'
+import { validators } from '@app/payloads/jsonschema';
 import log from '@app/log';
 import { MessageHandler } from './common';
 import attackHandler from './handler.attack';
@@ -9,7 +9,7 @@ import PlayerSocketDataContainer from './player.socket.container';
 import bonusHandler from './handler.bonus';
 import { ValidateFunction } from 'ajv';
 import ValidationError from 'ajv/dist/runtime/validation_error';
-
+import newMatchHandler from './handler.new-match';
 
 type MessageHandlersContainer = {
   [key in IncomingMsgType]: {
@@ -34,6 +34,10 @@ const MessageHandlers: MessageHandlersContainer = {
   [IncomingMsgType.Bonus]: {
     fn: bonusHandler,
     schema: validators.bonus
+  },
+  [IncomingMsgType.NewMatch]: {
+    fn: newMatchHandler,
+    schema: validators['new-match']
   }
 };
 
@@ -60,9 +64,14 @@ export async function processSocketMessage(
         throw new ValidationError(handler.schema.errors);
       }
 
-      throw new Error(`Ajv validation failed with an unknown error for "${payload.type}" payload.`)
+      throw new Error(
+        `Ajv validation failed with an unknown error for "${payload.type}" payload.`
+      );
     } else {
-      log.trace(`invoking "${payload.type}" handler with data: %j`, payload.data)
+      log.trace(
+        `invoking "${payload.type}" handler with data: %j`,
+        payload.data
+      );
       return handler.fn(container, payload.data);
     }
   } else {

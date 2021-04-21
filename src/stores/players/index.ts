@@ -1,6 +1,6 @@
 import { DATAGRID_PLAYER_DATA_STORE, NODE_ENV } from '@app/config';
 import getDataGridClientForCacheNamed from '@app/datagrid/client';
-import Player, { PlayerData, UnmatchedPlayerData } from '@app/models/player';
+import Player, { UnmatchedPlayerData } from '@app/models/player';
 import log from '@app/log';
 import generateUserName from './username.generator';
 import { nanoid } from 'nanoid';
@@ -147,7 +147,7 @@ async function getPlayerWithUUID(uuid: string): Promise<Player | undefined> {
  * Insert/Update the player entry in the cache
  * @param player
  */
-async function upsertPlayerInCache(player: Player) {
+export async function upsertPlayerInCache(player: Player) {
   const data = player.toJSON();
   const client = await getClient;
   log.trace(`writing player to cache: %j`, data);
@@ -158,7 +158,7 @@ async function upsertPlayerInCache(player: Player) {
  * Creates a new player.
  * TODO: verify that the generated username has not been used yet
  */
-function generateNewPlayerData(opts: { ai: boolean }) {
+export function generateNewPlayerData(opts: { ai: boolean }) {
   const username = generateUserName();
   const uuid = nanoid();
 
