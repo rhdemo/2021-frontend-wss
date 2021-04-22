@@ -113,10 +113,6 @@ const attackHandler: MessageHandler<
   ce.attack(game, match, player, opponent, attackResult, attack.prediction);
 
   if (isGameOverForPlayer(opponent)) {
-    log.info(
-      `determined that player ${opponent.getUUID()} lost match ${match.getUUID()} against ${player.getMatchInstanceUUID()}`
-    );
-
     // The opponent's ships have all been hit. This player is the winner!
     match.setWinner(player);
 
