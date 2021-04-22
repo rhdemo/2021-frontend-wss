@@ -30,7 +30,7 @@ type BasePlayerData = {
   uuid: string;
   username: string;
   human: boolean;
-  // board: PlayerPositionData;
+  board: PlayerPositionData;
 };
 
 type AttackingPlayerData = BasePlayerData & {
@@ -227,7 +227,7 @@ function toBasePlayerData(player: MatchPlayer): BasePlayerData {
   return {
     username: player.getUsername(),
     uuid: player.getUUID(),
-    human: !player.isAiPlayer()
-    // board: player.getShipPositionData()
+    human: !player.isAiPlayer(),
+    board: player.getShipPositionData()
   };
 }
