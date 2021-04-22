@@ -91,7 +91,15 @@ const config = {
 
   // These are used to construct a websocket URL for agents to connect
   HOSTNAME: get('HOSTNAME').default('localhost').asString(),
-  NAMESPACE: get('NAMESPACE').asString()
+  NAMESPACE: get('NAMESPACE').asString(),
+
+  // Optional variables used to enable kafka match update forwarding
+  KAFKA_BOOTSTRAP_URL: get('KAFKA_BOOTSTRAP_URL').asUrlString(),
+  KAFKA_SVC_USERNAME: get('KAFKA_SVC_USERNAME').asString(),
+  KAFKA_SVC_PASSWORD: get('KAFKA_SVC_PASSWORD').asString(),
+  KAFKA_TOPIC_MATCHES: get('KAFKA_TOPIC_MATCHES')
+    .default('match-updates')
+    .asString()
 };
 
 export = config;

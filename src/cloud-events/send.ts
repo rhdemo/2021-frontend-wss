@@ -6,62 +6,17 @@ import {
   CLOUD_EVENT_WARN_THRESHOLD
 } from '@app/config';
 import log from '@app/log';
-import { ShipType } from '@app/game/types';
 import { http } from '@app/utils';
 import { HTTPError } from 'got';
-import MatchPlayer, { PlayerPositionData } from '@app/models/match.player';
+import MatchPlayer from '@app/models/match.player';
 import { PredictionData } from '@app/payloads/incoming';
 import GameConfiguration from '@app/models/game.configuration';
 import MatchInstance from '@app/models/match.instance';
 import { AttackResult } from '@app/payloads/common';
+import { EventType, AttackEventData, MatchEndEventData, MatchStartEventData, BonusAttackEventData, AttackingPlayerData, BasePlayerData } from './types';
+import { send as sendToKafka } from '@app/kafka'
 
 const source = 'battleship-wss';
-
-export enum EventType {
-  MatchStart = 'match-start',
-  Attack = 'attack',
-  Bonus = 'bonus',
-  MatchEnd = 'match-end'
-}
-
-type EventBase = { game: string; match: string };
-
-type BasePlayerData = {
-  uuid: string;
-  username: string;
-  human: boolean;
-  board: PlayerPositionData;
-};
-
-type AttackingPlayerData = BasePlayerData & {
-  human: boolean;
-  consecutiveHitsCount: number;
-  shotCount: number;
-  prediction?: PredictionData;
-};
-
-type MatchStartEventData = EventBase & {
-  playerA: BasePlayerData;
-  playerB: BasePlayerData;
-};
-
-type MatchEndEventData = EventBase & {
-  winner: BasePlayerData;
-  loser: BasePlayerData;
-};
-
-type AttackEventData = EventBase & {
-  hit: boolean;
-  by: AttackingPlayerData;
-  against: Omit<AttackingPlayerData, 'prediction'>;
-  destroyed?: ShipType;
-  origin: `${number},${number}`;
-};
-
-type BonusAttackEventData = EventBase & {
-  by: Omit<BasePlayerData, 'board'>;
-  shots: number;
-};
 
 /**
  * Fire and forget function for Cloud Events over HTTP.
@@ -78,12 +33,13 @@ async function sendEvent(
     | BonusAttackEventData
 ) {
   const ts = Date.now();
+  const payload = { ...data, ts, hostname: HOSTNAME }
   const ce = HTTP.binary(
     new CloudEvent({
       type,
       partitionkey: data.match,
       source,
-      data: { ...data, ts, hostname: HOSTNAME }
+      data: payload
     })
   );
 
@@ -99,11 +55,15 @@ async function sendEvent(
     });
 
     try {
+      // Send events directly to the managed kafka in the sky
+      sendToKafka(payload, type)
+
       const start = Date.now();
+      const body = JSON.stringify(ce.body)
       const res = await http(CLOUD_EVENT_BROKER_URL, {
         method: 'POST',
         headers: ce.headers,
-        body: JSON.stringify(ce.body)
+        body
       });
       log.debug(
         `sent cloud event and received HTTP ${res.statusCode} response`
@@ -115,6 +75,7 @@ async function sendEvent(
           `sending a "${type}" to the cloud event broker took ${reqTime}ms`
         );
       }
+
     } catch (e) {
       log.error('error sending cloud event:');
       log.error(e);

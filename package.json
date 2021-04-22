@@ -47,6 +47,7 @@
     "humanize-duration": "~3.25.0",
     "infinispan": "~0.7.0",
     "joi": "~17.3.0",
+    "kafkajs": "^1.15.0",
     "make-promises-safe": "~5.1.0",
     "module-alias": "^2.2.2",
     "nanoid": "~3.1.20",
