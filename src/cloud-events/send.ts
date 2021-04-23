@@ -37,7 +37,7 @@ async function sendEvent(
   const ce = HTTP.binary(
     new CloudEvent({
       type,
-      partitionkey: data.match,
+      partitionkey: `${data.game}:${data.match}`,
       source,
       data: payload
     })
