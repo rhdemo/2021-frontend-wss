@@ -1,8 +1,7 @@
-import { HOSTNAME, SCORING_SERVICE_URL, CLOUD_EVENT_WARN_THRESHOLD } from '@app/config';
+import { HOSTNAME } from '@app/config';
 import log from '@app/log';
 import { OutgoingMsgType } from '@app/payloads/outgoing';
 import { getSocketDataContainerByPlayerUUID } from '@app/sockets/player.sockets';
-import { http } from '@app/utils';
 import { HTTP } from 'cloudevents';
 import { FastifyRequest } from 'fastify';
 
@@ -87,13 +86,10 @@ async function processScoreEvent(payload: AttackProcessed | BonusProcessed) {
         `sending score update to player ${container.getPlayer()?.getUUID()}`
       );
 
-      const total = await getUserScoreTotal(payload);
-
       container.send({
         type: OutgoingMsgType.ScoreUpdate,
         data: {
-          delta: payload.delta,
-          total
+          delta: payload.delta
         }
       });
     } else {
@@ -104,38 +100,4 @@ async function processScoreEvent(payload: AttackProcessed | BonusProcessed) {
       );
     }
   }
-}
-
-/**
- * Fetch the user's score total from the scoring service.
- * If the lookup fails, then log the error and return undefined
- * @param payload
- * @returns
- */
-function getUserScoreTotal(
-  payload: AttackProcessed | BonusProcessed
-): Promise<number | void> {
-  const path = `/scoring/${payload.game}/${payload.match}/${payload.uuid}/score`;
-  const startTs = Date.now()
-
-  return http(new URL(path, SCORING_SERVICE_URL).toString(), { method: 'GET' })
-    .then((res) => {
-      const reqTime = Date.now() - startTs
-
-      if (reqTime > CLOUD_EVENT_WARN_THRESHOLD) {
-        log.warn(`score service took ${reqTime}ms to respond to score query`)
-      }
-
-      try {
-        return JSON.parse(res.body).score;
-      } catch (e) {
-        log.error('failed to parse score server response: %s', res.body);
-        log.error(e);
-        return;
-      }
-    })
-    .catch((e) => {
-      log.error(`failed to fetch score total for path ${path}. error:`);
-      log.error(e);
-    });
 }
