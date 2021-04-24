@@ -15,7 +15,7 @@ export type BasePlayerData = {
   uuid: string;
   username: string;
   human: boolean;
-  board: PlayerPositionData;
+  board?: PlayerPositionData;
 };
 
 export type AttackingPlayerData = BasePlayerData & {

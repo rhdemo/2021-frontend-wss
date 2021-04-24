@@ -55,9 +55,6 @@ async function sendEvent(
     });
 
     try {
-      // Send events directly to the managed kafka in the sky
-      sendToKafka(payload, type)
-
       const start = Date.now();
       const body = JSON.stringify(ce.body)
       const res = await http(CLOUD_EVENT_BROKER_URL, {
@@ -99,8 +96,10 @@ export function matchStart(
     playerA: toBasePlayerData(playerA),
     playerB: toBasePlayerData(playerB)
   };
+  const type = EventType.MatchStart
 
-  return sendEvent(EventType.MatchStart, evt);
+  sendToKafka(type, evt)
+  return sendEvent(type, evt);
 }
 
 export function attack(
@@ -119,12 +118,19 @@ export function attack(
     by: toAttackingPlayerData(by, prediction),
     against: toAttackingPlayerData(against, prediction)
   };
+  const type = EventType.Attack
 
   if (attackResult.hit && attackResult.destroyed) {
     evt.destroyed = attackResult.type;
   }
 
-  return sendEvent(EventType.Attack, evt);
+  sendToKafka(type, evt)
+
+  // Knative events don't require the board, so remove it
+  delete evt.by.board
+  delete evt.against.board
+
+  return sendEvent(type, evt);
 }
 
 export function bonus(
@@ -159,6 +165,9 @@ export function matchEnd(
     winner: toBasePlayerData(winner),
     loser: toBasePlayerData(loser)
   };
+  const type = EventType.MatchEnd
+
+  sendToKafka(type, evt)
 
   return sendEvent(EventType.MatchEnd, evt);
 }

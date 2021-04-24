@@ -60,11 +60,12 @@ const eventTypeMap: { [k in EventType]: string } = {
   [EventType.MatchEnd]: 'end'
 };
 
-export function send(data: CloudEventBase, type: EventType) {
+export function send(type: EventType, data: CloudEventBase) {
   if (kafka && type !== EventType.Bonus) {
+    const ts  = Date.now()
     const message = {
       key: `${data.game}:${data.match}`,
-      value: JSON.stringify({ type: eventTypeMap[type], data, cluster })
+      value: JSON.stringify({ type: eventTypeMap[type], ts, data, cluster })
     };
 
     log.debug(
