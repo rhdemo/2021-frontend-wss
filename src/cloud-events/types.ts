@@ -1,6 +1,6 @@
-import { ShipType } from "@app/game/types";
-import { PlayerPositionData } from "@app/models/match.player";
-import { PredictionData } from "@app/payloads/incoming";
+import { ShipType } from '@app/game/types';
+import { PlayerPositionData } from '@app/models/match.player';
+import { PredictionData } from '@app/payloads/incoming';
 
 export enum EventType {
   MatchStart = 'match-start',
@@ -33,6 +33,7 @@ export type MatchStartEventData = CloudEventBase & {
 export type MatchEndEventData = CloudEventBase & {
   winner: BasePlayerData;
   loser: BasePlayerData;
+  score: number;
 };
 
 export type AttackEventData = CloudEventBase & {

@@ -3,7 +3,8 @@ import {
   CLOUD_EVENT_BROKER_URL,
   CLOUD_EVENT_DISABLED,
   HOSTNAME,
-  CLOUD_EVENT_WARN_THRESHOLD
+  CLOUD_EVENT_WARN_THRESHOLD,
+  SCORING_SERVICE_URL
 } from '@app/config';
 import log from '@app/log';
 import { http } from '@app/utils';
@@ -13,8 +14,16 @@ import { PredictionData } from '@app/payloads/incoming';
 import GameConfiguration from '@app/models/game.configuration';
 import MatchInstance from '@app/models/match.instance';
 import { AttackResult } from '@app/payloads/common';
-import { EventType, AttackEventData, MatchEndEventData, MatchStartEventData, BonusAttackEventData, AttackingPlayerData, BasePlayerData } from './types';
-import { send as sendToKafka } from '@app/kafka'
+import {
+  EventType,
+  AttackEventData,
+  MatchEndEventData,
+  MatchStartEventData,
+  BonusAttackEventData,
+  AttackingPlayerData,
+  BasePlayerData
+} from './types';
+import { send as sendToKafka } from '@app/kafka';
 
 const source = 'battleship-wss';
 
@@ -33,7 +42,7 @@ async function sendEvent(
     | BonusAttackEventData
 ) {
   const ts = Date.now();
-  const payload = { ...data, ts, hostname: HOSTNAME }
+  const payload = { ...data, ts, hostname: HOSTNAME };
   const ce = HTTP.binary(
     new CloudEvent({
       type,
@@ -56,7 +65,7 @@ async function sendEvent(
 
     try {
       const start = Date.now();
-      const body = JSON.stringify(ce.body)
+      const body = JSON.stringify(ce.body);
       const res = await http(CLOUD_EVENT_BROKER_URL, {
         method: 'POST',
         headers: ce.headers,
@@ -72,7 +81,6 @@ async function sendEvent(
           `sending a "${type}" to the cloud event broker took ${reqTime}ms`
         );
       }
-
     } catch (e) {
       log.error('error sending cloud event:');
       log.error(e);
@@ -96,9 +104,9 @@ export function matchStart(
     playerA: toBasePlayerData(playerA),
     playerB: toBasePlayerData(playerB)
   };
-  const type = EventType.MatchStart
+  const type = EventType.MatchStart;
 
-  sendToKafka(type, evt)
+  sendToKafka(type, evt);
   return sendEvent(type, evt);
 }
 
@@ -118,17 +126,17 @@ export function attack(
     by: toAttackingPlayerData(by, prediction),
     against: toAttackingPlayerData(against, prediction)
   };
-  const type = EventType.Attack
+  const type = EventType.Attack;
 
   if (attackResult.hit && attackResult.destroyed) {
     evt.destroyed = attackResult.type;
   }
 
-  sendToKafka(type, evt)
+  sendToKafka(type, evt);
 
   // Knative events don't require the board, so remove it
-  delete evt.by.board
-  delete evt.against.board
+  delete evt.by.board;
+  delete evt.against.board;
 
   return sendEvent(type, evt);
 }
@@ -153,21 +161,27 @@ export function bonus(
   return sendEvent(EventType.Bonus, evt);
 }
 
-export function matchEnd(
+export async function matchEnd(
   game: GameConfiguration,
   match: MatchInstance,
   winner: MatchPlayer,
   loser: MatchPlayer
 ): Promise<void> {
+  const score = await getScore(
+    game.getUUID(),
+    match.getUUID(),
+    winner.getUUID()
+  );
   const evt: MatchEndEventData = {
     game: game.getUUID(),
     match: match.getUUID(),
     winner: toBasePlayerData(winner),
-    loser: toBasePlayerData(loser)
+    loser: toBasePlayerData(loser),
+    score
   };
-  const type = EventType.MatchEnd
+  const type = EventType.MatchEnd;
 
-  sendToKafka(type, evt)
+  sendToKafka(type, evt);
 
   return sendEvent(EventType.MatchEnd, evt);
 }
@@ -200,4 +214,22 @@ function toBasePlayerData(player: MatchPlayer): BasePlayerData {
     human: !player.isAiPlayer(),
     board: player.getShipPositionData()
   };
+}
+
+function getScore(
+  gameId: string,
+  matchId: string,
+  playerId: string
+): Promise<number> {
+  // /scoring/{gameId}/{matchId}/{userId}/score
+  const path = `scoring/${gameId}/${matchId}/${playerId}/score`;
+  const url = new URL(path, SCORING_SERVICE_URL);
+
+  return http(url.toString(), {})
+    .then((res) => JSON.parse(res.body).score as number)
+    .catch((e) => {
+      log.error(`error fetching score for: ${path}`);
+      log.error(e);
+      return 0;
+    });
 }
