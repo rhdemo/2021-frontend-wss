@@ -1,6 +1,12 @@
 'use strict';
 
-import { CloudEventBase, EventType } from '@app/cloud-events/types';
+import {
+  AttackEventData,
+  CloudEventBase,
+  EventType,
+  MatchEndEventData,
+  MatchStartEventData
+} from '@app/cloud-events/types';
 import log from '@app/log';
 import { Kafka, KafkaConfig, Producer } from 'kafkajs';
 import {
@@ -60,9 +66,12 @@ const eventTypeMap: { [k in EventType]: string } = {
   [EventType.MatchEnd]: 'end'
 };
 
-export function send(type: EventType, data: CloudEventBase) {
+export function send(
+  type: EventType,
+  data: MatchEndEventData | MatchStartEventData | AttackEventData
+) {
   if (kafka && type !== EventType.Bonus) {
-    const ts  = Date.now()
+    const ts = Date.now();
     const message = {
       key: `${data.game}:${data.match}`,
       value: JSON.stringify({ type: eventTypeMap[type], ts, data, cluster })

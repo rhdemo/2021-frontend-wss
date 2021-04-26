@@ -167,23 +167,27 @@ export async function matchEnd(
   winner: MatchPlayer,
   loser: MatchPlayer
 ): Promise<void> {
-  const score = await getScore(
-    game.getUUID(),
-    match.getUUID(),
-    winner.getUUID()
-  );
-  const evt: MatchEndEventData = {
-    game: game.getUUID(),
-    match: match.getUUID(),
-    winner: toBasePlayerData(winner),
-    loser: toBasePlayerData(loser),
-    score
-  };
-  const type = EventType.MatchEnd;
+  // Hacky hacks. We need to to wait a bit before querying for a score.
+  // This is because the "attack" the caused this game end event needs to
+  // be processed and accounted for if we want to obtain the final score.
+  setTimeout(async () => {
+    const score = await getScore(
+      game.getUUID(),
+      match.getUUID(),
+      winner.getUUID()
+    );
+    const evt: MatchEndEventData = {
+      game: game.getUUID(),
+      match: match.getUUID(),
+      winner: toBasePlayerData(winner),
+      loser: toBasePlayerData(loser)
+    };
+    const type = EventType.MatchEnd;
 
-  sendToKafka(type, evt);
+    sendToKafka(type, { ...evt, score });
 
-  return sendEvent(EventType.MatchEnd, evt);
+    return sendEvent(EventType.MatchEnd, evt);
+  }, 10000);
 }
 
 /**

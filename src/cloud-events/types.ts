@@ -33,7 +33,7 @@ export type MatchStartEventData = CloudEventBase & {
 export type MatchEndEventData = CloudEventBase & {
   winner: BasePlayerData;
   loser: BasePlayerData;
-  score: number;
+  score?: number;
 };
 
 export type AttackEventData = CloudEventBase & {
